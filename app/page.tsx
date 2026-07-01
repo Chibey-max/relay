@@ -67,7 +67,15 @@ export default function Home() {
     if (prefersReduced) setMotionOn(false);
   }, []);
 
+  const [copied, setCopied] = useState<"address" | "deposit" | null>(null);
   const themeToggleRef = useRef<HTMLButtonElement>(null);
+
+  function copyToClipboard(text: string, key: "address" | "deposit") {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(key);
+      setTimeout(() => setCopied(null), 2000);
+    });
+  }
 
   async function handleThemeToggle() {
     const next = theme === "dark" ? "light" : "dark";
@@ -321,18 +329,59 @@ export default function Home() {
             {phase === "input" && (
               <div>
                 {ownerAddress && (
-                  <div className="mb-4 flex items-center gap-2 rounded-lg border border-line bg-slate px-3 py-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-check" />
-                    <span className="font-mono text-[10px] text-dim">
-                      {shorten(ownerAddress)}
-                    </span>
+                  <div className="mb-5 rounded-2xl border border-line bg-slate p-4 space-y-3">
+                    {/* Wallet address row */}
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="mb-0.5 font-mono text-[9px] uppercase tracking-widest text-dim">Your wallet</p>
+                        <p className="truncate font-mono text-xs text-chalk">{ownerAddress}</p>
+                      </div>
+                      <button
+                        onClick={() => copyToClipboard(ownerAddress, "address")}
+                        className="shrink-0 rounded-lg border border-line px-3 py-1.5 font-mono text-[10px] text-mist transition hover:border-line2 hover:text-chalk"
+                      >
+                        {copied === "address" ? "copied ✓" : "copy"}
+                      </button>
+                    </div>
+
+                    {/* Deposit address row */}
                     {depositAddress && (
-                      <span className="ml-auto font-mono text-[9px] uppercase tracking-wider text-dim">
-                        SRA ready
-                      </span>
+                      <div className="flex items-center justify-between gap-3 border-t border-line pt-3">
+                        <div className="min-w-0">
+                          <p className="mb-0.5 font-mono text-[9px] uppercase tracking-widest text-dim">Deposit address (SRA)</p>
+                          <p className="truncate font-mono text-xs text-mist">{depositAddress}</p>
+                        </div>
+                        <button
+                          onClick={() => copyToClipboard(depositAddress, "deposit")}
+                          className="shrink-0 rounded-lg border border-line px-3 py-1.5 font-mono text-[10px] text-mist transition hover:border-line2 hover:text-chalk"
+                        >
+                          {copied === "deposit" ? "copied ✓" : "copy"}
+                        </button>
+                      </div>
                     )}
+
+                    {/* Funding guide */}
+                    <div className="rounded-lg border border-line2 bg-ink/40 px-3 py-2.5 border-t border-line pt-3">
+                      <p className="mb-1 font-mono text-[9px] uppercase tracking-widest text-dim">How to fund your wallet</p>
+                      <ol className="space-y-1 text-xs text-mist list-none">
+                        <li>1. Copy your wallet address above</li>
+                        <li>2. Send USDC or ETH to it on any chain (Base, Arbitrum, Optimism, Polygon)</li>
+                        <li>3. Relay will find and unify your balance automatically</li>
+                      </ol>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <a href="https://faucet.circle.com" target="_blank" rel="noreferrer"
+                          className="font-mono text-[9px] uppercase tracking-wider text-dim underline hover:text-check">
+                          USDC faucet ↗
+                        </a>
+                        <a href="https://bridge.arbitrum.io" target="_blank" rel="noreferrer"
+                          className="font-mono text-[9px] uppercase tracking-wider text-dim underline hover:text-check">
+                          Arbitrum bridge ↗
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 )}
+
                 <div className="mb-8">
                   <textarea
                     value={text}
@@ -370,7 +419,13 @@ export default function Home() {
                       {intent.amount} {intent.token}
                     </span>
                     <span className="text-dim">→</span>
-                    <span className="font-mono text-sm text-mist">{shorten(intent.recipient)}</span>
+                    <button
+                      onClick={() => intent.recipient && copyToClipboard(intent.recipient, "deposit")}
+                      className="font-mono text-sm text-mist hover:text-chalk transition"
+                      title={intent.recipient ?? ""}
+                    >
+                      {shorten(intent.recipient)} {copied === "deposit" ? "✓" : "⎘"}
+                    </button>
                   </div>
                   <p className="mt-2 text-xs text-dim">
                     Gas sponsored · routed cross-chain · no seed phrase
@@ -411,14 +466,24 @@ export default function Home() {
                       {intent?.amount} {intent?.token} delivered. The recipient never knew a chain was involved.
                     </p>
                     {result.explorerUrl && (
-                      <a
-                        href={result.explorerUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="mt-3 inline-block font-mono text-xs text-check underline"
-                      >
-                        view transaction ↗
-                      </a>
+                      <div className="mt-3 flex items-center gap-3">
+                        <a
+                          href={result.explorerUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-mono text-xs text-check underline"
+                        >
+                          view transaction ↗
+                        </a>
+                        {(result.txHash ?? result.transactionId) && (
+                          <button
+                            onClick={() => copyToClipboard(result.txHash ?? result.transactionId ?? "", "address")}
+                            className="font-mono text-[10px] text-dim hover:text-chalk transition"
+                          >
+                            {copied === "address" ? "copied ✓" : "copy tx id"}
+                          </button>
+                        )}
+                      </div>
                     )}
                     {relayMode === "demo" && (
                       <p className="mt-3 font-mono text-[10px] uppercase tracking-wider text-dim">
