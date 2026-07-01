@@ -20,7 +20,7 @@ import type { ParsedIntent, UnifiedBalance as Balance, ExecutionResult } from ".
 // ssr:false keeps magic-sdk out of the SSR webpack bundle
 const MagicLogin = dynamic(() => import("../components/MagicLogin"), { ssr: false });
 
-type Phase = "login" | "wallet" | "input" | "parsed" | "executing" | "done";
+type Phase = "login" | "input" | "parsed" | "executing" | "done";
 
 const EXAMPLE = "send 5 USDC to 0x1234abcd5678ef901234abcd5678ef901234abcd";
 
@@ -117,12 +117,11 @@ export default function Home() {
   const mainSectionRef = useRef<HTMLDivElement>(null);
 
   // Collapse the hero once user is past the landing state
-  const heroCollapsed = relayMode === "live" && phase !== "login" && phase !== "input";
+  const heroCollapsed = relayMode === "live" && ownerAddress !== null;
 
   async function handleLoginSuccess(address: string) {
     setOwnerAddress(address);
-    setPhase("wallet"); // show wallet card first
-    // Scroll to the main section after a brief delay for the state to render
+    setPhase("input");
     setTimeout(() => mainSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
     // Fetch ZeroDev Smart Routing Address in background
     try {
@@ -257,7 +256,7 @@ export default function Home() {
   }
 
   function reset() {
-    setPhase(relayMode === "live" && !ownerAddress ? "login" : relayMode === "live" ? "wallet" : "input");
+    setPhase(relayMode === "live" && !ownerAddress ? "login" : "input");
     setText("");
     setIntent(null);
     setResult(null);
@@ -333,133 +332,64 @@ export default function Home() {
               </div>
             )}
 
-            {phase === "wallet" && ownerAddress && (
-              <div className="space-y-4">
-                <div className="rounded-2xl border border-check/30 bg-slate p-5">
-                  <div className="mb-4 flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-check animate-pulse" />
-                    <p className="font-mono text-[10px] uppercase tracking-widest text-check">Wallet ready</p>
-                  </div>
-
-                  {/* Full address */}
-                  <div className="mb-4">
-                    <p className="mb-1 font-mono text-[9px] uppercase tracking-widest text-dim">Your address</p>
-                    <div className="flex items-center gap-2 rounded-lg border border-line bg-ink px-3 py-2.5">
-                      <p className="flex-1 break-all font-mono text-xs text-chalk leading-relaxed">{ownerAddress}</p>
-                      <button
-                        onClick={() => copyToClipboard(ownerAddress, "address")}
-                        className="shrink-0 rounded border border-line px-2.5 py-1 font-mono text-[10px] text-mist transition hover:border-line2 hover:text-chalk"
-                      >
-                        {copied === "address" ? "✓ copied" : "copy"}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Deposit / SRA address */}
-                  <div className="mb-4">
-                    <p className="mb-1 font-mono text-[9px] uppercase tracking-widest text-dim">
-                      Deposit address {!depositAddress && <span className="text-dim">(loading…)</span>}
-                    </p>
-                    {depositAddress ? (
-                      <div className="flex items-center gap-2 rounded-lg border border-line bg-ink px-3 py-2.5">
-                        <p className="flex-1 break-all font-mono text-xs text-mist leading-relaxed">{depositAddress}</p>
-                        <button
-                          onClick={() => copyToClipboard(depositAddress, "deposit")}
-                          className="shrink-0 rounded border border-line px-2.5 py-1 font-mono text-[10px] text-mist transition hover:border-line2 hover:text-chalk"
-                        >
-                          {copied === "deposit" ? "✓ copied" : "copy"}
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="h-9 rounded-lg border border-line bg-ink animate-pulse" />
-                    )}
-                  </div>
-
-                  {/* Funding instructions */}
-                  <div className="rounded-lg border border-line bg-ink/60 p-3">
-                    <p className="mb-2 font-mono text-[9px] uppercase tracking-widest text-dim">How to fund your wallet</p>
-                    <ol className="space-y-1.5 text-xs text-mist">
-                      <li className="flex gap-2"><span className="text-dim shrink-0">1.</span>Copy your address above</li>
-                      <li className="flex gap-2"><span className="text-dim shrink-0">2.</span>Send USDC or ETH to it on any chain — Base, Arbitrum, Optimism, or Polygon</li>
-                      <li className="flex gap-2"><span className="text-dim shrink-0">3.</span>Come back here and type what you want to send</li>
-                    </ol>
-                    <div className="mt-3 flex flex-wrap gap-3 border-t border-line pt-3">
-                      <a href="https://faucet.circle.com" target="_blank" rel="noreferrer"
-                        className="font-mono text-[9px] uppercase tracking-wider text-dim underline hover:text-check transition">
-                        USDC testnet faucet ↗
-                      </a>
-                      <a href="https://bridge.arbitrum.io" target="_blank" rel="noreferrer"
-                        className="font-mono text-[9px] uppercase tracking-wider text-dim underline hover:text-check transition">
-                        Arbitrum bridge ↗
-                      </a>
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setPhase("input")}
-                  className="w-full rounded-xl bg-chalk px-5 py-3 text-sm font-medium text-ink transition hover:opacity-90"
-                >
-                  I've funded my wallet — continue →
-                </button>
-                <button
-                  onClick={() => setPhase("input")}
-                  className="block w-full text-center font-mono text-xs text-dim hover:text-chalk transition"
-                >
-                  skip, I already have funds
-                </button>
-              </div>
-            )}
-
             {phase === "input" && (
               <div>
                 {ownerAddress && (
-                  <div className="mb-5 rounded-2xl border border-line bg-slate p-4 space-y-3">
-                    {/* Wallet address row */}
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="mb-0.5 font-mono text-[9px] uppercase tracking-widest text-dim">Your wallet</p>
-                        <p className="truncate font-mono text-xs text-chalk">{ownerAddress}</p>
-                      </div>
-                      <button
-                        onClick={() => copyToClipboard(ownerAddress, "address")}
-                        className="shrink-0 rounded-lg border border-line px-3 py-1.5 font-mono text-[10px] text-mist transition hover:border-line2 hover:text-chalk"
-                      >
-                        {copied === "address" ? "copied ✓" : "copy"}
-                      </button>
+                  <div className="mb-6 rounded-2xl border border-check/30 bg-slate p-5 space-y-4">
+                    <div className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-check animate-pulse" />
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-check">Wallet ready</p>
                     </div>
 
-                    {/* Deposit address row */}
-                    {depositAddress && (
-                      <div className="flex items-center justify-between gap-3 border-t border-line pt-3">
-                        <div className="min-w-0">
-                          <p className="mb-0.5 font-mono text-[9px] uppercase tracking-widest text-dim">Deposit address (SRA)</p>
-                          <p className="truncate font-mono text-xs text-mist">{depositAddress}</p>
-                        </div>
+                    {/* Your address */}
+                    <div>
+                      <p className="mb-1 font-mono text-[9px] uppercase tracking-widest text-dim">Your address</p>
+                      <div className="flex items-center gap-2 rounded-lg border border-line bg-ink px-3 py-2.5">
+                        <p className="flex-1 break-all font-mono text-xs text-chalk leading-relaxed">{ownerAddress}</p>
                         <button
-                          onClick={() => copyToClipboard(depositAddress, "deposit")}
-                          className="shrink-0 rounded-lg border border-line px-3 py-1.5 font-mono text-[10px] text-mist transition hover:border-line2 hover:text-chalk"
+                          onClick={() => copyToClipboard(ownerAddress, "address")}
+                          className="shrink-0 rounded border border-line px-2.5 py-1 font-mono text-[10px] text-mist transition hover:border-line2 hover:text-chalk"
                         >
-                          {copied === "deposit" ? "copied ✓" : "copy"}
+                          {copied === "address" ? "✓ copied" : "copy"}
                         </button>
                       </div>
-                    )}
+                    </div>
+
+                    {/* Deposit / SRA address */}
+                    <div>
+                      <p className="mb-1 font-mono text-[9px] uppercase tracking-widest text-dim">
+                        Deposit address {!depositAddress && <span className="opacity-50">(loading…)</span>}
+                      </p>
+                      {depositAddress ? (
+                        <div className="flex items-center gap-2 rounded-lg border border-line bg-ink px-3 py-2.5">
+                          <p className="flex-1 break-all font-mono text-xs text-mist leading-relaxed">{depositAddress}</p>
+                          <button
+                            onClick={() => copyToClipboard(depositAddress, "deposit")}
+                            className="shrink-0 rounded border border-line px-2.5 py-1 font-mono text-[10px] text-mist transition hover:border-line2 hover:text-chalk"
+                          >
+                            {copied === "deposit" ? "✓ copied" : "copy"}
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="h-10 rounded-lg border border-line bg-ink animate-pulse" />
+                      )}
+                    </div>
 
                     {/* Funding guide */}
-                    <div className="rounded-lg border border-line2 bg-ink/40 px-3 py-2.5 border-t border-line pt-3">
-                      <p className="mb-1 font-mono text-[9px] uppercase tracking-widest text-dim">How to fund your wallet</p>
-                      <ol className="space-y-1 text-xs text-mist list-none">
-                        <li>1. Copy your wallet address above</li>
-                        <li>2. Send USDC or ETH to it on any chain (Base, Arbitrum, Optimism, Polygon)</li>
-                        <li>3. Relay will find and unify your balance automatically</li>
+                    <div className="rounded-lg border border-line bg-ink/60 p-3">
+                      <p className="mb-2 font-mono text-[9px] uppercase tracking-widest text-dim">Fund your wallet</p>
+                      <ol className="space-y-1 text-xs text-mist">
+                        <li className="flex gap-2"><span className="shrink-0 text-dim">1.</span>Copy your address above</li>
+                        <li className="flex gap-2"><span className="shrink-0 text-dim">2.</span>Send USDC or ETH on Base, Arbitrum, Optimism, or Polygon</li>
+                        <li className="flex gap-2"><span className="shrink-0 text-dim">3.</span>Type your payment below — Relay finds the funds</li>
                       </ol>
-                      <div className="mt-2 flex flex-wrap gap-2">
+                      <div className="mt-3 flex gap-3 border-t border-line pt-3">
                         <a href="https://faucet.circle.com" target="_blank" rel="noreferrer"
-                          className="font-mono text-[9px] uppercase tracking-wider text-dim underline hover:text-check">
+                          className="font-mono text-[9px] uppercase tracking-wider text-dim underline hover:text-check transition">
                           USDC faucet ↗
                         </a>
                         <a href="https://bridge.arbitrum.io" target="_blank" rel="noreferrer"
-                          className="font-mono text-[9px] uppercase tracking-wider text-dim underline hover:text-check">
+                          className="font-mono text-[9px] uppercase tracking-wider text-dim underline hover:text-check transition">
                           Arbitrum bridge ↗
                         </a>
                       </div>
@@ -600,7 +530,7 @@ export default function Home() {
 
           <div ref={flowReveal.ref} className={`lg:pt-2 ${flowReveal.className}`}>
             <IntegrationStatus
-              uaActive={phase !== "input" && phase !== "login" && phase !== "wallet"}
+              uaActive={phase !== "input" && phase !== "login"}
               mode={relayMode}
               lastTx={result?.txHash}
               lastUserOp={result?.userOpHash}
