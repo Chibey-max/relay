@@ -11,6 +11,7 @@ interface Props {
   lastUserOp?: string;
   lastTx?: string;
   uaActive?: boolean;
+  mode?: "demo" | "live";
 }
 
 const Dot = ({ on }: { on: boolean }) => (
@@ -23,7 +24,9 @@ export default function IntegrationStatus({
   lastUserOp,
   lastTx,
   uaActive = true,
+  mode,
 }: Props) {
+  const displayMode = mode ?? RELAY_MODE;
   const rows = [
     { label: "Particle UA", sub: "EIP-7702 mode", track: "Main · $2,500", on: uaActive },
     { label: "Magic", sub: "email login", track: "Bonus · $500", on: true },
@@ -39,10 +42,10 @@ export default function IntegrationStatus({
         </span>
         <span
           className={`font-mono text-[9px] uppercase tracking-wider ${
-            RELAY_MODE === "live" ? "text-check" : "text-mist"
+            displayMode === "live" ? "text-check" : "text-mist"
           }`}
         >
-          {RELAY_MODE}
+          {displayMode}
         </span>
       </div>
 

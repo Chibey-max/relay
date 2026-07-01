@@ -8,12 +8,16 @@ import { RELAY_MODE } from "../../../lib/config";
 import { DEMO_BALANCE } from "../../../constants/demo";
 
 export async function POST(req: NextRequest) {
-  if (RELAY_MODE === "demo") {
+  const body = await req.json();
+  // Client-side mode toggle overrides the build-time env default
+  const mode = body.mode ?? RELAY_MODE;
+
+  if (mode === "demo") {
     return NextResponse.json({ mode: "demo", balance: DEMO_BALANCE });
   }
 
   // Live: fetch from Particle using the owner address.
-  const { ownerAddress } = await req.json();
+  const { ownerAddress } = body;
   if (!ownerAddress) {
     return NextResponse.json({ error: "ownerAddress required in live mode." }, { status: 400 });
   }

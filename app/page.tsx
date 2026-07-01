@@ -25,7 +25,13 @@ type Phase = "login" | "input" | "parsed" | "executing" | "done";
 const EXAMPLE = "send 5 USDC to 0x1234abcd5678ef901234abcd5678ef901234abcd";
 
 export default function Home() {
-  const [phase, setPhase] = useState<Phase>(RELAY_MODE === "live" ? "login" : "input");
+  const [relayMode, setRelayModeState] = useState<"demo" | "live">(() => {
+    if (typeof window !== "undefined") {
+      return (localStorage.getItem("relayMode") as "demo" | "live") ?? RELAY_MODE;
+    }
+    return RELAY_MODE;
+  });
+  const [phase, setPhase] = useState<Phase>(relayMode === "live" ? "login" : "input");
   const [text, setText] = useState("");
   const [intent, setIntent] = useState<ParsedIntent | null>(null);
   const [balance, setBalance] = useState<Balance | null>(null);
@@ -37,6 +43,21 @@ export default function Home() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [ownerAddress, setOwnerAddress] = useState<string | null>(null);
   const [depositAddress, setDepositAddress] = useState<string | null>(null);
+
+  function toggleMode() {
+    const next = relayMode === "demo" ? "live" : "demo";
+    localStorage.setItem("relayMode", next);
+    setRelayModeState(next);
+    // Reset flow when switching modes
+    setText("");
+    setIntent(null);
+    setResult(null);
+    setSteps([]);
+    setError(null);
+    setOwnerAddress(null);
+    setDepositAddress(null);
+    setPhase(next === "live" ? "login" : "input");
+  }
 
   // Default motion off if the OS prefers reduced motion — but this is only
   // the STARTING value. The explicit toggle below always wins after that,
@@ -59,7 +80,7 @@ export default function Home() {
       const res = await fetch("/api/sra", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ownerAddress: address }),
+        body: JSON.stringify({ ownerAddress: address, mode: relayMode }),
       });
       const data = await res.json();
       if (data.smartRoutingAddress) setDepositAddress(data.smartRoutingAddress);
@@ -85,7 +106,7 @@ export default function Home() {
       const balRes = await fetch("/api/balance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ownerAddress }),
+        body: JSON.stringify({ ownerAddress, mode: relayMode }),
       });
       const balData = await balRes.json();
       if (balData.error) setError(balData.error);
@@ -112,12 +133,12 @@ export default function Home() {
     setSteps(initial);
 
     try {
-      if (RELAY_MODE === "live" && ownerAddress) {
+      if (relayMode === "live" && ownerAddress) {
         // Validate via server, then sign client-side
         const validateRes = await fetch("/api/execute", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ intent, ownerAddress }),
+          body: JSON.stringify({ intent, ownerAddress, mode: relayMode }),
         });
         const validateData = await validateRes.json();
 
@@ -157,7 +178,7 @@ export default function Home() {
         const res = await fetch("/api/execute", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ intent }),
+          body: JSON.stringify({ intent, mode: relayMode }),
         });
         const data = await res.json();
 
@@ -188,7 +209,7 @@ export default function Home() {
   }
 
   function reset() {
-    setPhase(RELAY_MODE === "live" && !ownerAddress ? "login" : "input");
+    setPhase(relayMode === "live" && !ownerAddress ? "login" : "input");
     setText("");
     setIntent(null);
     setResult(null);
@@ -206,13 +227,15 @@ export default function Home() {
             Relay
           </span>
           <div className="flex items-center gap-4">
-            <span
-              className={`rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-wider ${
-                RELAY_MODE === "live" ? "border-check text-check" : "border-line2 text-mist"
+            <button
+              onClick={toggleMode}
+              className={`rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-wider transition hover:opacity-80 ${
+                relayMode === "live" ? "border-check text-check" : "border-line2 text-mist"
               }`}
+              title={`Switch to ${relayMode === "live" ? "demo" : "live"} mode`}
             >
-              {RELAY_MODE === "live" ? "live" : "demo"}
-            </span>
+              {relayMode === "live" ? "live ⇄" : "demo ⇄"}
+            </button>
             <button
               onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
               className="rounded-full border border-line px-3 py-1 font-mono text-[9px] uppercase tracking-wider text-mist hover:text-chalk"
@@ -366,9 +389,9 @@ export default function Home() {
                         view transaction ↗
                       </a>
                     )}
-                    {RELAY_MODE === "demo" && (
+                    {relayMode === "demo" && (
                       <p className="mt-3 font-mono text-[10px] uppercase tracking-wider text-dim">
-                        demo result — connect keys for a real on-chain tx
+                        demo result — switch to live mode for a real on-chain tx
                       </p>
                     )}
                     <button onClick={reset} className="mt-4 block rounded-lg border border-line px-4 py-2 text-sm text-mist hover:text-chalk">
@@ -397,6 +420,7 @@ export default function Home() {
           <div ref={flowReveal.ref} className={`lg:pt-2 ${flowReveal.className}`}>
             <IntegrationStatus
               uaActive={phase !== "input" && phase !== "login"}
+              mode={relayMode}
               lastTx={result?.txHash}
               lastUserOp={result?.userOpHash}
               contractAddress={RELAY_POLICY_ADDRESS}

@@ -5,9 +5,11 @@ import type { Address } from "viem";
 const DEMO_SRA = "0x5AA0000000000000000000000000000000000001";
 
 export async function POST(req: NextRequest) {
-  const { ownerAddress } = await req.json();
+  const body = await req.json();
+  const { ownerAddress } = body;
+  const mode = body.mode ?? RELAY_MODE;
 
-  if (RELAY_MODE === "demo") {
+  if (mode === "demo") {
     return NextResponse.json({
       mode: "demo",
       smartRoutingAddress: DEMO_SRA,

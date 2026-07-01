@@ -19,7 +19,9 @@ const TOKEN_ADDRESSES: Record<string, string> = {
 };
 
 export async function POST(req: NextRequest) {
-  const { intent } = await req.json();
+  const body = await req.json();
+  const { intent } = body;
+  const mode = body.mode ?? RELAY_MODE;
 
   if (!intent || intent.action !== "transfer") {
     return NextResponse.json({ ok: false, error: "Not a transfer intent." }, { status: 400 });
@@ -40,7 +42,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (RELAY_MODE === "demo") {
+  if (mode === "demo") {
     return NextResponse.json({ mode: "demo", ...DEMO_EXECUTION });
   }
 
