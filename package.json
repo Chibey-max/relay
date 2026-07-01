@@ -1,0 +1,37 @@
+{
+  "name": "relay",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Speak your money. Relay turns one sentence into a cross-chain payment — powered by Particle Universal Accounts in EIP-7702 mode, Magic embedded wallets, and ZeroDev gas sponsorship on Arbitrum.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit --skipLibCheck"
+  },
+  "dependencies": {
+    "@magic-ext/oauth2": "^4.0.0",
+    "@magic-sdk/provider": "^33.7.1",
+    "@particle-network/universal-account-sdk": "^1.0.0",
+    "@zerodev/ecdsa-validator": "^5.4.0",
+    "@zerodev/sdk": "^5.4.0",
+    "@zerodev/smart-routing-address": "^0.2.5",
+    "ethers": "^6.13.0",
+    "groq-sdk": "^0.7.0",
+    "magic-sdk": "^33.7.1",
+    "next": "14.2.33",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.39",
+    "tailwindcss": "^3.4.6",
+    "typescript": "^5.5.0"
+  }
+}

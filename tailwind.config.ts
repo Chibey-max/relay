@@ -1,0 +1,59 @@
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
+  theme: {
+    extend: {
+      colors: {
+        // Colors reference CSS variables (see globals.css) so the
+        // dark/light toggle works by flipping a class, not by duplicating
+        // every utility class across two color sets.
+        ink: "var(--c-ink)",
+        slate: "var(--c-slate)",
+        slate2: "var(--c-slate2)",
+        line: "var(--c-line)",
+        line2: "var(--c-line2)",
+        chalk: "var(--c-chalk)",
+        mist: "var(--c-mist)",
+        dim: "var(--c-dim)",
+        check: "var(--c-check)",
+      },
+      fontFamily: {
+        display: ["var(--font-display)", "serif"],
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
+      },
+      keyframes: {
+        converge: {
+          "0%": { transform: "translateY(18px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        pulseline: {
+          "0%,100%": { opacity: "1" },
+          "50%": { opacity: "0.3" },
+        },
+        blink: {
+          "0%,100%": { opacity: "1" },
+          "50%": { opacity: "0" },
+        },
+        stamp: {
+          "0%": { opacity: "0", transform: "scale(0.85)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        "scroll-left": {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(-50%)" },
+        },
+      },
+      animation: {
+        converge: "converge 0.7s cubic-bezier(0.16,1,0.3,1) both",
+        pulseline: "pulseline 1.6s ease-in-out infinite",
+        blink: "blink 1.1s step-end infinite",
+        stamp: "stamp 0.5s cubic-bezier(0.34,1.56,0.64,1) both",
+        "scroll-left": "scroll-left 26s linear infinite",
+      },
+    },
+  },
+  plugins: [],
+};
+export default config;
