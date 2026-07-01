@@ -71,6 +71,34 @@ export default function Home() {
     if (prefersReduced) setMotionOn(false);
   }, []);
 
+  // Restore Magic session on page load so returning users don't re-enter OTP
+  useEffect(() => {
+    const currentMode = (localStorage.getItem("relayMode") as "demo" | "live") ?? RELAY_MODE;
+    if (currentMode !== "live") return;
+    (async () => {
+      try {
+        const { isLoggedIn, getMagicSigner } = await import("../lib/magic");
+        const loggedIn = await isLoggedIn();
+        if (loggedIn) {
+          const signer = await getMagicSigner();
+          setOwnerAddress(signer.address);
+          setPhase("input");
+          // Silently fetch SRA
+          fetch("/api/sra", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ownerAddress: signer.address, mode: "live" }),
+          })
+            .then((r) => r.json())
+            .then((d) => { if (d.smartRoutingAddress) setDepositAddress(d.smartRoutingAddress); })
+            .catch(() => {});
+        }
+      } catch {
+        // If Magic session check fails, leave on login screen — user will re-auth
+      }
+    })();
+  }, []);
+
   const [copied, setCopied] = useState<"address" | "deposit" | null>(null);
   const themeToggleRef = useRef<HTMLButtonElement>(null);
 
