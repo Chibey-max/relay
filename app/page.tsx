@@ -20,18 +20,22 @@ import type { ParsedIntent, UnifiedBalance as Balance, ExecutionResult } from ".
 // ssr:false keeps magic-sdk out of the SSR webpack bundle
 const MagicLogin = dynamic(() => import("../components/MagicLogin"), { ssr: false });
 
-type Phase = "login" | "input" | "parsed" | "executing" | "done";
+type Phase = "login" | "wallet" | "input" | "parsed" | "executing" | "done";
 
 const EXAMPLE = "send 5 USDC to 0x1234abcd5678ef901234abcd5678ef901234abcd";
 
 export default function Home() {
-  const [relayMode, setRelayModeState] = useState<"demo" | "live">(() => {
-    if (typeof window !== "undefined") {
-      return (localStorage.getItem("relayMode") as "demo" | "live") ?? RELAY_MODE;
+  const [relayMode, setRelayModeState] = useState<"demo" | "live">(RELAY_MODE);
+  const [phase, setPhase] = useState<Phase>(RELAY_MODE === "live" ? "login" : "input");
+
+  // On mount, read localStorage and sync — avoids SSR/hydration mismatch
+  useEffect(() => {
+    const saved = localStorage.getItem("relayMode") as "demo" | "live" | null;
+    if (saved && saved !== RELAY_MODE) {
+      setRelayModeState(saved);
+      setPhase(saved === "live" ? "login" : "input");
     }
-    return RELAY_MODE;
-  });
-  const [phase, setPhase] = useState<Phase>(relayMode === "live" ? "login" : "input");
+  }, []);
   const [text, setText] = useState("");
   const [intent, setIntent] = useState<ParsedIntent | null>(null);
   const [balance, setBalance] = useState<Balance | null>(null);
@@ -113,7 +117,8 @@ export default function Home() {
 
   async function handleLoginSuccess(address: string) {
     setOwnerAddress(address);
-    // Fetch a ZeroDev Smart Routing Address for this user
+    setPhase("wallet"); // show wallet card first
+    // Fetch ZeroDev Smart Routing Address in background
     try {
       const res = await fetch("/api/sra", {
         method: "POST",
@@ -125,7 +130,6 @@ export default function Home() {
     } catch {
       // SRA is non-blocking — user can still send
     }
-    setPhase("input");
   }
 
   async function handleParse() {
@@ -247,7 +251,7 @@ export default function Home() {
   }
 
   function reset() {
-    setPhase(relayMode === "live" && !ownerAddress ? "login" : "input");
+    setPhase(relayMode === "live" && !ownerAddress ? "login" : relayMode === "live" ? "wallet" : "input");
     setText("");
     setIntent(null);
     setResult(null);
@@ -310,19 +314,91 @@ export default function Home() {
         <div className="grid grid-cols-1 gap-8 pt-14 lg:grid-cols-[1fr_320px]">
           <section className="mx-auto w-full max-w-xl">
             {phase === "login" && (
-              <div>
-                <div className="mb-6 rounded-2xl border border-line bg-slate p-6">
-                  <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-dim">
-                    Step 1 of 2
-                  </p>
-                  <h2 className="mb-1 font-display text-xl font-medium text-chalk">
-                    Connect your wallet
-                  </h2>
-                  <p className="mb-5 text-sm text-mist">
-                    Magic creates a non-custodial EOA from your email — no seed phrase, no download.
-                  </p>
-                  <MagicLogin onLogin={handleLoginSuccess} />
+              <div className="mb-6 rounded-2xl border border-line bg-slate p-6">
+                <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-dim">Step 1 of 2</p>
+                <h2 className="mb-1 font-display text-xl font-medium text-chalk">Connect your wallet</h2>
+                <p className="mb-5 text-sm text-mist">
+                  Magic creates a non-custodial EOA from your email — no seed phrase, no download.
+                </p>
+                <MagicLogin onLogin={handleLoginSuccess} />
+              </div>
+            )}
+
+            {phase === "wallet" && ownerAddress && (
+              <div className="space-y-4">
+                <div className="rounded-2xl border border-check/30 bg-slate p-5">
+                  <div className="mb-4 flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-check animate-pulse" />
+                    <p className="font-mono text-[10px] uppercase tracking-widest text-check">Wallet ready</p>
+                  </div>
+
+                  {/* Full address */}
+                  <div className="mb-4">
+                    <p className="mb-1 font-mono text-[9px] uppercase tracking-widest text-dim">Your address</p>
+                    <div className="flex items-center gap-2 rounded-lg border border-line bg-ink px-3 py-2.5">
+                      <p className="flex-1 break-all font-mono text-xs text-chalk leading-relaxed">{ownerAddress}</p>
+                      <button
+                        onClick={() => copyToClipboard(ownerAddress, "address")}
+                        className="shrink-0 rounded border border-line px-2.5 py-1 font-mono text-[10px] text-mist transition hover:border-line2 hover:text-chalk"
+                      >
+                        {copied === "address" ? "✓ copied" : "copy"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Deposit / SRA address */}
+                  <div className="mb-4">
+                    <p className="mb-1 font-mono text-[9px] uppercase tracking-widest text-dim">
+                      Deposit address {!depositAddress && <span className="text-dim">(loading…)</span>}
+                    </p>
+                    {depositAddress ? (
+                      <div className="flex items-center gap-2 rounded-lg border border-line bg-ink px-3 py-2.5">
+                        <p className="flex-1 break-all font-mono text-xs text-mist leading-relaxed">{depositAddress}</p>
+                        <button
+                          onClick={() => copyToClipboard(depositAddress, "deposit")}
+                          className="shrink-0 rounded border border-line px-2.5 py-1 font-mono text-[10px] text-mist transition hover:border-line2 hover:text-chalk"
+                        >
+                          {copied === "deposit" ? "✓ copied" : "copy"}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="h-9 rounded-lg border border-line bg-ink animate-pulse" />
+                    )}
+                  </div>
+
+                  {/* Funding instructions */}
+                  <div className="rounded-lg border border-line bg-ink/60 p-3">
+                    <p className="mb-2 font-mono text-[9px] uppercase tracking-widest text-dim">How to fund your wallet</p>
+                    <ol className="space-y-1.5 text-xs text-mist">
+                      <li className="flex gap-2"><span className="text-dim shrink-0">1.</span>Copy your address above</li>
+                      <li className="flex gap-2"><span className="text-dim shrink-0">2.</span>Send USDC or ETH to it on any chain — Base, Arbitrum, Optimism, or Polygon</li>
+                      <li className="flex gap-2"><span className="text-dim shrink-0">3.</span>Come back here and type what you want to send</li>
+                    </ol>
+                    <div className="mt-3 flex flex-wrap gap-3 border-t border-line pt-3">
+                      <a href="https://faucet.circle.com" target="_blank" rel="noreferrer"
+                        className="font-mono text-[9px] uppercase tracking-wider text-dim underline hover:text-check transition">
+                        USDC testnet faucet ↗
+                      </a>
+                      <a href="https://bridge.arbitrum.io" target="_blank" rel="noreferrer"
+                        className="font-mono text-[9px] uppercase tracking-wider text-dim underline hover:text-check transition">
+                        Arbitrum bridge ↗
+                      </a>
+                    </div>
+                  </div>
                 </div>
+
+                <button
+                  onClick={() => setPhase("input")}
+                  className="w-full rounded-xl bg-chalk px-5 py-3 text-sm font-medium text-ink transition hover:opacity-90"
+                >
+                  I've funded my wallet — continue →
+                </button>
+                <button
+                  onClick={() => setPhase("input")}
+                  className="block w-full text-center font-mono text-xs text-dim hover:text-chalk transition"
+                >
+                  skip, I already have funds
+                </button>
               </div>
             )}
 
@@ -515,7 +591,7 @@ export default function Home() {
 
           <div ref={flowReveal.ref} className={`lg:pt-2 ${flowReveal.className}`}>
             <IntegrationStatus
-              uaActive={phase !== "input" && phase !== "login"}
+              uaActive={phase !== "input" && phase !== "login" && phase !== "wallet"}
               mode={relayMode}
               lastTx={result?.txHash}
               lastUserOp={result?.userOpHash}
