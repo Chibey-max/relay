@@ -5,7 +5,7 @@
 // scroll reveals, and a transaction ticker layer on top without touching the
 // core flow or API contracts.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import ParticleField from "../components/ParticleField";
 import IntegrationStatus from "../components/IntegrationStatus";
@@ -66,6 +66,36 @@ export default function Home() {
     const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReduced) setMotionOn(false);
   }, []);
+
+  const themeToggleRef = useRef<HTMLButtonElement>(null);
+
+  async function handleThemeToggle() {
+    const next = theme === "dark" ? "light" : "dark";
+    // Use View Transitions API for the circle-wipe effect if available
+    if (!document.startViewTransition || !themeToggleRef.current) {
+      setTheme(next);
+      return;
+    }
+    const btn = themeToggleRef.current;
+    const { top, left, width, height } = btn.getBoundingClientRect();
+    const cx = left + width / 2;
+    const cy = top + height / 2;
+    const endRadius = Math.hypot(
+      Math.max(cx, window.innerWidth - cx),
+      Math.max(cy, window.innerHeight - cy)
+    );
+    const transition = document.startViewTransition(() => { setTheme(next); });
+    await transition.ready;
+    document.documentElement.animate(
+      {
+        clipPath: [
+          `circle(0px at ${cx}px ${cy}px)`,
+          `circle(${endRadius}px at ${cx}px ${cy}px)`,
+        ],
+      },
+      { duration: 420, easing: "ease-in-out", pseudoElement: "::view-transition-new(root)" }
+    );
+  }
 
   const heroReveal = useReveal<HTMLDivElement>();
   const tickerReveal = useReveal<HTMLDivElement>();
@@ -166,12 +196,12 @@ export default function Home() {
         const txResult = await sendUnifiedTransfer({
           signer,
           to: intent.recipient!,
-          amount: intent.amount,
-          token: intent.token,
+          amount: intent.amount ?? "0",
+          token: intent.token ?? "USDC",
           contractAddress: RELAY_POLICY_ADDRESS,
         });
         setSteps((s) => mark(s, 3, "done", txResult.userOpHash ?? txResult.txHash));
-        setResult({ ok: true, mode: "live", ...txResult });
+        setResult({ ...txResult, ok: txResult.ok ?? true });
         setPhase("done");
       } else {
         // Demo path — server handles everything
@@ -237,7 +267,8 @@ export default function Home() {
               {relayMode === "live" ? "live ⇄" : "demo ⇄"}
             </button>
             <button
-              onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+              ref={themeToggleRef}
+              onClick={handleThemeToggle}
               className="rounded-full border border-line px-3 py-1 font-mono text-[9px] uppercase tracking-wider text-mist hover:text-chalk"
             >
               {theme === "dark" ? "dark" : "light"}

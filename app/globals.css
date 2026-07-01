@@ -38,6 +38,14 @@ html, body {
   transition: background 0.3s ease, color 0.3s ease;
 }
 
+/* View Transition theme switch — circle wipe from the toggle button.
+   Reset the default cross-fade so our JS clip-path animation takes over. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
 /* Motion is controlled EXPLICITLY by the in-app toggle (which itself
    defaults from the OS's prefers-reduced-motion on first load). We do NOT
    use a blanket @media query here — that would force-kill every animation
