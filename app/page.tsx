@@ -362,6 +362,15 @@ export default function Home() {
 
             {phase === "input" && (
               <div>
+                {/* Live mode: always show wallet section — address if known, connect prompt if not */}
+                {relayMode === "live" && !ownerAddress && (
+                  <div className="mb-6 rounded-2xl border border-line bg-slate p-5">
+                    <p className="mb-1 font-mono text-[9px] uppercase tracking-widest text-dim">Your wallet</p>
+                    <p className="mb-4 text-sm text-mist">Connect your wallet to see your address and start sending.</p>
+                    <MagicLogin onLogin={handleLoginSuccess} />
+                  </div>
+                )}
+
                 {ownerAddress && (
                   <div className="mb-6 rounded-2xl border border-check/30 bg-slate p-5 space-y-4">
                     <div className="flex items-center gap-2">
