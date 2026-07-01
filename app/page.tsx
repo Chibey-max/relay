@@ -114,10 +114,16 @@ export default function Home() {
   const howReveal = useReveal<HTMLDivElement>();
   const receiptReveal = useReveal<HTMLDivElement>();
   const flowReveal = useReveal<HTMLDivElement>();
+  const mainSectionRef = useRef<HTMLDivElement>(null);
+
+  // Collapse the hero once user is past the landing state
+  const heroCollapsed = relayMode === "live" && phase !== "login" && phase !== "input";
 
   async function handleLoginSuccess(address: string) {
     setOwnerAddress(address);
     setPhase("wallet"); // show wallet card first
+    // Scroll to the main section after a brief delay for the state to render
+    setTimeout(() => mainSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
     // Fetch ZeroDev Smart Routing Address in background
     try {
       const res = await fetch("/api/sra", {
@@ -295,23 +301,26 @@ export default function Home() {
           </div>
         </header>
 
-        <div ref={heroReveal.ref} className={`py-16 text-center ${heroReveal.className}`}>
-          <p className="mb-5 font-mono text-[10px] uppercase tracking-[0.2em] text-dim">
-            Universal Accounts · EIP-7702 · Arbitrum
-          </p>
-          <h1 className="mx-auto mb-5 max-w-xl font-display text-4xl font-medium leading-tight tracking-tight text-chalk sm:text-5xl">
-            Money that moves the way you <em className="font-normal italic">speak</em>.
-          </h1>
-          <p className="mx-auto mb-8 max-w-md text-mist">
-            Relay reads a sentence, finds your funds across every chain, and sends — no gas, no bridging, no seed phrase.
-          </p>
-        </div>
+        {!heroCollapsed && (
+          <>
+            <div ref={heroReveal.ref} className={`py-16 text-center ${heroReveal.className}`}>
+              <p className="mb-5 font-mono text-[10px] uppercase tracking-[0.2em] text-dim">
+                Universal Accounts · EIP-7702 · Arbitrum
+              </p>
+              <h1 className="mx-auto mb-5 max-w-xl font-display text-4xl font-medium leading-tight tracking-tight text-chalk sm:text-5xl">
+                Money that moves the way you <em className="font-normal italic">speak</em>.
+              </h1>
+              <p className="mx-auto mb-8 max-w-md text-mist">
+                Relay reads a sentence, finds your funds across every chain, and sends — no gas, no bridging, no seed phrase.
+              </p>
+            </div>
+            <div ref={tickerReveal.ref} className={tickerReveal.className}>
+              <TransactionTicker />
+            </div>
+          </>
+        )}
 
-        <div ref={tickerReveal.ref} className={tickerReveal.className}>
-          <TransactionTicker />
-        </div>
-
-        <div className="grid grid-cols-1 gap-8 pt-14 lg:grid-cols-[1fr_320px]">
+        <div ref={mainSectionRef} className="grid grid-cols-1 gap-8 pt-14 lg:grid-cols-[1fr_320px]">
           <section className="mx-auto w-full max-w-xl">
             {phase === "login" && (
               <div className="mb-6 rounded-2xl border border-line bg-slate p-6">
