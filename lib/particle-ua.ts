@@ -14,12 +14,13 @@ interface TransferParams {
   to: string;
   amount: string;
   token: string;
-  contractAddress?: string;
+  tokenAddress?: string;
 }
 
 export async function sendUnifiedTransfer(params: TransferParams): Promise<ExecutionResult> {
   const ua = createUniversalAccount(params.signer.address);
-  const tokenAddress = USDC_ARB_MAINNET;
+  // Use the token address from the server if provided; fallback to USDC mainnet
+  const tokenAddress = params.tokenAddress ?? USDC_ARB_MAINNET;
   return _send(ua, params.signer, {
     tokenAddress,
     amount: params.amount,

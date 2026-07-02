@@ -21,18 +21,18 @@ export default function PaymentReceipt({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    let timer: ReturnType<typeof setTimeout>;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          const t = setTimeout(() => setStamped(true), 300);
+          timer = setTimeout(() => setStamped(true), 300);
           observer.unobserve(el);
-          return () => clearTimeout(t);
         }
       },
       { threshold: 0.4 }
     );
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => { observer.disconnect(); clearTimeout(timer); };
   }, []);
 
   return (

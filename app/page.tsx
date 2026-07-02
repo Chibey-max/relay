@@ -200,6 +200,10 @@ export default function Home() {
 
   async function handleExecute() {
     if (!intent) return;
+    if (relayMode === "live" && !ownerAddress) {
+      setError("Please log in before sending in live mode.");
+      return;
+    }
     setPhase("executing");
     setBusy(true);
 
@@ -245,9 +249,9 @@ export default function Home() {
         const txResult = await sendUnifiedTransfer({
           signer,
           to: intent.recipient!,
-          amount: intent.amount ?? "0",
+          amount: intent.amount!,
           token: intent.token ?? "USDC",
-          contractAddress: RELAY_POLICY_ADDRESS,
+          tokenAddress: validateData.tokenAddress,
         });
         setSteps((s) => mark(s, 3, "done", txResult.userOpHash ?? txResult.txHash));
         setResult({ ...txResult, ok: txResult.ok ?? true });
@@ -492,6 +496,16 @@ export default function Home() {
                       No recipient found. Add an address like 0x… and try again.
                     </p>
                   )}
+                  {intent.recipient && !intent.recipient.startsWith("0x") && (
+                    <p className="mt-3 rounded-lg border border-line2 bg-ink p-2 text-xs text-mist">
+                      ENS names aren't supported yet — paste the full 0x address instead.
+                    </p>
+                  )}
+                  {!intent.amount && (
+                    <p className="mt-3 rounded-lg border border-line2 bg-ink p-2 text-xs text-mist">
+                      No amount found. Try: "send 5 USDC to 0x…"
+                    </p>
+                  )}
 
                   <div className="mt-5 flex gap-3">
                     <button onClick={reset} className="rounded-lg border border-line px-4 py-2 text-sm text-mist hover:text-chalk">
@@ -499,7 +513,12 @@ export default function Home() {
                     </button>
                     <button
                       onClick={handleExecute}
-                      disabled={!intent.recipient || intent.action !== "transfer"}
+                      disabled={
+                        !intent.recipient ||
+                        !intent.recipient.startsWith("0x") ||
+                        !intent.amount ||
+                        intent.action !== "transfer"
+                      }
                       className="flex-1 rounded-lg bg-chalk px-5 py-2 text-sm font-medium text-ink transition hover:opacity-90 disabled:opacity-40"
                     >
                       Confirm & send
