@@ -25,12 +25,10 @@ async function getMagic() {
   const key = process.env.NEXT_PUBLIC_MAGIC_PUBLISHABLE_KEY;
   if (!key) throw new Error("Magic publishable key missing. Set it for live mode.");
 
-  magicSingleton = new Magic(key, {
-    network: {
-      rpcUrl: process.env.ZERODEV_BUNDLER_RPC ?? "https://sepolia-rollup.arbitrum.io/rpc",
-      chainId: Number(process.env.NEXT_PUBLIC_CHAIN_ID ?? 421614),
-    },
-  });
+  // No custom network here — ZERODEV_BUNDLER_RPC is server-only and undefined
+  // in the browser. Email OTP auth doesn't need an RPC; we set network for
+  // signing only when getMagicSigner is called.
+  magicSingleton = new Magic(key);
   return magicSingleton;
 }
 
