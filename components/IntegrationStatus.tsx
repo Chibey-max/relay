@@ -7,7 +7,6 @@ import { RELAY_MODE, EXPLORER } from "../lib/config";
 
 interface Props {
   contractAddress?: string;
-  depositAddress?: string;
   lastUserOp?: string;
   lastTx?: string;
   uaActive?: boolean;
@@ -20,7 +19,6 @@ const Dot = ({ on }: { on: boolean }) => (
 
 export default function IntegrationStatus({
   contractAddress,
-  depositAddress,
   lastUserOp,
   lastTx,
   uaActive = true,
@@ -73,12 +71,7 @@ export default function IntegrationStatus({
             contract: {contractAddress.slice(0, 10)}…
           </a>
         )}
-        {depositAddress && (
-          <span className="block truncate text-dim">
-            <span className="text-mist">sra: </span>{depositAddress.slice(0, 10)}…
-          </span>
-        )}
-        {lastUserOp && <span className="block truncate text-dim">userOp: {lastUserOp}</span>}
+        {lastUserOp && <span className="block truncate text-dim">userOp: {lastUserOp.slice(0, 18)}…</span>}
         {lastTx && (
           <a
             href={`${EXPLORER}/tx/${lastTx}`}

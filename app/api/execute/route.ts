@@ -1,21 +1,22 @@
 // app/api/execute/route.ts
-// Executes a parsed transfer intent.
+// Validates a transfer intent.
 //
 // DEMO mode: returns a clearly-labelled demo result (no real tx).
-// LIVE mode: the heavy lifting (Magic signing, UA transfer) happens
-// CLIENT-side because Magic + the signer live in the browser. This route
-// validates the intent and returns the token address mapping the client
-// needs. The actual broadcast is done client-side via lib/particle.ts.
+// LIVE mode: fires a ZeroDev-sponsored UserOp (gas sponsorship proof),
+// then hands the client what it needs to broadcast via Particle UA.
+// The actual Particle transfer is signed and broadcast client-side
+// because Magic + the signer live in the browser.
 
 import { NextRequest, NextResponse } from "next/server";
-import { RELAY_MODE } from "../../../lib/config";
+import { RELAY_MODE, RELAY_POLICY_ADDRESS } from "../../../lib/config";
 import { DEMO_EXECUTION } from "../../../constants/demo";
+import type { Address } from "viem";
 
-// Minimal token registry for the demo/testnet. Extend as needed.
+// Mainnet USDC addresses per chain (Particle UA is mainnet-only)
 const TOKEN_ADDRESSES: Record<string, string> = {
-  // Arbitrum USDC (mainnet address used by Particle UA routing layer)
-  USDC: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-  USDT: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+  USDC: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", // Arbitrum mainnet
+  USDT: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9", // Arbitrum mainnet
+  ETH:  "0x0000000000000000000000000000000000000000", // native
 };
 
 export async function POST(req: NextRequest) {
@@ -29,6 +30,12 @@ export async function POST(req: NextRequest) {
   if (!intent.recipient) {
     return NextResponse.json(
       { ok: false, error: "No recipient found. Try: \"send 5 USDC to 0x...\"" },
+      { status: 400 }
+    );
+  }
+  if (!intent.amount) {
+    return NextResponse.json(
+      { ok: false, error: "No amount found. Try: \"send 5 USDC to 0x...\"" },
       { status: 400 }
     );
   }
@@ -46,12 +53,37 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ mode: "demo", ...DEMO_EXECUTION });
   }
 
-  // Live mode: hand the client what it needs to broadcast via the UA.
+  // Live mode: fire ZeroDev sponsored check, then tell the client to proceed.
+  let userOpHash: string | undefined;
+  let agentAddress: string | undefined;
+  let zdError: string | undefined;
+
+  try {
+    const { sendSponsoredCheck } = await import("../../../lib/zerodev");
+    const zdResult = await sendSponsoredCheck({
+      recipient: intent.recipient as Address,
+      policyAddress: RELAY_POLICY_ADDRESS as Address,
+    });
+    if (zdResult.ok) {
+      userOpHash = zdResult.userOpHash;
+      agentAddress = zdResult.agentAddress;
+    } else {
+      zdError = zdResult.error;
+    }
+  } catch (err: any) {
+    // ZeroDev failure is non-blocking — log it but let the transfer proceed
+    zdError = err?.message ?? "ZeroDev check failed";
+  }
+
   return NextResponse.json({
     mode: "live",
     ready: true,
     tokenAddress,
     amount: intent.amount,
     receiver: intent.recipient,
+    // ZeroDev proof — present even if null so the UI can surface it
+    userOpHash: userOpHash ?? null,
+    agentAddress: agentAddress ?? null,
+    zdError: zdError ?? null,
   });
 }

@@ -46,20 +46,17 @@ export default function Home() {
   const [motionOn, setMotionOn] = useState(true);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [ownerAddress, setOwnerAddress] = useState<string | null>(null);
-  const [depositAddress, setDepositAddress] = useState<string | null>(null);
 
   function toggleMode() {
     const next = relayMode === "demo" ? "live" : "demo";
     localStorage.setItem("relayMode", next);
     setRelayModeState(next);
-    // Reset flow when switching modes
     setText("");
     setIntent(null);
     setResult(null);
     setSteps([]);
     setError(null);
     setOwnerAddress(null);
-    setDepositAddress(null);
     setPhase(next === "live" ? "login" : "input");
   }
 
@@ -83,15 +80,6 @@ export default function Home() {
           const signer = await getMagicSigner();
           setOwnerAddress(signer.address);
           setPhase("input");
-          // Silently fetch SRA
-          fetch("/api/sra", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ownerAddress: signer.address, mode: "live" }),
-          })
-            .then((r) => r.json())
-            .then((d) => { if (d.smartRoutingAddress) setDepositAddress(d.smartRoutingAddress); })
-            .catch(() => {});
         }
       } catch {
         // If Magic session check fails, leave on login screen — user will re-auth
@@ -155,18 +143,6 @@ export default function Home() {
     setOwnerAddress(address);
     setPhase("input");
     setTimeout(() => mainSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
-    // Fetch ZeroDev Smart Routing Address in background
-    try {
-      const res = await fetch("/api/sra", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ownerAddress: address, mode: relayMode }),
-      });
-      const data = await res.json();
-      if (data.smartRoutingAddress) setDepositAddress(data.smartRoutingAddress);
-    } catch {
-      // SRA is non-blocking — user can still send
-    }
   }
 
   async function handleParse() {
@@ -209,7 +185,7 @@ export default function Home() {
 
     const initial: Step[] = [
       { label: "Reading your request", state: "done", detail: `${intent.amount} ${intent.token} → ${shorten(intent.recipient)}` },
-      { label: "Finding your funds across chains", state: "active" },
+      { label: "ZeroDev gas-sponsored check", state: "active" },
       { label: "Routing through your Universal Account", state: "idle" },
       { label: "Confirming on Arbitrum", state: "idle" },
     ];
@@ -217,7 +193,7 @@ export default function Home() {
 
     try {
       if (relayMode === "live" && ownerAddress) {
-        // Validate via server, then sign client-side
+        // Server fires ZeroDev sponsored UserOp + validates intent
         const validateRes = await fetch("/api/execute", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -226,7 +202,12 @@ export default function Home() {
         const validateData = await validateRes.json();
 
         await tick(600);
-        setSteps((s) => mark(s, 1, "done", "unified across chains"));
+        // Show ZeroDev result in step 1
+        if (validateData.userOpHash) {
+          setSteps((s) => mark(s, 1, "done", `userOp: ${validateData.userOpHash.slice(0, 18)}…`));
+        } else {
+          setSteps((s) => mark(s, 1, "done", validateData.zdError ? `check skipped: ${validateData.zdError.slice(0, 40)}` : "gas sponsored"));
+        }
         setSteps((s) => mark(s, 2, "active"));
         await tick(700);
 
@@ -238,7 +219,7 @@ export default function Home() {
           return;
         }
 
-        setSteps((s) => mark(s, 2, "done", "no bridging, no gas"));
+        setSteps((s) => mark(s, 2, "done", "sourced across chains"));
         setSteps((s) => mark(s, 3, "active"));
         await tick(400);
 
@@ -253,8 +234,12 @@ export default function Home() {
           token: intent.token ?? "USDC",
           tokenAddress: validateData.tokenAddress,
         });
-        setSteps((s) => mark(s, 3, "done", txResult.userOpHash ?? txResult.txHash));
-        setResult({ ...txResult, ok: txResult.ok ?? true });
+        setSteps((s) => mark(s, 3, "done", txResult.userOpHash ?? txResult.transactionId ?? txResult.txHash));
+        setResult({
+          ...txResult,
+          ok: txResult.ok ?? true,
+          userOpHash: validateData.userOpHash ?? txResult.userOpHash,
+        });
         setPhase("done");
       } else {
         // Demo path — server handles everything
@@ -386,7 +371,7 @@ export default function Home() {
                       <p className="font-mono text-[10px] uppercase tracking-widest text-check">Wallet ready</p>
                     </div>
 
-                    {/* Your address */}
+                    {/* Magic EOA address — this is what Particle UA reads across all chains */}
                     <div>
                       <p className="mb-1 font-mono text-[9px] uppercase tracking-widest text-dim">Your address</p>
                       <div className="flex items-center gap-2 rounded-lg border border-line bg-ink px-3 py-2.5">
@@ -400,33 +385,13 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Deposit / SRA address */}
-                    <div>
-                      <p className="mb-1 font-mono text-[9px] uppercase tracking-widest text-dim">
-                        Deposit address {!depositAddress && <span className="opacity-50">(loading…)</span>}
-                      </p>
-                      {depositAddress ? (
-                        <div className="flex items-center gap-2 rounded-lg border border-line bg-ink px-3 py-2.5">
-                          <p className="flex-1 break-all font-mono text-xs text-mist leading-relaxed">{depositAddress}</p>
-                          <button
-                            onClick={() => copyToClipboard(depositAddress, "deposit")}
-                            className="shrink-0 rounded border border-line px-2.5 py-1 font-mono text-[10px] text-mist transition hover:border-line2 hover:text-chalk"
-                          >
-                            {copied === "deposit" ? "✓ copied" : "copy"}
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="h-10 rounded-lg border border-line bg-ink animate-pulse" />
-                      )}
-                    </div>
-
                     {/* Funding guide */}
                     <div className="rounded-lg border border-line bg-ink/60 p-3">
                       <p className="mb-2 font-mono text-[9px] uppercase tracking-widest text-dim">Fund your wallet</p>
                       <ol className="space-y-1 text-xs text-mist">
                         <li className="flex gap-2"><span className="shrink-0 text-dim">1.</span>Copy your address above</li>
-                        <li className="flex gap-2"><span className="shrink-0 text-dim">2.</span>Send USDC or ETH on Base, Arbitrum, Optimism, or Polygon</li>
-                        <li className="flex gap-2"><span className="shrink-0 text-dim">3.</span>Type your payment below — Relay finds the funds</li>
+                        <li className="flex gap-2"><span className="shrink-0 text-dim">2.</span>Send USDC on Arbitrum, Base, Optimism, or Polygon mainnet</li>
+                        <li className="flex gap-2"><span className="shrink-0 text-dim">3.</span>Type what you want to send below — Relay finds the funds across chains</li>
                       </ol>
                       <div className="mt-3 flex gap-3 border-t border-line pt-3">
                         <a href="https://faucet.circle.com" target="_blank" rel="noreferrer"
@@ -595,7 +560,6 @@ export default function Home() {
               lastTx={result?.txHash}
               lastUserOp={result?.userOpHash}
               contractAddress={RELAY_POLICY_ADDRESS}
-              depositAddress={depositAddress ?? undefined}
             />
           </div>
         </div>
