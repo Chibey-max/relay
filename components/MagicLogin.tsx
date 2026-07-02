@@ -22,13 +22,17 @@ export default function MagicLogin({ onLogin }: Props) {
       const { loginWithEmail } = await import("../lib/magic");
       setSent(true);
       const { address } = await loginWithEmail(email.trim());
-      // Promise resolved via popup postMessage — proceed
       onLogin(address);
     } catch (err: any) {
-      // If it's a popup/postMessage failure the promise rejects.
-      // We keep sent=true so the user can use the manual check button.
-      if (!sent) setSent(false);
-      setError(null); // don't show error — tell them to use the button below
+      const msg = err?.message ?? "";
+      // If popup closed but session may still be valid, keep the "sent" UI
+      // so the user can hit the manual check button.
+      const isPopupFailure = msg.includes("closed") || msg.includes("popup") || msg.includes("postMessage");
+      if (!isPopupFailure) {
+        setSent(false);
+        setError(msg || "Failed to send code. Check your email address and try again.");
+      }
+      // else: stay on "sent" UI — user can click manual check
     } finally {
       setBusy(false);
     }
@@ -98,9 +102,9 @@ export default function MagicLogin({ onLogin }: Props) {
               <p className="font-mono text-[10px] uppercase tracking-widest text-check">Code sent to {email}</p>
             </div>
             <ol className="space-y-1 text-sm text-mist">
-              <li className="flex gap-2"><span className="text-dim shrink-0">1.</span>Check your inbox for a 6-digit code</li>
+              <li className="flex gap-2"><span className="text-dim shrink-0">1.</span>Check your <strong className="text-chalk">inbox and spam/junk folder</strong> for a 6-digit code from Magic</li>
               <li className="flex gap-2"><span className="text-dim shrink-0">2.</span>Enter it in the Magic popup or tab that opened</li>
-              <li className="flex gap-2"><span className="text-dim shrink-0">3.</span>Click the button below once you've entered it</li>
+              <li className="flex gap-2"><span className="text-dim shrink-0">3.</span>Click the button below once done</li>
             </ol>
           </div>
 
