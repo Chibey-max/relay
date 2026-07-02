@@ -6,8 +6,8 @@ import { createUniversalAccount, sendUnifiedTransfer as _send } from "./particle
 import type { Signer } from "./particle";
 import type { ExecutionResult } from "./config";
 
-// USDC on Arbitrum Sepolia
-const USDC_ARB_SEPOLIA = "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d";
+// USDC on Arbitrum mainnet (Particle UA only supports mainnet chains)
+const USDC_ARB_MAINNET = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831";
 
 interface TransferParams {
   signer: Signer;
@@ -19,7 +19,7 @@ interface TransferParams {
 
 export async function sendUnifiedTransfer(params: TransferParams): Promise<ExecutionResult> {
   const ua = createUniversalAccount(params.signer.address);
-  const tokenAddress = params.token.toUpperCase() === "USDC" ? USDC_ARB_SEPOLIA : USDC_ARB_SEPOLIA;
+  const tokenAddress = USDC_ARB_MAINNET;
   return _send(ua, params.signer, {
     tokenAddress,
     amount: params.amount,
