@@ -19,20 +19,31 @@ export default function MagicLogin({ onLogin }: Props) {
     setSent(false);
     setError(null);
     try {
-      const { loginWithEmail } = await import("../lib/magic");
-      setSent(true);
-      const { address } = await loginWithEmail(email.trim());
-      onLogin(address);
+      const { getMagicInstance } = await import("../lib/magic");
+      const magic = await getMagicInstance();
+
+      // Use the event-based API so we only show "sent" after Magic confirms dispatch
+      const handle = magic.auth.loginWithEmailOTP({ email: email.trim() });
+
+      handle.on("email-otp-sent" as any, () => {
+        setSent(true);  // Email confirmed dispatched — show check-inbox UI
+        setBusy(false);
+      });
+
+      const didToken = await handle;
+      if (didToken) {
+        const info = await magic.user.getInfo();
+        onLogin(info.publicAddress as string);
+      }
     } catch (err: any) {
       const msg = err?.message ?? "";
-      // If popup closed but session may still be valid, keep the "sent" UI
-      // so the user can hit the manual check button.
-      const isPopupFailure = msg.includes("closed") || msg.includes("popup") || msg.includes("postMessage");
-      if (!isPopupFailure) {
+      const isPopupClose = msg.includes("closed") || msg.includes("popup") || msg.includes("Modal");
+      if (isPopupClose && sent) {
+        // Popup closed but email was sent — user can still use manual check
+      } else {
         setSent(false);
         setError(msg || "Failed to send code. Check your email address and try again.");
       }
-      // else: stay on "sent" UI — user can click manual check
     } finally {
       setBusy(false);
     }

@@ -11,6 +11,10 @@ import type { Signer } from "./particle";
 
 let magicSingleton: any = null;
 
+export async function getMagicInstance() {
+  return getMagic();
+}
+
 async function getMagic() {
   if (typeof window === "undefined") {
     throw new Error("Magic can only be initialized in the browser.");
