@@ -148,6 +148,10 @@ export default function Home() {
   const heroCollapsed = relayMode === "live" && ownerAddress !== null;
 
   async function handleLoginSuccess(address: string) {
+    if (!address) {
+      setError("Login succeeded but your wallet address is empty — please try again.");
+      return;
+    }
     setOwnerAddress(address);
     setPhase("input");
     setTimeout(() => mainSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);

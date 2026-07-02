@@ -36,8 +36,9 @@ async function getMagic() {
 export async function loginWithEmail(email: string): Promise<{ email: string; address: string }> {
   const magic = await getMagic();
   await magic.auth.loginWithEmailOTP({ email });
-  const info = await magic.user.getInfo();
-  return { email, address: info.publicAddress as string };
+  const address = await resolveAddress(magic);
+  if (!address) throw new Error("Login succeeded but no wallet address returned. Try the manual check.");
+  return { email, address };
 }
 
 export async function logout(): Promise<void> {
@@ -54,11 +55,26 @@ export async function isLoggedIn(): Promise<boolean> {
   }
 }
 
+// Gets the EOA address from a Magic instance — tries getInfo() first, then
+// falls back to eth_accounts since getInfo().publicAddress can be null
+// immediately after OTP completes (session propagation lag).
+async function resolveAddress(magic: any): Promise<string | null> {
+  try {
+    const info = await magic.user.getInfo();
+    if (info?.publicAddress) return info.publicAddress as string;
+  } catch {}
+  try {
+    const accounts: string[] = await magic.rpcProvider.request({ method: "eth_accounts" });
+    if (accounts?.[0]) return accounts[0];
+  } catch {}
+  return null;
+}
+
 // Adapts the Magic provider into the Signer shape Particle's UA needs.
 export async function getMagicSigner(): Promise<Signer> {
   const magic = await getMagic();
-  const info = await magic.user.getInfo();
-  const address = info.publicAddress as string;
+  const address = await resolveAddress(magic);
+  if (!address) throw new Error("Could not read wallet address from Magic session.");
 
   const { BrowserProvider } = await import("ethers");
   const provider = new BrowserProvider(magic.rpcProvider as any);
