@@ -10,6 +10,7 @@ export default function MagicLogin({ onLogin }: Props) {
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  const [checking, setChecking] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleLogin() {
@@ -19,15 +20,40 @@ export default function MagicLogin({ onLogin }: Props) {
     setError(null);
     try {
       const { loginWithEmail } = await import("../lib/magic");
-      // Tell the user to check email before awaiting the OTP
       setSent(true);
       const { address } = await loginWithEmail(email.trim());
+      // Promise resolved via popup postMessage — proceed
       onLogin(address);
     } catch (err: any) {
-      setSent(false);
-      setError(err?.message ?? "Login failed. Try again.");
+      // If it's a popup/postMessage failure the promise rejects.
+      // We keep sent=true so the user can use the manual check button.
+      if (!sent) setSent(false);
+      setError(null); // don't show error — tell them to use the button below
     } finally {
       setBusy(false);
+    }
+  }
+
+  // Fallback: user entered code in Magic popup/tab but postMessage failed.
+  // Manually check if their session is now active.
+  async function handleManualCheck() {
+    setChecking(true);
+    setError(null);
+    try {
+      const { isLoggedIn, getMagicSigner } = await import("../lib/magic");
+      const loggedIn = await isLoggedIn();
+      if (loggedIn) {
+        const signer = await getMagicSigner();
+        onLogin(signer.address);
+      } else {
+        setError("Session not found. Make sure you entered the correct code, then try again.");
+        setSent(false);
+      }
+    } catch (err: any) {
+      setError(err?.message ?? "Could not verify session. Try logging in again.");
+      setSent(false);
+    } finally {
+      setChecking(false);
     }
   }
 
@@ -65,29 +91,41 @@ export default function MagicLogin({ onLogin }: Props) {
           </button>
         </>
       ) : (
-        /* After email submitted — waiting for OTP in Magic popup */
-        <div className="rounded-xl border border-line bg-ink/60 p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-check" />
-            <p className="font-mono text-[10px] uppercase tracking-widest text-check">Code sent</p>
+        <div className="space-y-3">
+          <div className="rounded-xl border border-line bg-ink/60 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-check" />
+              <p className="font-mono text-[10px] uppercase tracking-widest text-check">Code sent to {email}</p>
+            </div>
+            <ol className="space-y-1 text-sm text-mist">
+              <li className="flex gap-2"><span className="text-dim shrink-0">1.</span>Check your inbox for a 6-digit code</li>
+              <li className="flex gap-2"><span className="text-dim shrink-0">2.</span>Enter it in the Magic popup or tab that opened</li>
+              <li className="flex gap-2"><span className="text-dim shrink-0">3.</span>Click the button below once you've entered it</li>
+            </ol>
           </div>
-          <p className="text-sm text-chalk">
-            Check <span className="font-mono text-mist">{email}</span> for a 6-digit code.
-          </p>
-          <p className="text-xs text-mist">
-            A Magic popup should appear on this page — enter the code there. If you don't see it, check your spam folder or{" "}
-            <button
-              onClick={() => { setSent(false); setBusy(false); }}
-              className="underline hover:text-chalk transition"
-            >
-              try again
-            </button>
-            .
-          </p>
-          <div className="flex items-center gap-2 pt-1">
-            <span className="inline-block h-3 w-3 animate-spin rounded-full border border-mist/30 border-t-mist" />
-            <span className="font-mono text-[10px] text-dim">Waiting for you to enter the code…</span>
-          </div>
+
+          {/* Primary CTA — for when postMessage back fails */}
+          <button
+            onClick={handleManualCheck}
+            disabled={checking}
+            className="w-full rounded-xl bg-chalk px-5 py-3 text-sm font-medium text-ink transition hover:opacity-90 disabled:opacity-40"
+          >
+            {checking ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="inline-block h-3 w-3 animate-spin rounded-full border border-ink/30 border-t-ink" />
+                Verifying…
+              </span>
+            ) : (
+              "I've entered the code — continue →"
+            )}
+          </button>
+
+          <button
+            onClick={() => { setSent(false); setBusy(false); setError(null); }}
+            className="block w-full text-center font-mono text-xs text-dim hover:text-chalk transition"
+          >
+            ← use a different email
+          </button>
         </div>
       )}
 
