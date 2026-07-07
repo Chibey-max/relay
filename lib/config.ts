@@ -9,7 +9,7 @@ export const CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID ?? 421614);
 export const EXPLORER =
   process.env.NEXT_PUBLIC_EXPLORER ?? "https://sepolia.arbiscan.io";
 export const RELAY_POLICY_ADDRESS =
-  process.env.NEXT_PUBLIC_RELAY_POLICY_ADDRESS ?? "0x0de937c8def5284F8e2F0E2546a891EFe67909cb";
+  process.env.NEXT_PUBLIC_RELAY_POLICY_ADDRESS ?? "0x8DD23aBBA62f10306805F0B2C8BF8459d1C3974e";
 
 // Particle Universal Account supported source chains we surface in the UI.
 // The whole point: the user's value can live on ANY of these, and Relay
