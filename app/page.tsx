@@ -317,6 +317,7 @@ export default function Home() {
     setResult(null);
     setSteps([]);
     setError(null);
+    clearRelaySession();
   }
 
   return (
