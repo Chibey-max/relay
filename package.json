@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit --skipLibCheck"
+    "typecheck": "tsc --noEmit --skipLibCheck",
+    "agent:address": "node scripts/get-agent-address.mjs"
   },
   "dependencies": {
     "@magic-ext/oauth2": "^4.0.0",
