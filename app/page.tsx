@@ -261,10 +261,17 @@ export default function Home() {
           token: intent.token ?? "USDC",
           tokenAddress: validateData.tokenAddress,
         });
+        if (!txResult.ok) {
+          setSteps((s) => mark(s, 3, "error", txResult.error));
+          setError(txResult.error ?? "Transfer failed.");
+          setPhase("done");
+          setBusy(false);
+          return;
+        }
         setSteps((s) => mark(s, 3, "done", txResult.userOpHash ?? txResult.transactionId ?? txResult.txHash));
         setResult({
           ...txResult,
-          ok: txResult.ok ?? true,
+          ok: true,
           userOpHash: validateData.userOpHash ?? txResult.userOpHash,
         });
         setPhase("done");
