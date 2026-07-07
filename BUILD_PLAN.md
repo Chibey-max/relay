@@ -1,6 +1,8 @@
-# Relay — Build Plan: Win One Track, Stack Four
+# Relay — Build Plan: Win One Track, Stack Two
 
-**The decision:** Play to win the **Universal Accounts Track** ($2,500). The other three prizes (Arbitrum $2,000, Magic $500, ZeroDev $500×4) are built *solid and live* — never lavished over. 100% of your polish budget goes into one moment.
+**The decision:** Play to win the **Universal Accounts Track** ($2,500 / $2,000 / $1,500). The two *track-agnostic* bounties (Arbitrum $2,000, Magic $500) are built *solid and live* — never lavished over. 100% of your polish budget goes into one moment.
+
+> **Correction (post-launch):** the ZeroDev subtrack ($500×4) is nested under the **General Track** per the official rules, which is mutually exclusive with the Universal Accounts Track — you submit to one main track, not both. It does NOT stack with Universal Accounts, unlike Arbitrum and Magic which are explicitly track-agnostic. Do not budget for it while targeting UA. ZeroDev's gas sponsorship is still worth keeping live — it's a real, load-bearing piece of the Arbitrum bounty's "gas abstraction" criterion — just don't claim the ZeroDev subtrack prize itself.
 
 This avoids the failure mode of being eligible-everywhere-but-strong-nowhere. You are strong in exactly one place, and that strength radiates into the rest.
 
