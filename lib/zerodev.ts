@@ -135,6 +135,36 @@ export async function sendSponsoredCheck(params: {
       kernelVersion: KERNEL_V3_1,
     }) as any;
 
+    // Simulate the policy check first (a free eth_call, not a UserOp) so a
+    // policy rejection is caught cleanly and distinguished from an infra
+    // failure — and so we never spend sponsored gas on a call that would
+    // revert anyway.
+    try {
+      await publicClient.simulateContract({
+        address: params.policyAddress,
+        abi: RELAY_POLICY_ABI,
+        functionName: "checkAndRecord",
+        args: [params.recipient, params.amountWei],
+        account: account.address as Address,
+      });
+    } catch (simErr: any) {
+      if (simErr instanceof BaseError) {
+        const revertError = simErr.walk((e) => e instanceof ContractFunctionRevertedError) as
+          | ContractFunctionRevertedError
+          | undefined;
+        if (revertError?.data?.errorName) {
+          return {
+            ok: false,
+            policyRejected: true,
+            error: policyErrorMessage(revertError.data.errorName, revertError.data.args ?? []),
+            agentAddress: account.address,
+          };
+        }
+      }
+      // Not a recognizable policy revert — treat as an infra hiccup below.
+      throw simErr;
+    }
+
     const paymaster = createZeroDevPaymasterClient({
       chain: arbitrumSepolia,
       transport: http(paymasterRpc),
