@@ -65,4 +65,13 @@ contract RelayPolicyTest is Test {
         vm.expectRevert(abi.encodeWithSelector(RelayPolicy.NotWhitelisted.selector, recipient));
         strict.checkAndRecord(recipient, 1 ether);
     }
+
+    function test_explicitConfigOverridesDefault() public {
+        policy.configureRecipient(recipient, 10 ether, 20 ether);
+        vm.prank(agent);
+        vm.expectRevert(
+            abi.encodeWithSelector(RelayPolicy.OverPerTxLimit.selector, recipient, 50 ether, 10 ether)
+        );
+        policy.checkAndRecord(recipient, 50 ether);
+    }
 }
