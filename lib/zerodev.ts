@@ -58,12 +58,53 @@ const RELAY_POLICY_ABI = [
     inputs: [],
     outputs: [{ name: "", type: "address" }],
   },
+  { type: "error", name: "NotOwner", inputs: [] },
+  { type: "error", name: "NotAgent", inputs: [] },
+  { type: "error", name: "IsPaused", inputs: [] },
+  { type: "error", name: "NotWhitelisted", inputs: [{ name: "recipient", type: "address" }] },
+  {
+    type: "error",
+    name: "OverPerTxLimit",
+    inputs: [
+      { name: "recipient", type: "address" },
+      { name: "amountWei", type: "uint256" },
+      { name: "maxWei", type: "uint256" },
+    ],
+  },
+  {
+    type: "error",
+    name: "OverDailyLimit",
+    inputs: [
+      { name: "recipient", type: "address" },
+      { name: "attemptedWei", type: "uint256" },
+      { name: "maxWei", type: "uint256" },
+    ],
+  },
 ] as const;
 
-// Sends a ZeroDev-sponsored UserOp from the relay agent Kernel account.
-// In live execute flow this fires before Particle UA to prove gas sponsorship.
+function policyErrorMessage(errorName: string, args: readonly unknown[]): string {
+  switch (errorName) {
+    case "NotWhitelisted":
+      return "This recipient isn't within your spend policy and no default limit is configured.";
+    case "OverPerTxLimit":
+      return `Amount exceeds your per-transaction spend limit (max ${formatEther(args[2] as bigint)}).`;
+    case "OverDailyLimit":
+      return "This transfer would exceed your daily spend limit for this recipient.";
+    case "IsPaused":
+      return "Spending is currently paused by policy.";
+    case "NotAgent":
+      return "Relay agent isn't authorized on this policy contract.";
+    default:
+      return `Spend policy rejected this transfer (${errorName}).`;
+  }
+}
+
+// Sends a ZeroDev-sponsored UserOp from the relay agent Kernel account that
+// calls RelayPolicy.checkAndRecord — the real, on-chain spend-limit check —
+// before Particle UA broadcasts the actual payment.
 export async function sendSponsoredCheck(params: {
   recipient: Address;
+  amountWei: bigint;
   policyAddress: Address;
 }): Promise<SponsoredResult> {
   try {
