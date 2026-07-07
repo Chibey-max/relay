@@ -79,4 +79,11 @@ contract RelayPolicyTest is Test {
         vm.expectRevert(RelayPolicy.NotAgent.selector);
         policy.checkAndRecord(recipient, 1 ether);
     }
+
+    function test_pausedBlocksSpend() public {
+        policy.setPaused(true);
+        vm.prank(agent);
+        vm.expectRevert(RelayPolicy.IsPaused.selector);
+        policy.checkAndRecord(recipient, 1 ether);
+    }
 }
