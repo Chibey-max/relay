@@ -21,17 +21,24 @@ const TOKEN_ADDRESSES: Record<string, string> = {
   ETH:  "0x0000000000000000000000000000000000000000", // native
 };
 
+const RECIPIENT_RE = /^0x[a-fA-F0-9]{40}$/;
+
 export async function POST(req: NextRequest) {
+  const rl = rateLimit(`execute:${clientIp(req)}`, 10, 60_000);
+  if (!rl.ok) {
+    return NextResponse.json({ ok: false, error: "Too many requests — slow down and try again." }, { status: 429 });
+  }
+
   const body = await req.json();
-  const { intent } = body;
+  const { intent, ownerAddress, authTimestamp, authSignature } = body;
   const mode = body.mode ?? RELAY_MODE;
 
   if (!intent || intent.action !== "transfer") {
     return NextResponse.json({ ok: false, error: "Not a transfer intent." }, { status: 400 });
   }
-  if (!intent.recipient) {
+  if (!intent.recipient || !RECIPIENT_RE.test(intent.recipient)) {
     return NextResponse.json(
-      { ok: false, error: "No recipient found. Try: \"send 5 USDC to 0x...\"" },
+      { ok: false, error: "No valid recipient address found. Try: \"send 5 USDC to 0x...\"" },
       { status: 400 }
     );
   }
