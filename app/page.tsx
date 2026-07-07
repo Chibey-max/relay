@@ -169,10 +169,20 @@ export default function Home() {
       const parsed: ParsedIntent = await res.json();
       setIntent(parsed);
 
+      // Live mode reads a real cross-chain balance — prove wallet ownership
+      // first so the server isn't just trusting whatever address we send.
+      let authProof: Partial<{ ownerAddress: string; authTimestamp: number; authSignature: string }> = {};
+      if (relayMode === "live" && ownerAddress) {
+        const { getMagicSigner } = await import("../lib/magic");
+        const { signAuthProof } = await import("../lib/authMessage");
+        const signer = await getMagicSigner();
+        authProof = await signAuthProof(signer);
+      }
+
       const balRes = await fetch("/api/balance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ownerAddress, mode: relayMode }),
+        body: JSON.stringify({ mode: relayMode, ...authProof }),
       });
       const balData = await balRes.json();
       if (balData.error) setError(balData.error);
