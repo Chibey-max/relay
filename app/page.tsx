@@ -15,6 +15,7 @@ import TransactionTicker from "../components/TransactionTicker";
 import PaymentReceipt from "../components/PaymentReceipt";
 import { RELAY_MODE, RELAY_POLICY_ADDRESS } from "../lib/config";
 import { useReveal } from "../lib/useReveal";
+import { useSessionPersist, clearRelaySession } from "../lib/useSessionPersist";
 import type { ParsedIntent, UnifiedBalance as Balance, ExecutionResult } from "../lib/config";
 
 // ssr:false keeps magic-sdk out of the SSR webpack bundle
