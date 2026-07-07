@@ -251,10 +251,9 @@ export default function Home() {
         setSteps((s) => mark(s, 3, "active"));
         await tick(400);
 
-        // Client-side: sign and broadcast via Universal Account
-        const { getMagicSigner } = await import("../lib/magic");
+        // Client-side: sign and broadcast via Universal Account (reuse the
+        // signer we already fetched above for the ownership proof)
         const { sendUnifiedTransfer } = await import("../lib/particle-ua");
-        const signer = await getMagicSigner();
         const txResult = await sendUnifiedTransfer({
           signer,
           to: intent.recipient!,
