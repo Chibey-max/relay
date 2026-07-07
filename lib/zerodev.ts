@@ -14,7 +14,16 @@
 import { createKernelAccount, createKernelAccountClient, createZeroDevPaymasterClient } from "@zerodev/sdk";
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
 import { KERNEL_V3_1, getEntryPoint } from "@zerodev/sdk/constants";
-import { http, createPublicClient, encodeFunctionData, type Address, type Hex } from "viem";
+import {
+  http,
+  createPublicClient,
+  encodeFunctionData,
+  BaseError,
+  ContractFunctionRevertedError,
+  formatEther,
+  type Address,
+  type Hex,
+} from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { arbitrumSepolia } from "viem/chains";
 
