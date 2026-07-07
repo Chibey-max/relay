@@ -46,4 +46,16 @@ contract RelayPolicyTest is Test {
         policy.checkAndRecord(recipient, 100 ether); // 600 — over
         vm.stopPrank();
     }
+
+    function test_dailyWindowRolls() public {
+        vm.startPrank(agent);
+        for (uint256 i = 0; i < 5; i++) {
+            policy.checkAndRecord(recipient, 100 ether); // 5x100 = hits daily cap
+        }
+        vm.stopPrank();
+
+        vm.warp(block.timestamp + 1 days + 1);
+        vm.prank(agent);
+        policy.checkAndRecord(recipient, 100 ether); // new window, should succeed
+    }
 }
