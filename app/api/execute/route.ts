@@ -10,7 +10,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { RELAY_MODE, RELAY_POLICY_ADDRESS } from "../../../lib/config";
 import { DEMO_EXECUTION } from "../../../constants/demo";
-import type { Address } from "viem";
+import { verifyOwnerAuth } from "../../../lib/auth";
+import { rateLimit, clientIp } from "../../../lib/rate-limit";
+import { parseEther, type Address } from "viem";
 
 // Mainnet USDC addresses per chain (Particle UA is mainnet-only)
 const TOKEN_ADDRESSES: Record<string, string> = {
