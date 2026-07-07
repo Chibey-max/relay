@@ -76,8 +76,8 @@ export async function getUnifiedBalance(ua: UniversalAccount): Promise<UnifiedBa
   const assets = await ua.getPrimaryAssets();
   const perChain = (assets.assets ?? []).flatMap((asset: any) =>
     (asset.chainAggregation ?? []).map((agg: any) => ({
-      chain: String(agg.token?.chainId ?? agg.chainId ?? "unknown"),
-      token: asset.tokenType ?? asset.symbol ?? "TOKEN",
+      chain: chainName(agg.token?.chainId ?? agg.chainId ?? "unknown"),
+      token: String(asset.tokenType ?? asset.symbol ?? "TOKEN").toUpperCase(),
       amount: String(agg.amount ?? "0"),
       usd: String(agg.amountInUSD ?? "0"),
     }))
