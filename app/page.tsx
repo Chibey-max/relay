@@ -87,7 +87,9 @@ export default function Home() {
         if (loggedIn) {
           const signer = await getMagicSigner();
           setOwnerAddress(signer.address);
-          setPhase("input");
+          // Only advance past the login gate — don't stomp a phase (parsed/
+          // executing/done) that useSessionPersist already restored.
+          setPhase((p) => (p === "login" ? "input" : p));
         }
       } catch {
         // If Magic session check fails, leave on login screen — user will re-auth
