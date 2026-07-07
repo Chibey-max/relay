@@ -58,7 +58,7 @@ Each of these must be genuinely live (Rule 1) and verifiable (Rule 3) — but pl
 ## Build order (concentration-first)
 
 1. **Make the ONE moment real, end to end, in LIVE mode** — Magic → UA balance → spoken transfer → real tx hash. Get the full magic working before polishing anything. (Steps 1, 2, 4 of the integration prompt.)
-2. **Add ZeroDev SRA deposit + Arbitrum deploy** — solid and live. (Steps 3, 5.)
+2. **Add Arbitrum deploy** — solid and live. (Step 5.)
 3. **Now pour the remaining time into polishing the ONE moment** — animation, narration, copy, mobile, demo video. This is most of your weeks.
 4. **Submission hygiene** — Vercel URL, demo/live toggle, only claim what's verifiable, honest roadmap line for Openfort.
 
