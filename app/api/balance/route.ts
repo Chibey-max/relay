@@ -24,9 +24,16 @@ export async function POST(req: NextRequest) {
   }
 
   // Live: fetch from Particle using the owner address.
-  const { ownerAddress } = body;
+  const { ownerAddress, authTimestamp, authSignature } = body;
   if (!ownerAddress) {
     return NextResponse.json({ error: "ownerAddress required in live mode." }, { status: 400 });
+  }
+
+  // Prove the caller actually controls ownerAddress before we read (and
+  // return) their real cross-chain balance.
+  const auth = await verifyOwnerAuth({ ownerAddress, authTimestamp, authSignature });
+  if (!auth.ok) {
+    return NextResponse.json({ error: auth.error }, { status: 401 });
   }
 
   try {
