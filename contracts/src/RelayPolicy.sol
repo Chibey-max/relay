@@ -109,11 +109,24 @@ contract RelayPolicy {
 
     /// @notice Called by the agent before executing a spend. Reverts if the
     ///         spend would violate policy; updates the rolling daily window.
+    ///         A recipient seen for the first time is auto-enrolled under
+    ///         the current default limits (if any are set) rather than
+    ///         rejected outright — that's what makes enforcement compatible
+    ///         with arbitrary, never-configured recipients.
     function checkAndRecord(address recipient, uint256 amountWei) external onlyAgent {
         if (paused) revert IsPaused();
 
         Limit storage l = limits[recipient];
-        if (!l.whitelisted) revert NotWhitelisted(recipient);
+        if (!l.whitelisted) {
+            if (defaultPerTxMaxWei == 0 && defaultDailyMaxWei == 0) {
+                revert NotWhitelisted(recipient);
+            }
+            l.perTxMaxWei = defaultPerTxMaxWei;
+            l.dailyMaxWei = defaultDailyMaxWei;
+            l.whitelisted = true;
+            emit RecipientConfigured(recipient, defaultPerTxMaxWei, defaultDailyMaxWei);
+        }
+
         if (amountWei > l.perTxMaxWei) {
             revert OverPerTxLimit(recipient, amountWei, l.perTxMaxWei);
         }
