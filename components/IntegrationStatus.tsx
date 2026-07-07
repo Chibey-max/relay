@@ -28,7 +28,7 @@ export default function IntegrationStatus({
   const rows = [
     { label: "Particle UA", sub: "EIP-7702 mode", track: "Main · $2,500", on: uaActive },
     { label: "Magic", sub: "email login", track: "Bonus · $500", on: true },
-    { label: "ZeroDev", sub: "gas sponsored", track: "Subtrack · $500", on: true },
+    { label: "ZeroDev", sub: "gas sponsored + policy enforced", track: "supports Arbitrum bounty", on: true },
     { label: "Arbitrum", sub: "execution layer", track: "Bounty · $2,000", on: !!contractAddress },
   ];
 
