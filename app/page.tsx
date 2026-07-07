@@ -532,6 +532,12 @@ export default function Home() {
               <div className="space-y-6">
                 <ExecutionSteps steps={steps} result={result} />
 
+                {phase === "executing" && (
+                  <button onClick={reset} className="font-mono text-xs text-dim hover:text-chalk">
+                    stuck? start over
+                  </button>
+                )}
+
                 {phase === "done" && result?.ok && (
                   <div className="animate-converge rounded-2xl border border-check/40 bg-slate p-6">
                     <span className="font-mono text-[10px] uppercase tracking-widest text-check">
