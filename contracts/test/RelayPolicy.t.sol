@@ -58,4 +58,11 @@ contract RelayPolicyTest is Test {
         vm.prank(agent);
         policy.checkAndRecord(recipient, 100 ether); // new window, should succeed
     }
+
+    function test_noDefaultsMeansUnconfiguredRecipientRejected() public {
+        RelayPolicy strict = new RelayPolicy(agent, 0, 0);
+        vm.prank(agent);
+        vm.expectRevert(abi.encodeWithSelector(RelayPolicy.NotWhitelisted.selector, recipient));
+        strict.checkAndRecord(recipient, 1 ether);
+    }
 }
