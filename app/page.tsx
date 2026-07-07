@@ -109,6 +109,7 @@ export default function Home() {
 
   async function handleThemeToggle() {
     const next = theme === "dark" ? "light" : "dark";
+    localStorage.setItem("relayTheme", next);
     // Use View Transitions API for the circle-wipe effect if available
     if (!document.startViewTransition || !themeToggleRef.current) {
       setTheme(next);
