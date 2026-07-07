@@ -6,8 +6,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { RELAY_MODE } from "../../../lib/config";
 import { DEMO_BALANCE } from "../../../constants/demo";
+import { verifyOwnerAuth } from "../../../lib/auth";
+import { rateLimit, clientIp } from "../../../lib/rate-limit";
 
 export async function POST(req: NextRequest) {
+  const rl = rateLimit(`balance:${clientIp(req)}`, 20, 60_000);
+  if (!rl.ok) {
+    return NextResponse.json({ error: "Too many requests — slow down and try again." }, { status: 429 });
+  }
+
   const body = await req.json();
   // Client-side mode toggle overrides the build-time env default
   const mode = body.mode ?? RELAY_MODE;
