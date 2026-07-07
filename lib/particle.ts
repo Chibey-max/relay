@@ -51,6 +51,18 @@ export function createUniversalAccount(ownerAddress: string): UniversalAccount {
     projectClientKey: clientKey,
     projectAppUuid: appId,
     ownerAddress,
+    // useEIP7702 is required to get an EIP-7702-delegated EOA (the UA
+    // hard requirement) instead of the SDK's default separate smart
+    // account — without this flag the account is NOT in 7702 mode.
+    // Do NOT set name/version here: the .d.ts marks them required, but
+    // the backend validates `version` against its own internal default
+    // and rejects an arbitrary string with "Unsupported smart account"
+    // (verified live against the Particle project — omitting them and
+    // passing only useEIP7702 works; the SDK fills in its own defaults
+    // for the omitted fields at runtime).
+    smartAccountOptions: {
+      useEIP7702: true,
+    } as ISmartAccountOptions,
     tradeConfig: {
       slippageBps: 100, // 1%
       universalGas: true, // let the UA pay gas from any token it holds
