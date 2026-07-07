@@ -104,7 +104,8 @@ export async function POST(req: NextRequest) {
       zdError = zdResult.error;
     }
   } catch (err: any) {
-    // ZeroDev failure is non-blocking — log it but let the transfer proceed
+    // Infra-level failure (RPC down, missing env, etc.) is non-blocking —
+    // log it but let the transfer proceed.
     zdError = err?.message ?? "ZeroDev check failed";
   }
 
