@@ -538,6 +538,20 @@ export default function Home() {
                   </button>
                 )}
 
+                {phase === "done" && !result?.ok && !error && (
+                  <div className="rounded-2xl border border-line2 bg-slate p-6">
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-mist">
+                      Didn&apos;t go through
+                    </span>
+                    <p className="mt-2 text-sm text-chalk">
+                      {result?.error ?? "We couldn't confirm what happened with this send. It may not have gone through."}
+                    </p>
+                    <button onClick={reset} className="mt-4 rounded-lg border border-line px-4 py-2 text-sm text-mist hover:text-chalk">
+                      start over
+                    </button>
+                  </div>
+                )}
+
                 {phase === "done" && result?.ok && (
                   <div className="animate-converge rounded-2xl border border-check/40 bg-slate p-6">
                     <span className="font-mono text-[10px] uppercase tracking-widest text-check">
