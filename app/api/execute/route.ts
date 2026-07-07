@@ -62,17 +62,41 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ mode: "demo", ...DEMO_EXECUTION });
   }
 
-  // Live mode: fire ZeroDev sponsored check, then tell the client to proceed.
+  // Live mode moves real gas-sponsored transactions — require proof the
+  // caller actually controls ownerAddress before doing anything on-chain.
+  const auth = await verifyOwnerAuth({ ownerAddress, authTimestamp, authSignature });
+  if (!auth.ok) {
+    return NextResponse.json({ ok: false, error: auth.error }, { status: 401 });
+  }
+
+  // Live mode: fire ZeroDev sponsored check — this is a REAL on-chain call
+  // to RelayPolicy.checkAndRecord, so a policy rejection (over limit,
+  // paused, no default for a brand-new recipient) must actually block the
+  // transfer. Only infra-level hiccups (RPC, bundler) are non-blocking.
   let userOpHash: string | undefined;
   let agentAddress: string | undefined;
   let zdError: string | undefined;
 
   try {
     const { sendSponsoredCheck } = await import("../../../lib/zerodev");
+    // RelayPolicy tracks spend limits in an 18-decimal "wei" convention
+    // regardless of the token actually transferred (it never moves tokens
+    // itself — it only bounds a number), so amounts are normalized via
+    // parseEther the same way on both the deploy script and here.
+    const amountWei = parseEther(intent.amount);
     const zdResult = await sendSponsoredCheck({
       recipient: intent.recipient as Address,
+      amountWei,
       policyAddress: RELAY_POLICY_ADDRESS as Address,
     });
+    if (zdResult.policyRejected) {
+      return NextResponse.json({
+        mode: "live",
+        ready: false,
+        error: zdResult.error ?? "Spend policy rejected this transfer.",
+        agentAddress: zdResult.agentAddress ?? null,
+      });
+    }
     if (zdResult.ok) {
       userOpHash = zdResult.userOpHash;
       agentAddress = zdResult.agentAddress;
