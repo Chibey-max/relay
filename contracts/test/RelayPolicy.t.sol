@@ -74,4 +74,9 @@ contract RelayPolicyTest is Test {
         );
         policy.checkAndRecord(recipient, 50 ether);
     }
+
+    function test_onlyAgentCanCheck() public {
+        vm.expectRevert(RelayPolicy.NotAgent.selector);
+        policy.checkAndRecord(recipient, 1 ether);
+    }
 }
