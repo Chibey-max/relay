@@ -43,10 +43,10 @@ Each of these must be genuinely live (Rule 1) and verifiable (Rule 3) — but pl
 - `loginWithEmail(email)` returns a real EOA. No seed phrase, no MetaMask.
 - Success bar: judge enters email, gets a wallet. Done. Don't over-design the login screen.
 
-### ZeroDev Smart Routing Address — just live ($500, 4 winners byproduct)
-- Add `lib/zerodev-sra.ts`: `createSmartRoutingAddress(ownerAddress)`.
-- This is the **deposit mechanism** — "Fund Relay: send any token on any chain here." That makes ZeroDev structurally core, satisfying the subtrack.
-- Success bar: a real SRA address is returned and a test deposit routes in. Keep the existing gasless `sendSponsoredUserOp` too. Don't build a deposit dashboard — one address + a confirmation is enough.
+### ZeroDev gas sponsorship — just live (supports the Arbitrum byproduct, not its own prize)
+- Not eligible for its own subtrack while targeting Universal Accounts (see correction above) — keep it live anyway because it's a real, load-bearing part of "gas abstraction" for the Arbitrum bounty.
+- `sendSponsoredCheck` in `lib/zerodev.ts` calls `RelayPolicy.checkAndRecord` for real — a genuine on-chain enforcement check, not a decorative self-call.
+- Success bar: a real sponsored UserOp hash appears, and the policy actually blocks an over-limit spend (not just always succeeds).
 
 ### Arbitrum deploy — just live ($2,000 byproduct)
 - Deploy `RelayPolicy.sol` to Arbitrum Sepolia, verify on Arbiscan, link in README + Integration Status panel.
