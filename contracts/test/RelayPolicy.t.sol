@@ -86,4 +86,10 @@ contract RelayPolicyTest is Test {
         vm.expectRevert(RelayPolicy.IsPaused.selector);
         policy.checkAndRecord(recipient, 1 ether);
     }
+
+    function test_onlyOwnerCanSetDefaults() public {
+        vm.prank(agent);
+        vm.expectRevert(RelayPolicy.NotOwner.selector);
+        policy.setDefaultLimits(1 ether, 2 ether);
+    }
 }
