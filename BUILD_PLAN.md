@@ -74,7 +74,8 @@ For each byproduct prize, ask only: *can a judge verify this is live in 30 secon
 
 ## What NOT to do
 
-- Don't split polish evenly across four integrations. That's the eligible-everywhere-strong-nowhere trap.
+- Don't split polish evenly across the three integrations. That's the eligible-everywhere-strong-nowhere trap.
+- Don't budget time for the ZeroDev subtrack — it requires the General Track, which is mutually exclusive with Universal Accounts.
 - Don't add Openfort for $100 — it forks your auth layer and creates a seam. Honest roadmap line only.
 - Don't claim anything not live. A badged demo result is fine; a false "live" claim is disqualifying (the T3 lesson).
 - Don't let the cyberpunk UI eat time the balance-reveal moment needs. The moment is the product; the chrome is not.
