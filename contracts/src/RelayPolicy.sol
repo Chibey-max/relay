@@ -60,10 +60,13 @@ contract RelayPolicy {
         _;
     }
 
-    constructor(address _agent) {
+    constructor(address _agent, uint256 _defaultPerTxMaxWei, uint256 _defaultDailyMaxWei) {
         owner = msg.sender;
         agent = _agent;
+        defaultPerTxMaxWei = _defaultPerTxMaxWei;
+        defaultDailyMaxWei = _defaultDailyMaxWei;
         emit AgentSet(_agent);
+        emit DefaultLimitsSet(_defaultPerTxMaxWei, _defaultDailyMaxWei);
     }
 
     function setAgent(address _agent) external onlyOwner {
