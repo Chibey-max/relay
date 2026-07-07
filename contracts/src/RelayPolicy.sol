@@ -25,10 +25,21 @@ contract RelayPolicy {
 
     mapping(address => Limit) private limits;
 
+    // Relay's product is "type any address in one sentence" — recipients
+    // can't realistically be pre-whitelisted one by one. defaultPerTxMaxWei /
+    // defaultDailyMaxWei are the owner-set bounds a first-time recipient is
+    // auto-enrolled under (still tracked per-recipient from then on, still
+    // owner-configurable — never a hardcoded constant). Leaving both at 0
+    // means "no default" — unconfigured recipients are rejected, same as
+    // before this default mechanism existed.
+    uint256 public defaultPerTxMaxWei;
+    uint256 public defaultDailyMaxWei;
+
     bool public paused; // guardian kill switch
 
     event AgentSet(address indexed agent);
     event RecipientConfigured(address indexed recipient, uint256 perTxMaxWei, uint256 dailyMaxWei);
+    event DefaultLimitsSet(uint256 perTxMaxWei, uint256 dailyMaxWei);
     event SpendChecked(address indexed recipient, uint256 amountWei);
     event Paused(bool paused);
 
