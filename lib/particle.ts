@@ -111,7 +111,7 @@ export async function sendUnifiedTransfer(
     // The UA tells us which chains it pulled liquidity from via the per-chain
     // UserOps — that's the cross-chain sourcing story we surface in the UI.
     const sourcedFrom = (transaction.userOps ?? []).map((op: any) => ({
-      chain: String(op.chainId ?? op.chain ?? "unknown"),
+      chain: chainName(op.chainId ?? op.chain ?? "unknown"),
       amount: String(transaction.totalDepositTokenAmountInUSD ?? ""),
     }));
 
