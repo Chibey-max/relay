@@ -214,11 +214,18 @@ export default function Home() {
 
     try {
       if (relayMode === "live" && ownerAddress) {
+        // Prove wallet ownership before the server fires a real
+        // gas-sponsored UserOp on our behalf.
+        const { getMagicSigner } = await import("../lib/magic");
+        const { signAuthProof } = await import("../lib/authMessage");
+        const signer = await getMagicSigner();
+        const authProof = await signAuthProof(signer);
+
         // Server fires ZeroDev sponsored UserOp + validates intent
         const validateRes = await fetch("/api/execute", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ intent, ownerAddress, mode: relayMode }),
+          body: JSON.stringify({ intent, mode: relayMode, ...authProof }),
         });
         const validateData = await validateRes.json();
 
