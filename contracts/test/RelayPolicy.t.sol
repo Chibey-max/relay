@@ -32,4 +32,18 @@ contract RelayPolicyTest is Test {
         );
         policy.checkAndRecord(recipient, 200 ether);
     }
+
+    function test_rejectsOverDailyAcrossMultipleTx() public {
+        vm.startPrank(agent);
+        policy.checkAndRecord(recipient, 100 ether); // 100
+        policy.checkAndRecord(recipient, 100 ether); // 200
+        policy.checkAndRecord(recipient, 100 ether); // 300
+        policy.checkAndRecord(recipient, 100 ether); // 400
+        policy.checkAndRecord(recipient, 100 ether); // 500 — exactly at daily cap, OK
+        vm.expectRevert(
+            abi.encodeWithSelector(RelayPolicy.OverDailyLimit.selector, recipient, 600 ether, 500 ether)
+        );
+        policy.checkAndRecord(recipient, 100 ether); // 600 — over
+        vm.stopPrank();
+    }
 }
