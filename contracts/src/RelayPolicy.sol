@@ -79,8 +79,18 @@ contract RelayPolicy {
         emit Paused(_paused);
     }
 
-    /// @notice Configure a recipient's per-tx and daily limits. Per-recipient,
-    ///         stored — never a global constant.
+    /// @notice Change the auto-enrollment bounds for recipients seen for the
+    ///         first time. Owner-configurable, so this is not a hardcoded
+    ///         global constant — it's the "bounds the user set."
+    function setDefaultLimits(uint256 perTxMaxWei, uint256 dailyMaxWei) external onlyOwner {
+        defaultPerTxMaxWei = perTxMaxWei;
+        defaultDailyMaxWei = dailyMaxWei;
+        emit DefaultLimitsSet(perTxMaxWei, dailyMaxWei);
+    }
+
+    /// @notice Configure a specific recipient's per-tx and daily limits,
+    ///         overriding the default. Per-recipient, stored — never a
+    ///         global constant.
     function configureRecipient(
         address recipient,
         uint256 perTxMaxWei,
