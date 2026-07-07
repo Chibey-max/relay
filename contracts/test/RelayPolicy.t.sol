@@ -24,4 +24,12 @@ contract RelayPolicyTest is Test {
         assertEq(l.dailyMaxWei, 500 ether);
         assertEq(l.spentToday, 5 ether);
     }
+
+    function test_rejectsOverPerTxDefault() public {
+        vm.prank(agent);
+        vm.expectRevert(
+            abi.encodeWithSelector(RelayPolicy.OverPerTxLimit.selector, recipient, 200 ether, 100 ether)
+        );
+        policy.checkAndRecord(recipient, 200 ether);
+    }
 }
