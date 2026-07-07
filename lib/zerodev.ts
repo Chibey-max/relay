@@ -32,9 +32,14 @@ export interface SponsoredResult {
   userOpHash?: string;
   agentAddress?: string;
   error?: string;
+  // true when RelayPolicy explicitly rejected the spend (over limit, not
+  // whitelisted with no default, paused) — the caller MUST block the
+  // transfer. Absent/false means an infra-level hiccup (RPC, bundler),
+  // which is safe to treat as non-blocking.
+  policyRejected?: boolean;
 }
 
-// RelayPolicy ABI — only the functions the agent calls
+// RelayPolicy ABI — only the functions/errors the agent needs
 const RELAY_POLICY_ABI = [
   {
     name: "checkAndRecord",
