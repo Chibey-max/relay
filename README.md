@@ -22,12 +22,13 @@ The hero of the product isn't the sentence — it's the **unified balance reveal
 
 | Track | Prize | How Relay qualifies |
 |---|---|---|
-| **Universal Accounts Track** (main) | $2,500 | Particle UA SDK in EIP-7702 mode is the spine — unified balance reveal + real cross-chain transfer. Meets all three hard requirements: UA in 7702 mode, ≥1 cross-chain value operation, functional deployed demo. |
-| **Arbitrum "Road to Open House" bounty** | $2,000 | Runs primarily on Arbitrum; chain-abstracted UX (embedded wallet, gas abstraction, invisible bridging) with a contract deployed and verified on Arbitrum Sepolia. |
-| **Magic Labs bonus** | $500 | Email login → real embedded wallet. No seed phrase, no MetaMask, no extension. |
-| **ZeroDev subtrack** | $500 (4 winners) | Gas sponsorship is a core, load-bearing part of the flow — the user never pays gas. |
+| **Universal Accounts Track** (main) | $2,500 / $2,000 / $1,500 | Particle UA SDK in EIP-7702 mode is the spine — unified balance reveal + real cross-chain transfer. Meets all three hard requirements: UA in 7702 mode, ≥1 cross-chain value operation, functional deployed demo. |
+| **Arbitrum "Road to Open House" bounty** | $2,000 (track-agnostic) | Runs primarily on Arbitrum; chain-abstracted UX (embedded wallet, gas abstraction via ZeroDev, invisible bridging via UA) with a contract deployed and verified on Arbitrum Sepolia. |
+| **Magic Labs bonus** | $500 (track-agnostic, single competitive winner) | Email login → real embedded wallet. No seed phrase, no MetaMask, no extension. |
 
-Stacked ceiling: **$5,500** from one coherent submission, no bolted-on integrations.
+Realistic ceiling if 1st on the main track: **$5,000** ($2,500 + $2,000 + $500), from one coherent submission, no bolted-on integrations.
+
+> Note: the hackathon's ZeroDev subtrack ($500 × 4 winners, judged on Smart Routing Address usage) is nested under the **General Track**, which is mutually exclusive with the Universal Accounts Track — you submit to one main track, not both. Relay targets Universal Accounts, so it isn't eligible for that subtrack, and doesn't claim to be. ZeroDev's gas sponsorship + on-chain spend-policy enforcement are real and live (see `lib/zerodev.ts`, `contracts/src/RelayPolicy.sol`) — they support the Arbitrum bounty's "gas abstraction" criterion, not a separate ZeroDev prize claim.
 
 ---
 
