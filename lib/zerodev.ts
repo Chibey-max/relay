@@ -4,7 +4,8 @@
 // Uses an ECDSA Kernel account (the "relay agent") to send a sponsored
 // UserOp on Arbitrum Sepolia. The paymaster covers 100% of gas, so the
 // user pays nothing. This is wired into every live transfer: the agent
-// validates the intent on-chain before Particle UA broadcasts the payment.
+// calls RelayPolicy.checkAndRecord on-chain before Particle UA broadcasts
+// the payment — a real enforcement call, not a decorative no-op.
 //
 // The agent EOA (RELAY_AGENT_PRIVATE_KEY) is separate from the user's
 // Magic wallet — it's the protocol-level signer that interacts with
