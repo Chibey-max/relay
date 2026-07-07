@@ -37,16 +37,23 @@ export default function Home() {
       setPhase(saved === "live" ? "login" : "input");
     }
   }, []);
-  const [text, setText] = useState("");
-  const [intent, setIntent] = useState<ParsedIntent | null>(null);
-  const [balance, setBalance] = useState<Balance | null>(null);
-  const [steps, setSteps] = useState<Step[]>([]);
-  const [result, setResult] = useState<ExecutionResult | null>(null);
+
+  const [text, setText] = useSessionPersist("relay:text", "");
+  const [intent, setIntent] = useSessionPersist<ParsedIntent | null>("relay:intent", null);
+  const [balance, setBalance] = useSessionPersist<Balance | null>("relay:balance", null);
+  const [steps, setSteps] = useSessionPersist<Step[]>("relay:steps", []);
+  const [result, setResult] = useSessionPersist<ExecutionResult | null>("relay:result", null);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useSessionPersist<string | null>("relay:error", null);
   const [motionOn, setMotionOn] = useState(true);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [ownerAddress, setOwnerAddress] = useState<string | null>(null);
+
+  // On mount, read localStorage and sync — avoids SSR/hydration mismatch
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("relayTheme") as "dark" | "light" | null;
+    if (savedTheme) setTheme(savedTheme);
+  }, []);
 
   function toggleMode() {
     const next = relayMode === "demo" ? "live" : "demo";
