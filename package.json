@@ -17,7 +17,6 @@
     "@particle-network/universal-account-sdk": "^1.0.0",
     "@zerodev/ecdsa-validator": "^5.4.0",
     "@zerodev/sdk": "^5.4.0",
-    "@zerodev/smart-routing-address": "^0.2.5",
     "ethers": "^6.13.0",
     "groq-sdk": "^0.7.0",
     "magic-sdk": "^33.7.1",
