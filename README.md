@@ -86,16 +86,44 @@ npm run dev                      # http://localhost:3000
 
 ## Deployed contract
 
-`RelayPolicy.sol` enforces per-recipient spend limits so the agent can only move value within bounds the user set — even though the UX is a single sentence. Every limit is per-recipient, read from storage, never a hardcoded global constant.
+`RelayPolicy.sol` enforces per-recipient spend limits so the agent can only move value within bounds the user set — even though the UX is a single sentence. Every limit is per-recipient, read from storage, never a hardcoded global constant. Since recipients arrive as arbitrary addresses typed in a sentence (they can't be pre-whitelisted one by one), a recipient seen for the first time is auto-enrolled under an owner-configurable default (`defaultPerTxMaxWei` / `defaultDailyMaxWei`) rather than rejected outright — `configureRecipient` still lets the owner set a tighter or looser limit for any specific address afterward. `checkAndRecord` is called for real on every live transfer (via a ZeroDev-sponsored UserOp) and reverts — blocking the transfer — if the policy is violated.
+
+Deployed at [`0x8DD23aBBA62f10306805F0B2C8BF8459d1C3974e`](https://sepolia.arbiscan.io/address/0x8DD23aBBA62f10306805F0B2C8BF8459d1C3974e) on Arbitrum Sepolia — `owner` is the demo deployer key, `agent` is the ZeroDev Kernel account for `RELAY_AGENT_PRIVATE_KEY`, `defaultPerTxMaxWei`/`defaultDailyMaxWei` are 100 / 500 token-units (18-decimal convention). Confirmed on-chain via direct `readContract` calls at deploy time.
+
+> **Not yet verified on Arbiscan** — the deploy above ran without `--etherscan-api-key` (none was available in this environment). To verify:
+> ```bash
+> cd contracts
+> forge verify-contract 0x8DD23aBBA62f10306805F0B2C8BF8459d1C3974e src/RelayPolicy.sol:RelayPolicy \
+>   --chain arbitrum-sepolia \
+>   --etherscan-api-key $ARBISCAN_KEY \
+>   --constructor-args $(cast abi-encode "constructor(address,uint256,uint256)" 0xB44dd0f1504Bf478ebE3E05f3A0c293c7C5F0cE0 100000000000000000000 500000000000000000000)
+> ```
+
+To redeploy again later (e.g. different default limits, different agent):
 
 ```bash
+# 1. Get the Kernel account address for your RELAY_AGENT_PRIVATE_KEY —
+#    this is NOT the raw EOA address; msg.sender inside checkAndRecord is
+#    the smart account that executes the UserOp, not the EOA that signs it.
+npm run agent:address
+
+# 2. Deploy with that address as AGENT_ADDRESS. Needs a separate funded
+#    deployer key (Arbitrum Sepolia ETH from a faucet) — this is a plain
+#    contract deployment, not a sponsored UserOp, so it isn't gas-free.
 cd contracts
+DEPLOYER_PRIVATE_KEY=0x... \
+AGENT_ADDRESS=0x... \
+DEFAULT_PER_TX_MAX_WEI=100000000000000000000 \
+DEFAULT_DAILY_MAX_WEI=500000000000000000000 \
 forge script script/Deploy.s.sol \
   --rpc-url $ARB_SEPOLIA_RPC --broadcast --verify \
   --etherscan-api-key $ARBISCAN_KEY
+
+# 3. Update NEXT_PUBLIC_RELAY_POLICY_ADDRESS in .env.local (and the link
+#    above) to the new address printed by the script.
 ```
 
-Deployed and verified at [`0x0de937c8def5284F8e2F0E2546a891EFe67909cb`](https://sepolia.arbiscan.io/address/0x0de937c8def5284F8e2F0E2546a891EFe67909cb) on Arbitrum Sepolia.
+`DEFAULT_PER_TX_MAX_WEI` / `DEFAULT_DAILY_MAX_WEI` follow an 18-decimal ("ether-style") convention regardless of the token actually transferred — the policy contract never moves tokens itself, it only bounds a number, so `100000000000000000000` means "100 token-units per transaction." Change them (or call `setDefaultLimits` post-deploy) to whatever bound you want new recipients to start under.
 
 ---
 
