@@ -27,7 +27,7 @@ const EXAMPLE = "send 5 USDC to 0x1234abcd5678ef901234abcd5678ef901234abcd";
 
 export default function Home() {
   const [relayMode, setRelayModeState] = useState<"demo" | "live">(RELAY_MODE);
-  const [phase, setPhase] = useState<Phase>(RELAY_MODE === "live" ? "login" : "input");
+  const [phase, setPhase] = useSessionPersist<Phase>("relay:phase", RELAY_MODE === "live" ? "login" : "input");
 
   // On mount, read localStorage and sync — avoids SSR/hydration mismatch
   useEffect(() => {
