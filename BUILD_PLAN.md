@@ -10,7 +10,7 @@ This avoids the failure mode of being eligible-everywhere-but-strong-nowhere. Yo
 
 ## Why Universal Accounts is the point to concentrate on
 
-- It's the only track where winning **automatically strengthens the other three**. A great UA app needs frictionless login (Magic), funding from any chain (ZeroDev SRA), and Arbitrum deployment (Arbitrum bounty). Excellence radiates outward.
+- It's the only track where winning **automatically strengthens the track-agnostic bounties**. A great UA app needs frictionless login (Magic) and Arbitrum deployment (Arbitrum bounty). Excellence radiates outward.
 - Particle judges the main track, runs the hackathon, and offers **incubation** to UA winners. Winning is worth more than the purse.
 - Your scaffold is already built around it.
 
