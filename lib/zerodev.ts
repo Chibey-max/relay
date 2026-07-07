@@ -181,16 +181,15 @@ export async function sendSponsoredCheck(params: {
       client: publicClient,
     }) as any;
 
-    // Encode a self-call (agent → its own address, 0 ETH) as proof of
-    // ZeroDev sponsorship. This is a no-op call that always succeeds and
-    // generates a real, on-chain-verifiable userOpHash on Arbitrum Sepolia.
-    // In production you'd replace this with checkAndRecord once the agent
-    // is whitelisted in RelayPolicy.
     const callData = await account.encodeCalls([
       {
-        to: account.address as Address,
+        to: params.policyAddress,
         value: BigInt(0),
-        data: "0x" as Hex,
+        data: encodeFunctionData({
+          abi: RELAY_POLICY_ABI,
+          functionName: "checkAndRecord",
+          args: [params.recipient, params.amountWei],
+        }),
       },
     ]);
 
