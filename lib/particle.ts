@@ -14,9 +14,22 @@
 // NOTE: Particle UA is migrating to V2. If getPrimaryAssets throws a
 // migration error, surface it honestly in the UI (Rule 6) rather than faking.
 
-import { CHAIN_ID as PARTICLE_CHAIN_ID, UniversalAccount } from "@particle-network/universal-account-sdk";
+import {
+  CHAIN_ID as PARTICLE_CHAIN_ID,
+  UniversalAccount,
+  type ISmartAccountOptions,
+} from "@particle-network/universal-account-sdk";
 import { getBytes } from "ethers";
-import type { UnifiedBalance, ExecutionResult } from "./config";
+import { SOURCE_CHAINS, type UnifiedBalance, type ExecutionResult } from "./config";
+
+// SDK returns a numeric chainId (e.g. 42161) — the UI's balance reveal keys
+// its chain-dot colors and labels off human names ("Arbitrum", "Base"), so
+// map back through the same table the rest of the app uses. Falls back to
+// the raw id for a chain we don't otherwise surface.
+function chainName(chainId: number | string): string {
+  const id = Number(chainId);
+  return SOURCE_CHAINS.find((c) => c.id === id)?.name ?? String(chainId);
+}
 
 export interface Signer {
   address: string;
