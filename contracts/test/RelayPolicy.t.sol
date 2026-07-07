@@ -13,4 +13,15 @@ contract RelayPolicyTest is Test {
     function setUp() public {
         policy = new RelayPolicy(agent, 100 ether, 500 ether);
     }
+
+    function test_autoEnrollsFirstTimeRecipientUnderDefaults() public {
+        vm.prank(agent);
+        policy.checkAndRecord(recipient, 5 ether);
+
+        RelayPolicy.Limit memory l = policy.getLimit(recipient);
+        assertTrue(l.whitelisted);
+        assertEq(l.perTxMaxWei, 100 ether);
+        assertEq(l.dailyMaxWei, 500 ether);
+        assertEq(l.spentToday, 5 ether);
+    }
 }
