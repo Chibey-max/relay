@@ -150,3 +150,5 @@ Six rules, derived from prior hackathon wins and losses, govern this build:
 ## Status
 
 Particle Universal Accounts was mid-migration to V2 during the hackathon window. If a balance fetch ever surfaces a migration notice, the app states it honestly rather than faking a number — this is intentional, not a bug.
+
+**RelayPolicy redeployed** with real `checkAndRecord` enforcement (auto-enrollment under owner-set default limits, blocking on violation) — covered by `contracts/test/RelayPolicy.t.sol` (9/9 passing) and confirmed live on-chain. Not yet verified on Arbiscan (no API key was available at deploy time); see "Deployed contract" for the one-line `forge verify-contract` command to finish that once you have a key.
