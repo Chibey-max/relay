@@ -459,7 +459,14 @@ export default function Home() {
                       disabled={busy || !text.trim()}
                       className="rounded-lg bg-chalk px-5 py-2.5 text-sm font-medium text-ink transition hover:opacity-90 disabled:opacity-40"
                     >
-                      {busy ? "reading…" : "Send →"}
+                      {busy ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <span className="h-3 w-3 animate-spin rounded-full border border-ink/30 border-t-ink" />
+                          reading…
+                        </span>
+                      ) : (
+                        "Send →"
+                      )}
                     </button>
                   </div>
                 </div>
