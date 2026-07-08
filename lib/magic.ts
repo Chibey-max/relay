@@ -83,5 +83,23 @@ export async function getMagicSigner(): Promise<Signer> {
   return {
     address,
     signMessage: async (bytes: Uint8Array) => ethSigner.signMessage(bytes),
+    signEIP7702Authorization: (params) => signEIP7702Authorization(params),
   };
+}
+
+// EIP-7702 authorization signing — a DIFFERENT digest/signing scheme than
+// personal_sign (used by getMagicSigner above): it signs
+// keccak256(0x05 || rlp([chainId, address, nonce])) with no message prefix,
+// which is why a generic ethers Signer.signMessage() can't produce it.
+// Magic exposes this natively via magic.wallet.sign7702Authorization —
+// confirmed present in the installed @magic-sdk/provider version, and the
+// officially documented way to delegate a Magic-embedded EOA under
+// Particle's Universal Accounts EIP-7702 mode.
+export async function signEIP7702Authorization(params: {
+  contractAddress: string;
+  chainId: number;
+  nonce?: number;
+}) {
+  const magic = await getMagic();
+  return magic.wallet.sign7702Authorization(params);
 }

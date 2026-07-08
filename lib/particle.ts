@@ -35,6 +35,15 @@ export interface Signer {
   address: string;
   // signMessage takes raw bytes and returns a hex signature.
   signMessage: (bytes: Uint8Array) => Promise<string>;
+  // EIP-7702 authorization signing — a different digest/signing scheme
+  // than signMessage above (see lib/magic.ts). Optional because it's only
+  // needed for a real EIP-7702-mode transfer, and only Magic-backed
+  // signers currently implement it.
+  signEIP7702Authorization?: (params: {
+    contractAddress: string;
+    chainId: number;
+    nonce?: number;
+  }) => Promise<{ contractAddress: string; chainId: number; nonce: number; v: number; r: string; s: string; signature?: string }>;
 }
 
 export function createUniversalAccount(ownerAddress: string): UniversalAccount {
@@ -200,7 +209,50 @@ export async function sendUnifiedTransfer(
     );
 
     const signature = await signer.signMessage(getBytes(transaction.rootHash));
-    const result = await withRequestLogging("sendTransaction", () => ua.sendTransaction(transaction, signature));
+
+    // EIP-7702 mode requires a separate authorization (delegating this EOA
+    // to Particle's implementation contract) signed and attached per
+    // UserOp chain — without it the backend rejects the broadcast with
+    // "Invalid 7702 auth signature". Request one authorization tuple per
+    // chain this transfer actually touches (transaction.userOps), sign
+    // each via Magic's dedicated primitive (NOT signMessage — see
+    // lib/magic.ts), and pass them as sendTransaction's 3rd argument.
+    const userOps = (transaction.userOps ?? []) as any[];
+    const chainIds = [...new Set(userOps.map((op) => Number(op.chainId)))];
+    let authorizations: any[] = [];
+    if (signer.signEIP7702Authorization && chainIds.length > 0) {
+      const authTuples = await ua.getEIP7702Auth(chainIds);
+      authorizations = await Promise.all(
+        (authTuples as any[]).map(async (tuple) => {
+          // Print the exact tuple before signing so it can be visually
+          // confirmed against getEIP7702Auth's own output before
+          // approving the signature prompt.
+          console.log("[sendUnifiedTransfer] signing EIP-7702 authorization tuple:", {
+            chainId: tuple.chainId,
+            contractAddress: tuple.address,
+            nonce: tuple.nonce,
+          });
+          const signed = await signer.signEIP7702Authorization!({
+            contractAddress: tuple.address,
+            chainId: tuple.chainId,
+            nonce: tuple.nonce,
+          });
+          // Magic's `signature` field is optional in its own types — fall
+          // back to constructing the standard 65-byte r+s+v encoding from
+          // the separate components if it's ever absent.
+          const signature =
+            signed.signature ?? `${signed.r}${signed.s.slice(2)}${signed.v.toString(16).padStart(2, "0")}`;
+          console.log("[sendUnifiedTransfer] signed EIP-7702 authorization:", { ...signed, signature });
+          return { chainId: signed.chainId, signature };
+        })
+      );
+    } else if (chainIds.length > 0) {
+      console.warn("[sendUnifiedTransfer] signer has no signEIP7702Authorization — broadcast will likely fail with 'Invalid 7702 auth signature'.");
+    }
+
+    const result = await withRequestLogging("sendTransaction", () =>
+      ua.sendTransaction(transaction, signature, authorizations)
+    );
 
     // The UA tells us which chains it pulled liquidity from via the per-chain
     // UserOps — that's the cross-chain sourcing story we surface in the UI.
