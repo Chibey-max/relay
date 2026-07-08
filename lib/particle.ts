@@ -88,6 +88,78 @@ export async function getUnifiedBalance(ua: UniversalAccount): Promise<UnifiedBa
   };
 }
 
+// Temporarily wraps the browser's request transports (XHR — axios's default
+// browser adapter — and fetch, as a fallback in case the bundle picks that
+// adapter instead) to log the exact outgoing JSON-RPC method + params sent
+// to Particle's UniversalX RPC, and the raw response body. The SDK is a
+// black box internally (compiled, no request hook exposed), so this is the
+// only way to see the literal wire payload instead of just the parsed
+// error. Scoped to the duration of `fn()` only — restores both globals
+// immediately after, success or failure, so it never affects unrelated
+// requests elsewhere in the app.
+async function withRequestLogging<T>(label: string, fn: () => Promise<T>): Promise<T> {
+  if (typeof window === "undefined") return fn();
+
+  const isTargetUrl = (url: string) => /particle|universal-?rpc|universalx/i.test(url);
+  const logReq = (url: string, body: unknown) => {
+    let parsed: any = body;
+    if (typeof body === "string") {
+      try {
+        parsed = JSON.parse(body);
+      } catch {
+        /* leave as raw string */
+      }
+    }
+    console.log(`[particle-rpc-request:${label}]`, url, {
+      method: parsed?.method,
+      params: parsed?.params,
+    });
+  };
+  const logRes = (url: string, status: number, body: string) => {
+    console.log(`[particle-rpc-response:${label}]`, url, "status:", status, "body:", body);
+  };
+
+  const OriginalXHR = window.XMLHttpRequest;
+  class LoggingXHR extends OriginalXHR {
+    private _url = "";
+    open(method: string, url: string | URL, ...rest: any[]) {
+      this._url = String(url);
+      // @ts-ignore — forwarding open()'s variadic signature as-is
+      return super.open(method, url, ...rest);
+    }
+    send(body?: Document | XMLHttpRequestBodyInit | null) {
+      if (isTargetUrl(this._url)) {
+        logReq(this._url, body);
+        this.addEventListener("loadend", () => {
+          logRes(this._url, this.status, this.responseText?.slice(0, 2000));
+        });
+      }
+      return super.send(body as any);
+    }
+  }
+  (window as any).XMLHttpRequest = LoggingXHR;
+
+  const originalFetch = window.fetch;
+  window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = typeof input === "string" ? input : input instanceof URL ? input.href : (input as Request).url;
+    if (isTargetUrl(url) && init?.body) {
+      logReq(url, init.body);
+      const res = await originalFetch(input, init);
+      const clone = res.clone();
+      clone.text().then((t) => logRes(url, res.status, t.slice(0, 2000)));
+      return res;
+    }
+    return originalFetch(input, init);
+  };
+
+  try {
+    return await fn();
+  } finally {
+    (window as any).XMLHttpRequest = OriginalXHR;
+    window.fetch = originalFetch;
+  }
+}
+
 // The payment. UA sources liquidity across chains automatically — the user
 // never picks a chain or bridges. That sourcing is the magic we surface.
 export async function sendUnifiedTransfer(
@@ -104,17 +176,31 @@ export async function sendUnifiedTransfer(
     const amount = params.amount.trim();
     const receiver = params.receiver.trim();
 
-    const transaction = await ua.createTransferTransaction({
-      token: {
-        chainId: PARTICLE_CHAIN_ID.ARBITRUM_MAINNET_ONE,
-        address: tokenAddress,
-      },
+    // Confirm the exact values going in — chainId is hardcoded to
+    // ARBITRUM_MAINNET_ONE (42161) here regardless of NEXT_PUBLIC_CHAIN_ID
+    // (which is 421614/Sepolia, used only by the separate RelayPolicy/
+    // ZeroDev flow) — print it explicitly rather than assuming.
+    console.log("[sendUnifiedTransfer] request params:", {
+      chainId: PARTICLE_CHAIN_ID.ARBITRUM_MAINNET_ONE,
+      tokenAddress,
       amount,
       receiver,
+      ownerAddress: signer.address,
     });
 
+    const transaction = await withRequestLogging("createTransferTransaction", () =>
+      ua.createTransferTransaction({
+        token: {
+          chainId: PARTICLE_CHAIN_ID.ARBITRUM_MAINNET_ONE,
+          address: tokenAddress,
+        },
+        amount,
+        receiver,
+      })
+    );
+
     const signature = await signer.signMessage(getBytes(transaction.rootHash));
-    const result = await ua.sendTransaction(transaction, signature);
+    const result = await withRequestLogging("sendTransaction", () => ua.sendTransaction(transaction, signature));
 
     // The UA tells us which chains it pulled liquidity from via the per-chain
     // UserOps — that's the cross-chain sourcing story we surface in the UI.
