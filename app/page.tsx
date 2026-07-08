@@ -262,6 +262,10 @@ export default function Home() {
           tokenAddress: validateData.tokenAddress,
         });
         if (!txResult.ok) {
+          // txResult.error already carries the real Particle error message
+          // (+ JSON-RPC code, see lib/particle.ts) — log the whole result
+          // too so a stale/truncated UI string is never the only record.
+          console.error("[handleExecute] sendUnifiedTransfer failed:", txResult);
           setSteps((s) => mark(s, 3, "error", txResult.error));
           setError(txResult.error ?? "Transfer failed.");
           setPhase("done");
@@ -303,6 +307,10 @@ export default function Home() {
         }
       }
     } catch (err: any) {
+      // Full underlying error — a generic caught-exception path (network
+      // drop, unexpected throw) that isn't already logged closer to its
+      // source above.
+      console.error("[handleExecute] uncaught error:", { message: err?.message, code: err?.code, stack: err?.stack, raw: err });
       setError(err?.message ?? "Execution failed. Check your connection and try again.");
       setPhase("done");
     } finally {

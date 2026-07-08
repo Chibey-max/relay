@@ -47,9 +47,14 @@ export async function parseIntent(text: string): Promise<ParsedIntent> {
     const parsed = JSON.parse(cleaned);
     return {
       action: parsed.action ?? "unknown",
-      amount: parsed.amount ?? null,
-      token: parsed.token ?? null,
-      recipient: parsed.recipient ?? null,
+      // Groq's JSON output occasionally pads string fields with stray
+      // whitespace/newlines — harmless for display, but Particle UA's
+      // backend rejects a receiver/amount with any extra characters as
+      // "Invalid parameters" (JSON-RPC -32602). Trim defensively here,
+      // at the source, rather than downstream at every call site.
+      amount: typeof parsed.amount === "string" ? parsed.amount.trim() : parsed.amount ?? null,
+      token: typeof parsed.token === "string" ? parsed.token.trim() : parsed.token ?? null,
+      recipient: typeof parsed.recipient === "string" ? parsed.recipient.trim() : parsed.recipient ?? null,
       confidence: typeof parsed.confidence === "number" ? parsed.confidence : 0.5,
       raw: text,
     };

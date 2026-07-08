@@ -96,13 +96,21 @@ export async function sendUnifiedTransfer(
   params: { tokenAddress: string; amount: string; receiver: string }
 ): Promise<ExecutionResult> {
   try {
+    // Particle's backend rejects a receiver/token address with any stray
+    // whitespace as "Invalid parameters" (JSON-RPC -32602) — trim right
+    // before the call as a last line of defense, even though lib/groq.ts
+    // already trims at the source.
+    const tokenAddress = params.tokenAddress.trim();
+    const amount = params.amount.trim();
+    const receiver = params.receiver.trim();
+
     const transaction = await ua.createTransferTransaction({
       token: {
         chainId: PARTICLE_CHAIN_ID.ARBITRUM_MAINNET_ONE,
-        address: params.tokenAddress,
+        address: tokenAddress,
       },
-      amount: params.amount,
-      receiver: params.receiver,
+      amount,
+      receiver,
     });
 
     const signature = await signer.signMessage(getBytes(transaction.rootHash));
@@ -122,6 +130,19 @@ export async function sendUnifiedTransfer(
       sourcedFrom,
     };
   } catch (err: any) {
-    return { ok: false, error: err?.message ?? "Universal transfer failed" };
+    // Log the full underlying error — err.message alone (e.g. "Invalid
+    // parameters") doesn't say which parameter or which call (quote vs.
+    // sign vs. broadcast) failed. err.code is Particle's JSON-RPC error
+    // code (e.g. -32602 for invalid params, -32624 for insufficient
+    // balance) and is the fastest way to tell those apart.
+    console.error("[sendUnifiedTransfer] Universal transfer failed:", {
+      message: err?.message,
+      code: err?.code,
+      stack: err?.stack,
+      params: { tokenAddress: params.tokenAddress, amount: params.amount, receiver: params.receiver },
+      raw: err,
+    });
+    const detail = err?.code ? ` (code ${err.code})` : "";
+    return { ok: false, error: (err?.message ?? "Universal transfer failed") + detail };
   }
 }
