@@ -10,10 +10,12 @@ export default function PaymentReceipt({
   quote,
   who,
   hash,
+  hashLink,
 }: {
   quote: string;
   who: string;
   hash: string;
+  hashLink?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [stamped, setStamped] = useState(false);
@@ -42,7 +44,7 @@ export default function PaymentReceipt({
     >
       <div className="mb-4 flex items-center justify-between">
         <span className="font-mono text-[10px] uppercase tracking-widest text-dim">
-          Payment · confirmed
+          Real transaction · confirmed
         </span>
         <span
           className={`flex items-center gap-1 font-mono text-[10px] text-check transition-all duration-500 ${
@@ -55,15 +57,28 @@ export default function PaymentReceipt({
       <p className="mb-4 font-display text-lg italic leading-relaxed text-chalk">
         &ldquo;{quote}&rdquo;
       </p>
-      <div className="flex items-center justify-between border-t border-line pt-4">
+      <div className="flex items-center justify-between gap-3 border-t border-line pt-4">
         <span className="text-sm font-medium text-chalk">{who}</span>
-        <span
-          className={`font-mono text-[10px] text-dim transition-opacity duration-500 delay-150 ${
-            stamped ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          {hash}
-        </span>
+        {hashLink ? (
+          <a
+            href={hashLink}
+            target="_blank"
+            rel="noreferrer"
+            className={`shrink-0 font-mono text-[10px] text-dim underline transition-opacity duration-500 delay-150 hover:text-check ${
+              stamped ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            {hash} ↗
+          </a>
+        ) : (
+          <span
+            className={`shrink-0 font-mono text-[10px] text-dim transition-opacity duration-500 delay-150 ${
+              stamped ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            {hash}
+          </span>
+        )}
       </div>
     </div>
   );

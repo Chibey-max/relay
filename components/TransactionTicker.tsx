@@ -19,13 +19,20 @@ export default function TransactionTicker() {
 
   return (
     <div className="ticker-mask overflow-hidden border-y border-line">
-      <div className="flex w-max animate-scroll-left gap-9 whitespace-nowrap py-3">
+      {/* Slower on narrow viewports — the same translateX(-50%) distance
+          covers relatively more of a phone's visible window per second, so
+          each item has less wall-clock time to actually be read. A longer
+          duration below sm keeps items lingering long enough to register. */}
+      <div className="flex w-max animate-[scroll-left_40s_linear_infinite] gap-6 whitespace-nowrap py-3 sm:animate-scroll-left sm:gap-9">
         {items.map((t, i) => (
           <div key={i} className="flex items-center gap-2 font-mono text-[11px] text-dim">
             <span className="h-1 w-1 rounded-full bg-check" />
             <span className="font-medium text-mist">{t.amount}</span>
             <span>→ {t.to}</span>
-            <span className="opacity-60">· {t.note}</span>
+            {/* The trailing note is the least essential part of each item —
+                drop it below sm so what's left fits the "read one item at a
+                glance" budget of a narrow marquee. */}
+            <span className="hidden opacity-60 sm:inline">· {t.note}</span>
           </div>
         ))}
       </div>

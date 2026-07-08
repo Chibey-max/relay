@@ -13,7 +13,7 @@ import UnifiedBalance from "../components/UnifiedBalance";
 import ExecutionSteps, { type Step } from "../components/ExecutionSteps";
 import TransactionTicker from "../components/TransactionTicker";
 import PaymentReceipt from "../components/PaymentReceipt";
-import { RELAY_MODE, RELAY_POLICY_ADDRESS } from "../lib/config";
+import { RELAY_MODE, RELAY_POLICY_ADDRESS, EXPLORER } from "../lib/config";
 import { useReveal } from "../lib/useReveal";
 import { useSessionPersist, clearRelaySession } from "../lib/useSessionPersist";
 import type { ParsedIntent, UnifiedBalance as Balance, ExecutionResult } from "../lib/config";
@@ -337,29 +337,37 @@ export default function Home() {
           <span className="font-display text-xl font-semibold tracking-tight text-chalk">
             Relay
           </span>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <button
               onClick={toggleMode}
-              className={`rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-wider transition hover:opacity-80 ${
+              className={`shrink-0 rounded-full border px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider transition hover:opacity-80 sm:px-3 ${
                 relayMode === "live" ? "border-check text-check" : "border-line2 text-mist"
               }`}
               title={`Switch to ${relayMode === "live" ? "demo" : "live"} mode`}
             >
               {relayMode === "live" ? "live ⇄" : "demo ⇄"}
             </button>
+            {/* Below ~400px, DARK/MOTION collapse to icon-only glyphs — full
+                text labels return at sm+ so the header never crowds the
+                wordmark + live badge on a phone. */}
             <button
               ref={themeToggleRef}
               onClick={handleThemeToggle}
-              className="rounded-full border border-line px-3 py-1 font-mono text-[9px] uppercase tracking-wider text-mist hover:text-chalk"
+              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              aria-label="Toggle theme"
+              className="shrink-0 rounded-full border border-line px-2.5 py-1 font-mono text-[9px] uppercase tracking-wider text-mist hover:text-chalk sm:px-3"
             >
-              {theme === "dark" ? "dark" : "light"}
+              <span className="sm:hidden">{theme === "dark" ? "☾" : "☀"}</span>
+              <span className="hidden sm:inline">{theme === "dark" ? "dark" : "light"}</span>
             </button>
             <button
               onClick={() => setMotionOn((m) => !m)}
-              className="font-mono text-[9px] uppercase tracking-wider text-dim hover:text-chalk"
+              title={motionOn ? "Pause motion" : "Resume motion"}
               aria-label="Toggle motion"
+              className="shrink-0 font-mono text-[9px] uppercase tracking-wider text-dim hover:text-chalk"
             >
-              {motionOn ? "motion" : "still"}
+              <span className="sm:hidden">{motionOn ? "◐" : "◯"}</span>
+              <span className="hidden sm:inline">{motionOn ? "motion" : "still"}</span>
             </button>
           </div>
         </header>
@@ -667,11 +675,53 @@ export default function Home() {
             Each payment settles on Arbitrum and is verifiable by anyone — the receipt, not a promise.
           </p>
           <PaymentReceipt
-            quote="5 USDC to sarah.eth, sourced from Base and Arbitrum, delivered with zero gas paid by the sender."
-            who="Relay · Arbitrum Sepolia"
-            hash="0x4a9f…2c81"
+            quote="Verified test transaction — Relay's wallet delegated via EIP-7702 and sent 0.0002 ETH on Arbitrum One mainnet. Confirmed independently on Arbiscan."
+            who="Relay · Arbitrum One mainnet"
+            hash="0x118ff441…f80dcfe"
+            hashLink="https://arbiscan.io/tx/0x118ff441d1bb070c000b74a940ebc3637dfd3d989781321bd8ec47b22f80dcfe"
           />
         </div>
+
+        <footer className="mt-16 border-t border-line pt-8">
+          <p className="mb-6 max-w-md text-xs leading-relaxed text-mist">
+            Policy contract verified on Arbitrum Sepolia — settlement proven on Arbitrum One mainnet.
+          </p>
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex flex-wrap gap-x-5 gap-y-2 font-mono text-[10px] uppercase tracking-wider text-dim">
+              <a href="https://github.com/Chibey-max/relay" target="_blank" rel="noreferrer" className="hover:text-chalk">
+                GitHub ↗
+              </a>
+              <a
+                href={`${EXPLORER}/address/${RELAY_POLICY_ADDRESS}`}
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-chalk"
+              >
+                Contract ↗
+              </a>
+              <a
+                href="https://arbiscan.io/tx/0x118ff441d1bb070c000b74a940ebc3637dfd3d989781321bd8ec47b22f80dcfe"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-chalk"
+              >
+                Live transaction ↗
+              </a>
+            </div>
+            <div className="flex flex-col gap-1 font-mono text-[10px] uppercase tracking-wider text-dim sm:items-end">
+              <a
+                href="https://www.encodeclub.com/programmes/uxmaxx-hackathon"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-chalk"
+              >
+                Built for UXmaxx Hackathon
+              </a>
+              <span>Universal Accounts Track</span>
+              <span className="text-dim">Particle · Magic · ZeroDev · Arbitrum</span>
+            </div>
+          </div>
+        </footer>
       </div>
     </main>
   );
