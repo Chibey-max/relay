@@ -237,12 +237,35 @@ export async function sendUnifiedTransfer(
             chainId: tuple.chainId,
             nonce: tuple.nonce,
           });
-          // Magic's `signature` field is optional in its own types — fall
-          // back to constructing the standard 65-byte r+s+v encoding from
-          // the separate components if it's ever absent.
-          const signature =
-            signed.signature ?? `${signed.r}${signed.s.slice(2)}${signed.v.toString(16).padStart(2, "0")}`;
-          console.log("[sendUnifiedTransfer] signed EIP-7702 authorization:", { ...signed, signature });
+          // Log every field explicitly (not just the object, which some
+          // consoles truncate/collapse) — v is the tell for which
+          // convention Magic actually returned.
+          console.log("[sendUnifiedTransfer] raw signed EIP-7702 authorization:", {
+            contractAddress: signed.contractAddress,
+            chainId: signed.chainId,
+            nonce: signed.nonce,
+            v: signed.v,
+            r: signed.r,
+            s: signed.s,
+            signature: signed.signature,
+          });
+
+          // EIP-7702's authorization_list entries are [chainId, address,
+          // nonce, y_parity, r, s] — Type-4-transaction-wide convention
+          // (same family as EIP-1559/2930), NOT the legacy Ethereum
+          // message-signing v (27/28) that personal_sign/eth_sign use.
+          // Don't trust a pre-combined `signature` string blindly (we
+          // don't know which convention it was built with) — always
+          // derive yParity from v ourselves and reconstruct the 65-byte
+          // signature so the encoding is verifiably correct:
+          //   - v === 27 or 28  -> yParity = v - 27
+          //   - v already 0/1   -> yParity = v (defensive, in case Magic
+          //     ever returns yParity directly in the `v` field)
+          const yParity = signed.v >= 27 ? signed.v - 27 : signed.v;
+          const pad32 = (hex: string) => hex.replace(/^0x/, "").padStart(64, "0");
+          const signature = `0x${pad32(signed.r)}${pad32(signed.s)}${yParity.toString(16).padStart(2, "0")}`;
+
+          console.log("[sendUnifiedTransfer] reconstructed EIP-7702 signature:", { yParity, signature });
           return { chainId: signed.chainId, signature };
         })
       );
