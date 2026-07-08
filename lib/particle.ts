@@ -119,10 +119,16 @@ async function withRequestLogging<T>(label: string, fn: () => Promise<T>): Promi
         /* leave as raw string */
       }
     }
-    console.log(`[particle-rpc-request:${label}]`, url, {
-      method: parsed?.method,
-      params: parsed?.params,
-    });
+    // Print fully-flattened JSON TEXT, not a live object reference —
+    // console.log(obj) shows a collapsed/lazy view in some contexts (e.g.
+    // "params: Array(2)" with no way to expand further), which is exactly
+    // what hid whether `authorizations` actually made it into the wire
+    // payload last time. JSON.stringify forces every nested field to
+    // print now, unambiguously.
+    console.log(
+      `[particle-rpc-request:${label}] ${url}\n` +
+        JSON.stringify({ method: parsed?.method, params: parsed?.params }, null, 2)
+    );
   };
   const logRes = (url: string, status: number, body: string) => {
     console.log(`[particle-rpc-response:${label}]`, url, "status:", status, "body:", body);
@@ -211,18 +217,28 @@ export async function sendUnifiedTransfer(
     const signature = await signer.signMessage(getBytes(transaction.rootHash));
 
     // EIP-7702 mode requires a separate authorization (delegating this EOA
-    // to Particle's implementation contract) signed and attached per
-    // UserOp chain — without it the backend rejects the broadcast with
-    // "Invalid 7702 auth signature". Request one authorization tuple per
-    // chain this transfer actually touches (transaction.userOps), sign
-    // each via Magic's dedicated primitive (NOT signMessage — see
-    // lib/magic.ts), and pass them as sendTransaction's 3rd argument.
+    // to Particle's implementation contract) signed and attached — without
+    // it the backend rejects the broadcast with "Invalid 7702 auth
+    // signature". CRITICAL: the SDK's internal matching (verified by
+    // tracing actual property reads via a Proxy, not by reading minified
+    // source — that approach previously gave a wrong answer) keys each
+    // authorization to a UserOp by **userOpHash**, not chainId:
+    //   authorizations.find(auth => auth.userOpHash === userOp.userOpHash)
+    // So we need one authorization object per UserOp, each carrying that
+    // UserOp's own userOpHash — even though the underlying signed
+    // authorization content can be shared (chainId:0 from getEIP7702Auth
+    // means "universal", valid across chains) when multiple UserOps share
+    // a chain.
     const userOps = (transaction.userOps ?? []) as any[];
     const chainIds = [...new Set(userOps.map((op) => Number(op.chainId)))];
     let authorizations: any[] = [];
     if (signer.signEIP7702Authorization && chainIds.length > 0) {
       const authTuples = await ua.getEIP7702Auth(chainIds);
-      authorizations = await Promise.all(
+      // Sign one authorization per unique chain (avoids duplicate Magic
+      // prompts for chains touched by multiple UserOps), keyed by chainId
+      // for lookup below.
+      const signedByChainId = new Map<number, string>();
+      await Promise.all(
         (authTuples as any[]).map(async (tuple) => {
           // Print the exact tuple before signing so it can be visually
           // confirmed against getEIP7702Auth's own output before
@@ -237,18 +253,37 @@ export async function sendUnifiedTransfer(
             chainId: tuple.chainId,
             nonce: tuple.nonce,
           });
-          // Log every field explicitly (not just the object, which some
-          // consoles truncate/collapse) — v is the tell for which
-          // convention Magic actually returned.
-          console.log("[sendUnifiedTransfer] raw signed EIP-7702 authorization:", {
-            contractAddress: signed.contractAddress,
-            chainId: signed.chainId,
-            nonce: signed.nonce,
-            v: signed.v,
-            r: signed.r,
-            s: signed.s,
-            signature: signed.signature,
-          });
+          // JSON.stringify — printing a live object here (as before) shows
+          // a collapsed reference in some console contexts and hides the
+          // exact field values entirely.
+          console.log(
+            "[sendUnifiedTransfer] raw signed EIP-7702 authorization:\n" +
+              JSON.stringify(
+                {
+                  contractAddress: signed.contractAddress,
+                  chainId: signed.chainId,
+                  nonce: signed.nonce,
+                  v: signed.v,
+                  r: signed.r,
+                  s: signed.s,
+                  signature: signed.signature,
+                },
+                null,
+                2
+              )
+          );
+
+          // Explicit byte-length audit on the RAW (pre-padding) values —
+          // if either isn't exactly 64 hex chars (32 bytes), a leading
+          // zero byte was stripped by the signer/serialization layer
+          // before it ever reached us, which the pad32 step below must
+          // correct for.
+          const rLen = signed.r.replace(/^0x/, "").length;
+          const sLen = signed.s.replace(/^0x/, "").length;
+          console.log(`[sendUnifiedTransfer] r length: ${rLen} (want 64), s length: ${sLen} (want 64)`);
+          if (rLen !== 64 || sLen !== 64) {
+            console.warn("[sendUnifiedTransfer] r or s is NOT 32 bytes before padding — this is the likely cause of an invalid signature if padding doesn't correct it.");
+          }
 
           // EIP-7702's authorization_list entries are [chainId, address,
           // nonce, y_parity, r, s] — Type-4-transaction-wide convention
@@ -263,11 +298,44 @@ export async function sendUnifiedTransfer(
           //     ever returns yParity directly in the `v` field)
           const yParity = signed.v >= 27 ? signed.v - 27 : signed.v;
           const pad32 = (hex: string) => hex.replace(/^0x/, "").padStart(64, "0");
-          const signature = `0x${pad32(signed.r)}${pad32(signed.s)}${yParity.toString(16).padStart(2, "0")}`;
+          const paddedR = pad32(signed.r);
+          const paddedS = pad32(signed.s);
+          const signature = `0x${paddedR}${paddedS}${yParity.toString(16).padStart(2, "0")}`;
 
-          console.log("[sendUnifiedTransfer] reconstructed EIP-7702 signature:", { yParity, signature });
-          return { chainId: signed.chainId, signature };
+          console.log(
+            "[sendUnifiedTransfer] reconstructed EIP-7702 signature:\n" +
+              JSON.stringify(
+                {
+                  yParity,
+                  paddedRLength: paddedR.length,
+                  paddedSLength: paddedS.length,
+                  signature,
+                  signatureByteLength: (signature.length - 2) / 2,
+                },
+                null,
+                2
+              )
+          );
+          signedByChainId.set(tuple.chainId, signature);
         })
+      );
+
+      // Now build the actual authorizations array the SDK expects: one
+      // entry per UserOp, keyed by that UserOp's own userOpHash, carrying
+      // the signature for whichever chain that UserOp is on (falling back
+      // to a chainId:0 "universal" signature if that's what was signed).
+      authorizations = userOps
+        .map((op) => {
+          const opChainId = Number(op.chainId);
+          const sig = signedByChainId.get(opChainId) ?? signedByChainId.get(0);
+          if (!sig || !op.userOpHash) return null;
+          return { userOpHash: op.userOpHash, signature: sig };
+        })
+        .filter((a): a is { userOpHash: string; signature: string } => a !== null);
+
+      console.log(
+        "[sendUnifiedTransfer] final authorizations array (keyed by userOpHash):\n" +
+          JSON.stringify(authorizations, null, 2)
       );
     } else if (chainIds.length > 0) {
       console.warn("[sendUnifiedTransfer] signer has no signEIP7702Authorization — broadcast will likely fail with 'Invalid 7702 auth signature'.");
