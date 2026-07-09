@@ -3,21 +3,46 @@
 // The "verified" stamp — checkmark and hash fade/scale in ~300-450ms after
 // the quote appears, like a real confirmation landing. Reinforces "verified"
 // through motion and typography, never color decoration.
+//
+// Reads from the same relay:realHistory data TransactionTicker uses (newest
+// entry first — see the unshift in app/page.tsx's handleExecute) so the
+// receipt shows the most recent real send instead of staying frozen on one
+// fixed transaction, the same way the ticker already does.
 
 import { useEffect, useRef, useState } from "react";
 import Icon from "./Icon";
+import type { RealTick } from "./TransactionTicker";
 
-export default function PaymentReceipt({
-  quote,
-  who,
-  hash,
-  hashLink,
-}: {
-  quote: string;
-  who: string;
-  hash: string;
-  hashLink?: string;
-}) {
+// Permanent fallback proof for a fresh session with no real send yet — a
+// genuinely real, independently-verifiable transaction (not a placeholder),
+// kept so the section never shows synthetic/fabricated data even before a
+// user has completed their own send.
+const FALLBACK_TX = {
+  amount: "0.0002",
+  token: "ETH",
+  recipient: "Relay · Arbitrum One mainnet",
+  txHash: "0x118ff441…f80dcfe",
+  explorerUrl: "https://arbiscan.io/tx/0x118ff441d1bb070c000b74a940ebc3637dfd3d989781321bd8ec47b22f80dcfe",
+};
+
+function shortenHash(h: string): string {
+  return h.length <= 20 ? h : `${h.slice(0, 10)}…${h.slice(-7)}`;
+}
+
+function shortenAddr(a: string): string {
+  return a.length <= 12 ? a : `${a.slice(0, 6)}…${a.slice(-4)}`;
+}
+
+export default function PaymentReceipt({ realHistory = [] }: { realHistory?: RealTick[] }) {
+  const latest = realHistory[0];
+
+  const quote = latest
+    ? `Verified send — Relay's wallet delegated via EIP-7702 sent ${latest.amount} ${latest.token} on Arbitrum One mainnet. Confirmed independently on Arbiscan.`
+    : "Verified test transaction — Relay's wallet delegated via EIP-7702 and sent 0.0002 ETH on Arbitrum One mainnet. Confirmed independently on Arbiscan.";
+  const who = latest ? `Relay · sent to ${shortenAddr(latest.recipient)}` : FALLBACK_TX.recipient;
+  const hash = latest ? shortenHash(latest.txHash) : FALLBACK_TX.txHash;
+  const hashLink = latest?.explorerUrl ?? FALLBACK_TX.explorerUrl;
+
   const ref = useRef<HTMLDivElement>(null);
   const [stamped, setStamped] = useState(false);
 

@@ -801,12 +801,7 @@ export default function Home() {
           <p className="mb-8 max-w-md text-sm text-mist">
             Each payment settles on Arbitrum and is verifiable by anyone — the receipt, not a promise.
           </p>
-          <PaymentReceipt
-            quote="Verified test transaction — Relay's wallet delegated via EIP-7702 and sent 0.0002 ETH on Arbitrum One mainnet. Confirmed independently on Arbiscan."
-            who="Relay · Arbitrum One mainnet"
-            hash="0x118ff441…f80dcfe"
-            hashLink="https://arbiscan.io/tx/0x118ff441d1bb070c000b74a940ebc3637dfd3d989781321bd8ec47b22f80dcfe"
-          />
+          <PaymentReceipt realHistory={realHistory} />
         </div>
       </div>
 
