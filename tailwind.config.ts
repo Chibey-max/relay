@@ -48,20 +48,11 @@ const config: Config = {
           from: { transform: "translateX(0)" },
           to: { transform: "translateX(-50%)" },
         },
-        // Large, slow elliptical drift for the ambient background orbs —
-        // each waypoint moves on both axes so the path reads as a loose
-        // ellipse rather than a back-and-forth bounce.
-        "orb-drift-a": {
-          "0%, 100%": { transform: "translate(0, 0)" },
-          "25%": { transform: "translate(-70px, 50px)" },
-          "50%": { transform: "translate(-30px, 110px)" },
-          "75%": { transform: "translate(50px, 40px)" },
-        },
-        "orb-drift-b": {
-          "0%, 100%": { transform: "translate(0, 0)" },
-          "25%": { transform: "translate(60px, -40px)" },
-          "50%": { transform: "translate(20px, -100px)" },
-          "75%": { transform: "translate(-60px, -30px)" },
+        // Left-to-right reveal for the "You type" node's typed-out detail
+        // line in ArchitectureFlow, replayed each loop via a remount key.
+        typewriter: {
+          from: { clipPath: "inset(0 100% 0 0)" },
+          to: { clipPath: "inset(0 0% 0 0)" },
         },
       },
       animation: {
@@ -70,8 +61,7 @@ const config: Config = {
         blink: "blink 1.1s step-end infinite",
         stamp: "stamp 0.5s cubic-bezier(0.34,1.56,0.64,1) both",
         "scroll-left": "scroll-left 26s linear infinite",
-        "orb-drift-a": "orb-drift-a 28s ease-in-out infinite",
-        "orb-drift-b": "orb-drift-b 30s ease-in-out infinite",
+        typewriter: "typewriter 0.7s steps(20,end) 1",
       },
     },
   },

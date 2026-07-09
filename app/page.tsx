@@ -9,7 +9,6 @@ import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import ParticleField from "../components/ParticleField";
 import CyclingWord from "../components/CyclingWord";
-import AmbientOrb from "../components/AmbientOrb";
 import ArchitectureFlow from "../components/ArchitectureFlow";
 import IntegrationStatus from "../components/IntegrationStatus";
 import UnifiedBalance from "../components/UnifiedBalance";
@@ -461,8 +460,7 @@ export default function Home() {
 
         {!heroCollapsed && (
           <>
-            <div ref={heroReveal.ref} className={`relative py-16 text-center ${heroReveal.className}`}>
-              <AmbientOrb variant="a" className="-top-24 -right-64" />
+            <div ref={heroReveal.ref} className={`py-16 text-center ${heroReveal.className}`}>
               <p className="mb-5 font-mono text-[10px] uppercase tracking-[0.2em] text-dim">
                 Universal Accounts · EIP-7702 · Arbitrum
               </p>
@@ -742,8 +740,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div ref={howReveal.ref} className={`relative mt-20 border-t border-line pt-14 ${howReveal.className}`}>
-          <AmbientOrb variant="b" className="-bottom-40 -left-64" />
+        <div ref={howReveal.ref} className={`mt-20 border-t border-line pt-14 ${howReveal.className}`}>
           <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-dim">How it works</p>
           <h2 className="mb-2 max-w-md font-display text-2xl font-medium tracking-tight text-chalk">
             Three steps. One sentence.
@@ -782,7 +779,7 @@ export default function Home() {
           <p className="mb-10 max-w-md text-sm text-mist">
             Every one of these happens in under two seconds — you only see the first and the last.
           </p>
-          <ArchitectureFlow />
+          <ArchitectureFlow motionOn={motionOn} />
         </div>
       </div>
 
@@ -811,9 +808,16 @@ export default function Home() {
             hashLink="https://arbiscan.io/tx/0x118ff441d1bb070c000b74a940ebc3637dfd3d989781321bd8ec47b22f80dcfe"
           />
         </div>
+      </div>
 
+      {/* Footer matches the ArchitectureFlow section's max-w-6xl — without
+          this, the footer stayed on the narrower max-w-4xl column while
+          everything above it (at this scroll depth) had already moved to
+          the wider one, so it read as packed to one side instead of
+          spreading across the same width as the rest of the page. */}
+      <div className="relative z-10 mx-auto max-w-6xl px-6 pb-16">
         <footer className="mt-16 border-t border-line pt-8">
-          <div className="flex flex-col gap-10 sm:flex-row">
+          <div className="flex flex-col gap-10 sm:flex-row sm:gap-24 lg:gap-32">
             <div className="flex flex-col gap-3">
               <p className="font-mono text-[9px] uppercase tracking-widest text-dim">Project</p>
               <a href="https://github.com/Chibey-max/relay" target="_blank" rel="noreferrer" className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-mist hover:text-chalk">
