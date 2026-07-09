@@ -391,6 +391,23 @@ export default function Home() {
       <ParticleField paused={!motionOn} />
 
       <div className="relative z-10 mx-auto max-w-4xl px-6 pb-16">
+        {/* Frame rules — only show above 2xl, where the centered column
+            leaves enough side margin that it can read as unfinished empty
+            space rather than a deliberate editorial gutter. Same hairline
+            weight as the border-t dividers already used throughout, just
+            vertical and very low opacity so it stays a quiet frame, not a
+            new visual element competing with content. Negative z-index
+            keeps these behind the (unpositioned, "auto"-stacked) content
+            that follows, without needing to touch anything else's z-index. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-0 -z-10 hidden border-l border-line/40 2xl:block"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 right-0 -z-10 hidden border-r border-line/40 2xl:block"
+        />
+
         <header className="flex items-center justify-between border-b border-line py-5">
           <div className="flex items-center gap-3">
             <svg width="28" height="28" viewBox="0 0 30 30" fill="none" className="shrink-0 text-chalk">
@@ -722,7 +739,18 @@ export default function Home() {
           </div>
         </div>
 
-        <div ref={howReveal.ref} className={`mt-20 border-t border-line pt-14 ${howReveal.className}`}>
+        <div ref={howReveal.ref} className={`relative mt-20 border-t border-line pt-14 ${howReveal.className}`}>
+          {/* Margin annotation — reuses this section's own eyebrow text,
+              just smaller/rotated/dimmer, so the left margin reads as a
+              quiet marginal note rather than a second headline. Left only
+              (right margin stays clean) to avoid clutter. */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute left-0 top-14 hidden whitespace-nowrap font-mono text-[9px] uppercase tracking-[0.25em] text-dim/60 2xl:block"
+            style={{ writingMode: "vertical-rl", transform: "translateX(-2.75rem) rotate(180deg)" }}
+          >
+            How it works
+          </span>
           <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-dim">How it works</p>
           <h2 className="mb-2 max-w-md font-display text-2xl font-medium tracking-tight text-chalk">
             Three steps. One sentence.
@@ -746,7 +774,14 @@ export default function Home() {
           </div>
         </div>
 
-        <div ref={receiptReveal.ref} className={`mt-16 border-t border-line pt-14 ${receiptReveal.className}`}>
+        <div ref={receiptReveal.ref} className={`relative mt-16 border-t border-line pt-14 ${receiptReveal.className}`}>
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute left-0 top-14 hidden whitespace-nowrap font-mono text-[9px] uppercase tracking-[0.25em] text-dim/60 2xl:block"
+            style={{ writingMode: "vertical-rl", transform: "translateX(-2.75rem) rotate(180deg)" }}
+          >
+            A payment, verified
+          </span>
           <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-dim">A payment, verified</p>
           <h2 className="mb-2 max-w-md font-display text-2xl font-medium tracking-tight text-chalk">
             Every send, on the record.
