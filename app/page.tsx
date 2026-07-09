@@ -13,6 +13,7 @@ import UnifiedBalance from "../components/UnifiedBalance";
 import ExecutionSteps, { type Step } from "../components/ExecutionSteps";
 import TransactionTicker from "../components/TransactionTicker";
 import PaymentReceipt from "../components/PaymentReceipt";
+import Icon from "../components/Icon";
 import { RELAY_MODE, RELAY_POLICY_ADDRESS, EXPLORER } from "../lib/config";
 import { useReveal } from "../lib/useReveal";
 import { useSessionPersist, clearRelaySession } from "../lib/useSessionPersist";
@@ -334,40 +335,50 @@ export default function Home() {
 
       <div className="relative z-10 mx-auto max-w-6xl px-6 pb-16">
         <header className="flex items-center justify-between border-b border-line py-5">
-          <span className="font-display text-xl font-semibold tracking-tight text-chalk">
-            Relay
-          </span>
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-3">
+            <svg width="28" height="28" viewBox="0 0 30 30" fill="none" className="shrink-0 text-chalk">
+              <circle cx="6" cy="7" r="2.2" fill="currentColor" opacity="0.5" />
+              <circle cx="24" cy="7" r="2.2" fill="currentColor" opacity="0.5" />
+              <circle cx="15" cy="24" r="2.2" fill="currentColor" opacity="0.5" />
+              <path d="M6 7 L15 15 M24 7 L15 15 M15 24 L15 15" stroke="currentColor" strokeWidth="1" opacity="0.3" />
+              <circle cx="15" cy="15" r="3.4" fill="currentColor" />
+            </svg>
+            <span className="font-display text-2xl font-semibold tracking-tight text-chalk sm:text-3xl">
+              Relay
+            </span>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Icon-only controls at every width — real Material Symbols
+                glyphs read clearly at 18px, so there's no need for a
+                separate mobile/desktop text-label split anymore; this is
+                also narrower than the old text-pill versions, which is
+                what actually fixes the 375px header overflow. */}
             <button
               onClick={toggleMode}
-              className={`shrink-0 rounded-full border px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider transition hover:opacity-80 sm:px-3 ${
+              className={`flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider transition hover:opacity-80 ${
                 relayMode === "live" ? "border-check text-check" : "border-line2 text-mist"
               }`}
               title={`Switch to ${relayMode === "live" ? "demo" : "live"} mode`}
             >
-              {relayMode === "live" ? "live ⇄" : "demo ⇄"}
+              {relayMode}
+              <Icon name={relayMode === "live" ? "bolt" : "science"} className="text-[16px] align-middle" />
             </button>
-            {/* Below ~400px, DARK/MOTION collapse to icon-only glyphs — full
-                text labels return at sm+ so the header never crowds the
-                wordmark + live badge on a phone. */}
             <button
               ref={themeToggleRef}
               onClick={handleThemeToggle}
               title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
               aria-label="Toggle theme"
-              className="shrink-0 rounded-full border border-line px-2.5 py-1 font-mono text-[9px] uppercase tracking-wider text-mist hover:text-chalk sm:px-3"
+              className="flex shrink-0 items-center justify-center rounded-full border border-line p-1.5 text-mist hover:text-chalk"
             >
-              <span className="sm:hidden">{theme === "dark" ? "☾" : "☀"}</span>
-              <span className="hidden sm:inline">{theme === "dark" ? "dark" : "light"}</span>
+              <Icon name={theme === "dark" ? "dark_mode" : "light_mode"} className="text-[18px] align-middle" />
             </button>
             <button
               onClick={() => setMotionOn((m) => !m)}
               title={motionOn ? "Pause motion" : "Resume motion"}
               aria-label="Toggle motion"
-              className="shrink-0 font-mono text-[9px] uppercase tracking-wider text-dim hover:text-chalk"
+              className="flex shrink-0 items-center justify-center p-1 text-dim hover:text-chalk"
             >
-              <span className="sm:hidden">{motionOn ? "◐" : "◯"}</span>
-              <span className="hidden sm:inline">{motionOn ? "motion" : "still"}</span>
+              <Icon name={motionOn ? "animation" : "motion_photos_off"} className="text-[18px] align-middle" />
             </button>
           </div>
         </header>
@@ -429,9 +440,10 @@ export default function Home() {
                         <p className="flex-1 break-all font-mono text-xs text-chalk leading-relaxed">{ownerAddress}</p>
                         <button
                           onClick={() => copyToClipboard(ownerAddress, "address")}
-                          className="shrink-0 rounded border border-line px-2.5 py-1 font-mono text-[10px] text-mist transition hover:border-line2 hover:text-chalk"
+                          className="flex shrink-0 items-center gap-1 rounded border border-line px-2.5 py-1 font-mono text-[10px] text-mist transition hover:border-line2 hover:text-chalk"
                         >
-                          {copied === "address" ? "✓ copied" : "copy"}
+                          <Icon name={copied === "address" ? "check" : "content_copy"} className="text-[14px] align-middle" />
+                          {copied === "address" ? "copied" : "copy"}
                         </button>
                       </div>
                     </div>
@@ -446,12 +458,12 @@ export default function Home() {
                       </ol>
                       <div className="mt-3 flex gap-3 border-t border-line pt-3">
                         <a href="https://faucet.circle.com" target="_blank" rel="noreferrer"
-                          className="font-mono text-[9px] uppercase tracking-wider text-dim underline hover:text-check transition">
-                          USDC faucet ↗
+                          className="flex items-center gap-0.5 font-mono text-[9px] uppercase tracking-wider text-dim underline hover:text-check transition">
+                          USDC faucet <Icon name="open_in_new" className="text-[14px] align-middle no-underline" />
                         </a>
                         <a href="https://bridge.arbitrum.io" target="_blank" rel="noreferrer"
-                          className="font-mono text-[9px] uppercase tracking-wider text-dim underline hover:text-check transition">
-                          Arbitrum bridge ↗
+                          className="flex items-center gap-0.5 font-mono text-[9px] uppercase tracking-wider text-dim underline hover:text-check transition">
+                          Arbitrum bridge <Icon name="open_in_new" className="text-[14px] align-middle no-underline" />
                         </a>
                       </div>
                     </div>
@@ -504,10 +516,11 @@ export default function Home() {
                     <span className="text-dim">→</span>
                     <button
                       onClick={() => intent.recipient && copyToClipboard(intent.recipient, "deposit")}
-                      className="font-mono text-sm text-mist hover:text-chalk transition"
+                      className="flex items-center gap-1 font-mono text-sm text-mist hover:text-chalk transition"
                       title={intent.recipient ?? ""}
                     >
-                      {shorten(intent.recipient)} {copied === "deposit" ? "✓" : "⎘"}
+                      {shorten(intent.recipient)}
+                      <Icon name={copied === "deposit" ? "check" : "content_copy"} className="text-[15px] align-middle" />
                     </button>
                   </div>
                   <p className="mt-2 text-xs text-dim">
@@ -589,16 +602,17 @@ export default function Home() {
                           href={result.explorerUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="font-mono text-xs text-check underline"
+                          className="flex items-center gap-0.5 font-mono text-xs text-check underline"
                         >
-                          view transaction ↗
+                          view transaction <Icon name="open_in_new" className="text-[14px] align-middle no-underline" />
                         </a>
                         {(result.txHash ?? result.transactionId) && (
                           <button
                             onClick={() => copyToClipboard(result.txHash ?? result.transactionId ?? "", "address")}
-                            className="font-mono text-[10px] text-dim hover:text-chalk transition"
+                            className="flex items-center gap-1 font-mono text-[10px] text-dim hover:text-chalk transition"
                           >
-                            {copied === "address" ? "copied ✓" : "copy tx id"}
+                            <Icon name={copied === "address" ? "check" : "content_copy"} className="text-[13px] align-middle" />
+                            {copied === "address" ? "copied" : "copy tx id"}
                           </button>
                         )}
                       </div>
@@ -683,44 +697,46 @@ export default function Home() {
         </div>
 
         <footer className="mt-16 border-t border-line pt-8">
-          <p className="mb-6 max-w-md text-xs leading-relaxed text-mist">
-            Policy contract verified on Arbitrum Sepolia — settlement proven on Arbitrum One mainnet.
-          </p>
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-            <div className="flex flex-wrap gap-x-5 gap-y-2 font-mono text-[10px] uppercase tracking-wider text-dim">
-              <a href="https://github.com/Chibey-max/relay" target="_blank" rel="noreferrer" className="hover:text-chalk">
-                GitHub ↗
+          <div className="flex flex-col gap-10 sm:flex-row">
+            <div className="flex flex-col gap-3">
+              <p className="font-mono text-[9px] uppercase tracking-widest text-dim">Project</p>
+              <a href="https://github.com/Chibey-max/relay" target="_blank" rel="noreferrer" className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-mist hover:text-chalk">
+                GitHub <Icon name="open_in_new" className="text-[14px] align-middle" />
               </a>
               <a
                 href={`${EXPLORER}/address/${RELAY_POLICY_ADDRESS}`}
                 target="_blank"
                 rel="noreferrer"
-                className="hover:text-chalk"
+                className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-mist hover:text-chalk"
               >
-                Contract ↗
+                Contract <Icon name="open_in_new" className="text-[14px] align-middle" />
               </a>
               <a
                 href="https://arbiscan.io/tx/0x118ff441d1bb070c000b74a940ebc3637dfd3d989781321bd8ec47b22f80dcfe"
                 target="_blank"
                 rel="noreferrer"
-                className="hover:text-chalk"
+                className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-mist hover:text-chalk"
               >
-                Live transaction ↗
+                Live transaction <Icon name="open_in_new" className="text-[14px] align-middle" />
               </a>
             </div>
-            <div className="flex flex-col gap-1 font-mono text-[10px] uppercase tracking-wider text-dim sm:items-end">
+            <div className="flex flex-col gap-3">
+              <p className="font-mono text-[9px] uppercase tracking-widest text-dim">Hackathon</p>
               <a
                 href="https://www.encodeclub.com/programmes/uxmaxx-hackathon"
                 target="_blank"
                 rel="noreferrer"
-                className="hover:text-chalk"
+                className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-mist hover:text-chalk"
               >
-                Built for UXmaxx Hackathon
+                Built for UXmaxx Hackathon <Icon name="open_in_new" className="text-[14px] align-middle" />
               </a>
-              <span>Universal Accounts Track</span>
-              <span className="text-dim">Particle · Magic · ZeroDev · Arbitrum</span>
+              <span className="font-mono text-[10px] uppercase tracking-wider text-mist">Universal Accounts Track</span>
+              <span className="font-mono text-[10px] uppercase tracking-wider text-mist">Particle · Magic · ZeroDev · Arbitrum</span>
             </div>
           </div>
+          <p className="mt-8 border-t border-line pt-4 text-xs leading-relaxed text-mist">
+            Policy contract verified on Arbitrum Sepolia — settlement proven on Arbitrum One mainnet.
+          </p>
         </footer>
       </div>
     </main>

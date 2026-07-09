@@ -52,6 +52,16 @@ export default function ParticleField({ paused = false }: { paused?: boolean }) 
     const ro = new ResizeObserver(resize);
     if (canvas.parentElement) ro.observe(canvas.parentElement);
 
+    // The first resize() can run before web fonts finish loading, especially
+    // on mobile — the hero text reflows once the real font metrics land,
+    // changing the parent's scrollHeight out from under the canvas we just
+    // sized. That stale height is what produces the stray diagonal line
+    // artifact (particles connecting across a taller-than-actual canvas).
+    // Re-measure a couple of times after mount to catch that late shift;
+    // ResizeObserver alone doesn't reliably fire for font-driven reflow.
+    const raf1 = requestAnimationFrame(() => requestAnimationFrame(resize));
+    const lateResize = setTimeout(resize, 200);
+
     particlesRef.current = Array.from({ length: COUNT }, () => ({
       x: Math.random(),
       y: Math.random(),
@@ -110,6 +120,8 @@ export default function ParticleField({ paused = false }: { paused?: boolean }) 
       window.removeEventListener("resize", resize);
       ro.disconnect();
       cancelAnimationFrame(rafRef.current);
+      cancelAnimationFrame(raf1);
+      clearTimeout(lateResize);
     };
   }, [paused]);
 

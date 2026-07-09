@@ -23,7 +23,7 @@ export default function TransactionTicker() {
           covers relatively more of a phone's visible window per second, so
           each item has less wall-clock time to actually be read. A longer
           duration below sm keeps items lingering long enough to register. */}
-      <div className="flex w-max animate-[scroll-left_40s_linear_infinite] gap-6 whitespace-nowrap py-3 sm:animate-scroll-left sm:gap-9">
+      <div className="flex w-max animate-[scroll-left_28s_linear_infinite] gap-5 whitespace-nowrap py-3 sm:animate-scroll-left sm:gap-9">
         {items.map((t, i) => (
           <div key={i} className="flex items-center gap-2 font-mono text-[11px] text-dim">
             <span className="h-1 w-1 rounded-full bg-check" />

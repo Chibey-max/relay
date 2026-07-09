@@ -28,7 +28,7 @@ export default function IntegrationStatus({
   const rows = [
     { label: "Particle UA", sub: "EIP-7702 mode", track: "Main · $2,500", on: uaActive },
     { label: "Magic", sub: "email login", track: "Bonus · $500", on: true },
-    { label: "ZeroDev", sub: "gas sponsored + policy enforced", track: "supports Arbitrum bounty", on: true },
+    { label: "ZeroDev", sub: "gas sponsored", track: "Arbitrum bounty", on: true },
     { label: "Arbitrum", sub: "execution layer", track: "Bounty · $2,000", on: !!contractAddress },
   ];
 
@@ -47,15 +47,18 @@ export default function IntegrationStatus({
         </span>
       </div>
 
-      <ul className="space-y-2.5">
-        {rows.map((r) => (
-          <li key={r.label} className="flex items-center justify-between gap-3">
-            <span className="flex items-center gap-2">
+      <ul>
+        {rows.map((r, i) => (
+          <li
+            key={r.label}
+            className={`flex items-center justify-between gap-3 py-2.5 ${i > 0 ? "border-t border-line" : ""}`}
+          >
+            <span className="flex min-w-0 items-center gap-2">
               <Dot on={r.on} />
-              <span className="text-sm text-chalk">{r.label}</span>
-              <span className="text-xs text-dim">{r.sub}</span>
+              <span className="whitespace-nowrap text-sm text-chalk">{r.label}</span>
+              <span className="whitespace-nowrap text-xs text-dim">{r.sub}</span>
             </span>
-            <span className="font-mono text-[9px] text-mist">{r.track}</span>
+            <span className="shrink-0 whitespace-nowrap font-mono text-[9px] text-mist">{r.track}</span>
           </li>
         ))}
       </ul>

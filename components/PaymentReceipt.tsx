@@ -5,6 +5,7 @@
 // through motion and typography, never color decoration.
 
 import { useEffect, useRef, useState } from "react";
+import Icon from "./Icon";
 
 export default function PaymentReceipt({
   quote,
@@ -51,7 +52,7 @@ export default function PaymentReceipt({
             stamped ? "scale-100 opacity-100" : "scale-90 opacity-0"
           }`}
         >
-          ✓ verified
+          <Icon name="check" className="text-[14px] align-middle" /> verified
         </span>
       </div>
       <p className="mb-4 font-display text-lg italic leading-relaxed text-chalk">
@@ -64,11 +65,11 @@ export default function PaymentReceipt({
             href={hashLink}
             target="_blank"
             rel="noreferrer"
-            className={`shrink-0 font-mono text-[10px] text-dim underline transition-opacity duration-500 delay-150 hover:text-check ${
+            className={`flex shrink-0 items-center gap-0.5 font-mono text-[10px] text-dim underline transition-opacity duration-500 delay-150 hover:text-check ${
               stamped ? "opacity-100" : "opacity-0"
             }`}
           >
-            {hash} ↗
+            {hash} <Icon name="open_in_new" className="text-[13px] align-middle no-underline" />
           </a>
         ) : (
           <span
