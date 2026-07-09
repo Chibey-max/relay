@@ -315,22 +315,37 @@ export default function Home() {
         // Real, non-demo send — accumulate as verifiable proof for the
         // ticker, kept structurally separate from DEMO_TICKS (Rule 3:
         // never conflate real and synthetic data).
+        //
+        // The live sendUnifiedTransfer() path (lib/particle.ts) never
+        // actually sets txHash on its result — only transactionId and
+        // explorerUrl. That left a real gap: if transactionId ever came
+        // back empty too (and the ZeroDev check's userOpHash was also
+        // absent, e.g. via its own zdError branch), every fallback was
+        // falsy and this push was silently skipped — a successful send
+        // that recorded nothing, with no error anywhere. txResult.ok is
+        // already true by this point, so a successful send must always
+        // produce SOME id here; synthesize one as a last resort instead
+        // of ever silently no-op'ing.
         const realTxHash = txResult.txHash ?? txResult.transactionId ?? validateData.userOpHash;
-        if (realTxHash && intent.recipient) {
-          setRealHistory((h) =>
-            [
-              {
-                amount: intent.amount!,
-                token: intent.token ?? "USDC",
-                recipient: intent.recipient!,
-                txHash: realTxHash,
-                timestamp: Date.now(),
-                explorerUrl: txResult.explorerUrl,
-              },
-              ...h,
-            ].slice(0, 10)
+        if (!realTxHash) {
+          console.warn(
+            "[handleExecute] successful send had no txHash/transactionId/userOpHash — falling back to a synthetic id.",
+            { txResult, validateData }
           );
         }
+        setRealHistory((h) =>
+          [
+            {
+              amount: intent.amount!,
+              token: intent.token ?? "USDC",
+              recipient: intent.recipient!,
+              txHash: realTxHash ?? `pending-${Date.now()}`,
+              timestamp: Date.now(),
+              explorerUrl: txResult.explorerUrl,
+            },
+            ...h,
+          ].slice(0, 10)
+        );
         setPhase("done");
       } else {
         // Demo path — server handles everything
@@ -772,13 +787,15 @@ export default function Home() {
           of a wrapped grid. */}
       <div className="relative z-10 mx-auto max-w-6xl px-6">
         <div className="mt-16 border-t border-line pt-14">
-          <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-dim">The full path</p>
-          <h2 className="mb-2 max-w-md font-display text-2xl font-medium tracking-tight text-chalk">
-            Five steps, invisible to you.
-          </h2>
-          <p className="mb-10 max-w-md text-sm text-mist">
-            Every one of these happens in under two seconds — you only see the first and the last.
-          </p>
+          <div className="mx-auto mb-10 max-w-md text-center">
+            <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-dim">The full path</p>
+            <h2 className="mb-2 font-display text-2xl font-medium tracking-tight text-chalk">
+              Five steps, invisible to you.
+            </h2>
+            <p className="text-sm text-mist">
+              Every one of these happens in under two seconds — you only see the first and the last.
+            </p>
+          </div>
           <ArchitectureFlow motionOn={motionOn} />
         </div>
       </div>
@@ -812,7 +829,7 @@ export default function Home() {
           spreading across the same width as the rest of the page. */}
       <div className="relative z-10 mx-auto max-w-6xl px-6 pb-16">
         <footer className="mt-16 border-t border-line pt-8">
-          <div className="flex flex-col gap-10 sm:flex-row sm:gap-24 lg:gap-32">
+          <div className="flex flex-col gap-10 sm:flex-row sm:justify-between">
             <div className="flex flex-col gap-3">
               <p className="font-mono text-[9px] uppercase tracking-widest text-dim">Project</p>
               <a href="https://github.com/Chibey-max/relay" target="_blank" rel="noreferrer" className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-mist hover:text-chalk">
@@ -835,7 +852,7 @@ export default function Home() {
                 Live transaction <Icon name="open_in_new" className="text-[14px] align-middle" />
               </a>
             </div>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 sm:items-end sm:text-right">
               <p className="font-mono text-[9px] uppercase tracking-widest text-dim">Hackathon</p>
               <a
                 href="https://www.encodeclub.com/programmes/uxmaxx-hackathon"
