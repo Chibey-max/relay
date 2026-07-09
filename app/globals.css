@@ -5,35 +5,41 @@
 /* Theme tokens — dark is default, .light overrides on the same element
    (or any ancestor) via CSS variable cascade. No @media dark-mode query
    needed since the app drives this explicitly via a toggle. */
+/* Values are space-separated R G B triplets (not hex) so Tailwind's
+   opacity modifiers (e.g. border-line/40) can compose them as
+   rgb(var(--c-x) / <alpha-value>) — see tailwind.config.ts. A plain hex
+   custom property can't have an alpha channel spliced in by a utility
+   class, so every /NN-suffixed color class was silently falling back to
+   Tailwind's default gray instead of our theme color before this. */
 :root {
-  --c-ink: #0B0B0A;
-  --c-slate: #131311;
-  --c-slate2: #191916;
-  --c-line: #28281F;
-  --c-line2: #38382C;
-  --c-chalk: #F2F1EA;
-  --c-mist: #9B9A8E;
-  --c-dim: #5C5C52;
-  --c-check: #B8D9A8;
+  --c-ink: 11 11 10;
+  --c-slate: 19 19 17;
+  --c-slate2: 25 25 22;
+  --c-line: 40 40 31;
+  --c-line2: 56 56 44;
+  --c-chalk: 242 241 234;
+  --c-mist: 155 154 142;
+  --c-dim: 92 92 82;
+  --c-check: 184 217 168;
   color-scheme: dark;
 }
 
 .light {
-  --c-ink: #FAF9F4;
-  --c-slate: #FFFFFF;
-  --c-slate2: #F1EFE6;
-  --c-line: #E2DFD1;
-  --c-line2: #CFCBB8;
-  --c-chalk: #151512;
-  --c-mist: #66655A;
-  --c-dim: #9C9A8C;
-  --c-check: #3D6B2E;
+  --c-ink: 250 249 244;
+  --c-slate: 255 255 255;
+  --c-slate2: 241 239 230;
+  --c-line: 226 223 209;
+  --c-line2: 207 203 184;
+  --c-chalk: 21 21 18;
+  --c-mist: 102 101 90;
+  --c-dim: 156 154 140;
+  --c-check: 61 107 46;
   color-scheme: light;
 }
 
 html, body {
-  background: var(--c-ink);
-  color: var(--c-chalk);
+  background: rgb(var(--c-ink));
+  color: rgb(var(--c-chalk));
   -webkit-font-smoothing: antialiased;
   transition: background 0.3s ease, color 0.3s ease;
 }

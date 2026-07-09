@@ -65,7 +65,7 @@ export default function UnifiedBalance({ balance }: { balance: Balance | null })
             <span className="flex min-w-0 items-center gap-2">
               <span
                 className="h-1.5 w-1.5 shrink-0 rounded-full"
-                style={{ background: CHAIN_COLOR[c.chain] ?? "#5C5C52" }}
+                style={{ background: CHAIN_COLOR[c.chain] ?? "rgb(var(--c-dim))" }}
               />
               <span className="truncate font-mono text-[11px] text-mist">{c.chain}</span>
             </span>

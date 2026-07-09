@@ -22,7 +22,7 @@ export default function AmbientOrb({
       style={{
         width: 700,
         height: 700,
-        background: "radial-gradient(circle, var(--c-chalk) 0%, transparent 70%)",
+        background: "radial-gradient(circle, rgb(var(--c-chalk)) 0%, transparent 70%)",
         opacity: 0.17,
         filter: "blur(60px)",
       }}

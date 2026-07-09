@@ -7,16 +7,20 @@ const config: Config = {
       colors: {
         // Colors reference CSS variables (see globals.css) so the
         // dark/light toggle works by flipping a class, not by duplicating
-        // every utility class across two color sets.
-        ink: "var(--c-ink)",
-        slate: "var(--c-slate)",
-        slate2: "var(--c-slate2)",
-        line: "var(--c-line)",
-        line2: "var(--c-line2)",
-        chalk: "var(--c-chalk)",
-        mist: "var(--c-mist)",
-        dim: "var(--c-dim)",
-        check: "var(--c-check)",
+        // every utility class across two color sets. Wrapped in
+        // rgb(... / <alpha-value>) — not just var(--c-x) — so Tailwind's
+        // opacity modifiers (border-line/40, bg-check/30, etc.) actually
+        // splice in an alpha channel instead of silently falling back to
+        // the default gray border/bg color.
+        ink: "rgb(var(--c-ink) / <alpha-value>)",
+        slate: "rgb(var(--c-slate) / <alpha-value>)",
+        slate2: "rgb(var(--c-slate2) / <alpha-value>)",
+        line: "rgb(var(--c-line) / <alpha-value>)",
+        line2: "rgb(var(--c-line2) / <alpha-value>)",
+        chalk: "rgb(var(--c-chalk) / <alpha-value>)",
+        mist: "rgb(var(--c-mist) / <alpha-value>)",
+        dim: "rgb(var(--c-dim) / <alpha-value>)",
+        check: "rgb(var(--c-check) / <alpha-value>)",
       },
       fontFamily: {
         display: ["var(--font-display)", "serif"],

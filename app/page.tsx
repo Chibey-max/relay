@@ -10,6 +10,7 @@ import dynamic from "next/dynamic";
 import ParticleField from "../components/ParticleField";
 import CyclingWord from "../components/CyclingWord";
 import AmbientOrb from "../components/AmbientOrb";
+import ArchitectureFlow from "../components/ArchitectureFlow";
 import IntegrationStatus from "../components/IntegrationStatus";
 import UnifiedBalance from "../components/UnifiedBalance";
 import ExecutionSteps, { type Step } from "../components/ExecutionSteps";
@@ -743,17 +744,6 @@ export default function Home() {
 
         <div ref={howReveal.ref} className={`relative mt-20 border-t border-line pt-14 ${howReveal.className}`}>
           <AmbientOrb variant="b" className="-bottom-40 -left-64" />
-          {/* Margin annotation — reuses this section's own eyebrow text,
-              just smaller/rotated/dimmer, so the left margin reads as a
-              quiet marginal note rather than a second headline. Left only
-              (right margin stays clean) to avoid clutter. */}
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute left-0 top-14 hidden whitespace-nowrap font-mono text-[9px] uppercase tracking-[0.25em] text-dim/60 2xl:block"
-            style={{ writingMode: "vertical-rl", transform: "translateX(-2.75rem) rotate(180deg)" }}
-          >
-            How it works
-          </span>
           <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-dim">How it works</p>
           <h2 className="mb-2 max-w-md font-display text-2xl font-medium tracking-tight text-chalk">
             Three steps. One sentence.
@@ -776,15 +766,37 @@ export default function Home() {
             ))}
           </div>
         </div>
+      </div>
 
-        <div ref={receiptReveal.ref} className={`relative mt-16 border-t border-line pt-14 ${receiptReveal.className}`}>
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute left-0 top-14 hidden whitespace-nowrap font-mono text-[9px] uppercase tracking-[0.25em] text-dim/60 2xl:block"
-            style={{ writingMode: "vertical-rl", transform: "translateX(-2.75rem) rotate(180deg)" }}
-          >
-            A payment, verified
-          </span>
+      {/* Architecture flow — deliberately breaks out of the max-w-4xl
+          column into a wider one. Every other section commits to the
+          narrow editorial width on purpose; this is the one place that
+          needs the room to actually read left-to-right as a flow instead
+          of a wrapped grid. */}
+      <div className="relative z-10 mx-auto max-w-6xl px-6">
+        <div className="mt-16 border-t border-line pt-14">
+          <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-dim">The full path</p>
+          <h2 className="mb-2 max-w-md font-display text-2xl font-medium tracking-tight text-chalk">
+            Five steps, invisible to you.
+          </h2>
+          <p className="mb-10 max-w-md text-sm text-mist">
+            Every one of these happens in under two seconds — you only see the first and the last.
+          </p>
+          <ArchitectureFlow />
+        </div>
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-4xl px-6 pb-16">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-0 -z-10 hidden border-l border-line/40 2xl:block"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 right-0 -z-10 hidden border-r border-line/40 2xl:block"
+        />
+
+        <div ref={receiptReveal.ref} className={`mt-16 border-t border-line pt-14 ${receiptReveal.className}`}>
           <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-dim">A payment, verified</p>
           <h2 className="mb-2 max-w-md font-display text-2xl font-medium tracking-tight text-chalk">
             Every send, on the record.
