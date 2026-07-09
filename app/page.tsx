@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import ParticleField from "../components/ParticleField";
 import CyclingWord from "../components/CyclingWord";
+import AmbientOrb from "../components/AmbientOrb";
 import IntegrationStatus from "../components/IntegrationStatus";
 import UnifiedBalance from "../components/UnifiedBalance";
 import ExecutionSteps, { type Step } from "../components/ExecutionSteps";
@@ -459,7 +460,8 @@ export default function Home() {
 
         {!heroCollapsed && (
           <>
-            <div ref={heroReveal.ref} className={`py-16 text-center ${heroReveal.className}`}>
+            <div ref={heroReveal.ref} className={`relative py-16 text-center ${heroReveal.className}`}>
+              <AmbientOrb variant="a" className="-top-24 -right-64" />
               <p className="mb-5 font-mono text-[10px] uppercase tracking-[0.2em] text-dim">
                 Universal Accounts · EIP-7702 · Arbitrum
               </p>
@@ -740,6 +742,7 @@ export default function Home() {
         </div>
 
         <div ref={howReveal.ref} className={`relative mt-20 border-t border-line pt-14 ${howReveal.className}`}>
+          <AmbientOrb variant="b" className="-bottom-40 -left-64" />
           {/* Margin annotation — reuses this section's own eyebrow text,
               just smaller/rotated/dimmer, so the left margin reads as a
               quiet marginal note rather than a second headline. Left only
