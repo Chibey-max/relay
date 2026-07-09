@@ -11,7 +11,7 @@ import ParticleField from "../components/ParticleField";
 import IntegrationStatus from "../components/IntegrationStatus";
 import UnifiedBalance from "../components/UnifiedBalance";
 import ExecutionSteps, { type Step } from "../components/ExecutionSteps";
-import TransactionTicker from "../components/TransactionTicker";
+import TransactionTicker, { type RealTick } from "../components/TransactionTicker";
 import PaymentReceipt from "../components/PaymentReceipt";
 import Icon from "../components/Icon";
 import { RELAY_MODE, RELAY_POLICY_ADDRESS, EXPLORER } from "../lib/config";
@@ -44,6 +44,10 @@ export default function Home() {
   const [balance, setBalance] = useSessionPersist<Balance | null>("relay:balance", null);
   const [steps, setSteps] = useSessionPersist<Step[]>("relay:steps", []);
   const [result, setResult] = useSessionPersist<ExecutionResult | null>("relay:result", null);
+  // Real, non-demo completed sends only — accumulates actual proof across
+  // the session instead of only ever showing synthetic ticker data.
+  // Client-side/sessionStorage only, capped at 10, no backend needed.
+  const [realHistory, setRealHistory] = useSessionPersist<RealTick[]>("relay:realHistory", []);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useSessionPersist<string | null>("relay:error", null);
   const [motionOn, setMotionOn] = useState(true);
@@ -157,19 +161,11 @@ export default function Home() {
     setTimeout(() => mainSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
   }
 
-  async function handleParse() {
-    if (!text.trim()) return;
-    setBusy(true);
-    setError(null);
+  // Shared by both the immediate post-login reveal and the refresh-on-parse
+  // path below — a plain function (not inlined in either call site) so
+  // there's exactly one place that knows how to fetch+auth a balance.
+  async function fetchBalance() {
     try {
-      const res = await fetch("/api/parse-intent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
-      });
-      const parsed: ParsedIntent = await res.json();
-      setIntent(parsed);
-
       // Live mode reads a real cross-chain balance — prove wallet ownership
       // first so the server isn't just trusting whatever address we send.
       let authProof: Partial<{ ownerAddress: string; authTimestamp: number; authSignature: string }> = {};
@@ -188,6 +184,41 @@ export default function Home() {
       const balData = await balRes.json();
       if (balData.error) setError(balData.error);
       setBalance(balData.balance ?? null);
+    } catch {
+      // Balance is supplementary to whatever else is happening on screen —
+      // fail silently here rather than stomp a more specific error from
+      // the caller (e.g. handleParse's own catch).
+    }
+  }
+
+  // Show the unified balance the moment the wallet is ready — matches the
+  // hero's promise ("Relay shows your unified balance up front") instead of
+  // gating the reveal behind typing an intent. Fires on fresh login AND on
+  // the restored-session path (both just set ownerAddress), and again if
+  // relayMode ever changes while logged in.
+  useEffect(() => {
+    if (relayMode !== "live" || !ownerAddress) return;
+    fetchBalance();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ownerAddress, relayMode]);
+
+  async function handleParse() {
+    if (!text.trim()) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/parse-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      const parsed: ParsedIntent = await res.json();
+      setIntent(parsed);
+
+      // Refresh too, in case the balance changed between login and typing
+      // — the immediate post-login fetch above is the FIRST reveal, not
+      // the only one.
+      await fetchBalance();
       setPhase("parsed");
     } catch {
       setError("Couldn't read that. Try rephrasing your request.");
@@ -279,6 +310,25 @@ export default function Home() {
           ok: true,
           userOpHash: validateData.userOpHash ?? txResult.userOpHash,
         });
+        // Real, non-demo send — accumulate as verifiable proof for the
+        // ticker, kept structurally separate from DEMO_TICKS (Rule 3:
+        // never conflate real and synthetic data).
+        const realTxHash = txResult.txHash ?? txResult.transactionId ?? validateData.userOpHash;
+        if (realTxHash && intent.recipient) {
+          setRealHistory((h) =>
+            [
+              {
+                amount: intent.amount!,
+                token: intent.token ?? "USDC",
+                recipient: intent.recipient!,
+                txHash: realTxHash,
+                timestamp: Date.now(),
+                explorerUrl: txResult.explorerUrl,
+              },
+              ...h,
+            ].slice(0, 10)
+          );
+        }
         setPhase("done");
       } else {
         // Demo path — server handles everything
@@ -327,6 +377,12 @@ export default function Home() {
     setSteps([]);
     setError(null);
     clearRelaySession();
+    // clearRelaySession() wipes every "relay:"-prefixed key, but
+    // realHistory is cumulative verified proof, not per-flow UI state —
+    // "send another" should never erase a real send that already
+    // happened. Re-persist the current value right after the blanket
+    // clear (React state itself was never touched, only storage).
+    setRealHistory(realHistory);
   }
 
   return (
@@ -397,7 +453,7 @@ export default function Home() {
               </p>
             </div>
             <div ref={tickerReveal.ref} className={tickerReveal.className}>
-              <TransactionTicker />
+              <TransactionTicker realHistory={realHistory} />
             </div>
           </>
         )}
@@ -467,6 +523,15 @@ export default function Home() {
                         </a>
                       </div>
                     </div>
+                  </div>
+                )}
+
+                {/* Up-front reveal — shows as soon as fetchBalance resolves
+                    post-login, before any typing. UnifiedBalance itself
+                    renders nothing while balance is still null. */}
+                {ownerAddress && (
+                  <div className="mb-6">
+                    <UnifiedBalance balance={balance} />
                   </div>
                 )}
 
