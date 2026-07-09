@@ -31,10 +31,24 @@ export default function ParticleField({ paused = false }: { paused?: boolean }) 
     // would make the override impossible.
     if (paused) return;
 
-    const COUNT = 42;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     let width = 0;
     let height = 0;
+    let count = 0;
+
+    function densityFor(h: number) {
+      return Math.min(Math.max(Math.floor(h / 40), 30), 90);
+    }
+
+    function makeParticles(n: number): Particle[] {
+      return Array.from({ length: n }, () => ({
+        x: Math.random(),
+        y: Math.random(),
+        vx: (Math.random() - 0.5) * 0.00018,
+        vy: (Math.random() - 0.5) * 0.00018,
+        r: Math.random() * 1.3 + 0.6,
+      }));
+    }
 
     function resize() {
       const parent = canvas!.parentElement;
@@ -46,6 +60,15 @@ export default function ParticleField({ paused = false }: { paused?: boolean }) 
       canvas!.style.width = `${width}px`;
       canvas!.style.height = `${height}px`;
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      // Only rebuild the particle array when the target count would
+      // meaningfully change (>10%) — a full regenerate on every pixel of
+      // page growth would make particles visibly "pop" mid-drift.
+      const nextCount = densityFor(height);
+      if (count === 0 || Math.abs(nextCount - count) / count > 0.1) {
+        count = nextCount;
+        particlesRef.current = makeParticles(count);
+      }
     }
     resize();
     window.addEventListener("resize", resize);
@@ -61,14 +84,6 @@ export default function ParticleField({ paused = false }: { paused?: boolean }) 
     // ResizeObserver alone doesn't reliably fire for font-driven reflow.
     const raf1 = requestAnimationFrame(() => requestAnimationFrame(resize));
     const lateResize = setTimeout(resize, 200);
-
-    particlesRef.current = Array.from({ length: COUNT }, () => ({
-      x: Math.random(),
-      y: Math.random(),
-      vx: (Math.random() - 0.5) * 0.00018,
-      vy: (Math.random() - 0.5) * 0.00018,
-      r: Math.random() * 1.3 + 0.6,
-    }));
 
     function getColor() {
       const isDark = !document.documentElement.classList.contains("light");

@@ -8,6 +8,7 @@
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import ParticleField from "../components/ParticleField";
+import CyclingWord from "../components/CyclingWord";
 import IntegrationStatus from "../components/IntegrationStatus";
 import UnifiedBalance from "../components/UnifiedBalance";
 import ExecutionSteps, { type Step } from "../components/ExecutionSteps";
@@ -389,7 +390,7 @@ export default function Home() {
     <main className={`relative overflow-hidden bg-ink transition-colors duration-300 ${motionOn ? "" : "motion-off"} ${theme === "light" ? "light" : ""}`}>
       <ParticleField paused={!motionOn} />
 
-      <div className="relative z-10 mx-auto max-w-6xl px-6 pb-16">
+      <div className="relative z-10 mx-auto max-w-4xl px-6 pb-16">
         <header className="flex items-center justify-between border-b border-line py-5">
           <div className="flex items-center gap-3">
             <svg width="28" height="28" viewBox="0 0 30 30" fill="none" className="shrink-0 text-chalk">
@@ -446,7 +447,7 @@ export default function Home() {
                 Universal Accounts · EIP-7702 · Arbitrum
               </p>
               <h1 className="mx-auto mb-5 max-w-xl font-display text-4xl font-medium leading-tight tracking-tight text-chalk sm:text-5xl">
-                Money that moves the way you <em className="font-normal italic">speak</em>.
+                Money that moves the way you <CyclingWord motionOn={motionOn} />.
               </h1>
               <p className="mx-auto mb-8 max-w-md text-mist">
                 Relay reads a sentence, finds your funds across every chain, and sends — no gas, no bridging, no seed phrase.
