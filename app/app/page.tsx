@@ -10,7 +10,6 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import ParticleField from "../../components/ParticleField";
 import CyclingWord from "../../components/CyclingWord";
-import ArchitectureFlow from "../../components/ArchitectureFlow";
 import IntegrationStatus from "../../components/IntegrationStatus";
 import UnifiedBalance from "../../components/UnifiedBalance";
 import ExecutionSteps, { type Step } from "../../components/ExecutionSteps";
@@ -171,7 +170,6 @@ export default function Home() {
 
   const heroReveal = useReveal<HTMLDivElement>();
   const tickerReveal = useReveal<HTMLDivElement>();
-  const howReveal = useReveal<HTMLDivElement>();
   const receiptReveal = useReveal<HTMLDivElement>();
   const mainSectionRef = useRef<HTMLDivElement>(null);
 
@@ -762,50 +760,6 @@ export default function Home() {
             {error && phase === "input" && <p className="mt-4 text-sm text-mist">{error}</p>}
           </section>
         </div>
-
-        <div ref={howReveal.ref} className={`mt-20 border-t border-line pt-14 ${howReveal.className}`}>
-          <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-dim">How it works</p>
-          <h2 className="mb-2 max-w-md font-display text-2xl font-medium tracking-tight text-chalk">
-            Three steps. One sentence.
-          </h2>
-          <p className="mb-8 max-w-md text-sm text-mist">
-            Relay reads what you want, finds the money, and settles it — the chain work happens where you can&apos;t see it.
-          </p>
-          <div className="grid grid-cols-1 divide-y divide-line overflow-hidden rounded-xl border border-line sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-            {[
-              { n: "01", h: "Speak", p: "Type what you want to send. No forms, no fields, no chain to pick.", tag: "parsed by Groq" },
-              { n: "02", h: "Unify", p: "Your funds, wherever they sit, become one balance. No bridging required.", tag: "Particle UA · EIP-7702" },
-              { n: "03", h: "Settle", p: "Gas sponsored, signature simple, funds delivered on Arbitrum.", tag: "ZeroDev · Magic · Arbitrum" },
-            ].map((s) => (
-              <div key={s.n} className="bg-slate p-6 transition-colors hover:bg-slate2">
-                <p className="mb-3 font-mono text-[11px] text-dim">{s.n}</p>
-                <h3 className="mb-2 font-display text-lg font-medium text-chalk">{s.h}</h3>
-                <p className="text-sm text-mist">{s.p}</p>
-                <p className="mt-3 border-t border-line pt-2.5 font-mono text-[9px] text-dim">{s.tag}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Architecture flow — deliberately breaks out of the max-w-4xl
-          column into a wider one. Every other section commits to the
-          narrow editorial width on purpose; this is the one place that
-          needs the room to actually read left-to-right as a flow instead
-          of a wrapped grid. */}
-      <div className="relative z-10 mx-auto max-w-6xl px-6 2xl:max-w-7xl">
-        <div className="mt-16 border-t border-line pt-14">
-          <div className="mx-auto mb-10 max-w-md text-center">
-            <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-dim">The full path</p>
-            <h2 className="mb-2 font-display text-2xl font-medium tracking-tight text-chalk">
-              Five steps, invisible to you.
-            </h2>
-            <p className="text-sm text-mist">
-              Every one of these happens in under two seconds — you only see the first and the last.
-            </p>
-          </div>
-          <ArchitectureFlow motionOn={motionOn} />
-        </div>
       </div>
 
       <div className="relative z-10 mx-auto max-w-4xl px-6 pb-16 lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl">
@@ -830,11 +784,9 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Footer matches the ArchitectureFlow section's max-w-6xl — without
-          this, the footer stayed on the narrower max-w-4xl column while
-          everything above it (at this scroll depth) had already moved to
-          the wider one, so it read as packed to one side instead of
-          spreading across the same width as the rest of the page. */}
+      {/* Footer intentionally sits on a wider max-w-6xl column than the
+          narrower editorial width used above it, so it spreads across
+          the page instead of reading as packed to one side. */}
       <div className="relative z-10 mx-auto max-w-6xl px-6 pb-16 2xl:max-w-7xl">
         <footer className="mt-16 border-t border-line pt-8">
           <div className="flex flex-col gap-10 sm:flex-row sm:justify-between">
