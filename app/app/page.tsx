@@ -467,11 +467,15 @@ export default function Home() {
                 glyphs read clearly at 18px, so there's no need for a
                 separate mobile/desktop text-label split anymore; this is
                 also narrower than the old text-pill versions, which is
-                what actually fixes the 375px header overflow. */}
+                what actually fixes the 375px header overflow. Both header
+                buttons are the same filled-pill/badge shape (border + soft
+                background tint + icon), so they read as one consistent
+                control family — only the accent color differs, reserved
+                for the live/demo distinction the badge itself is about. */}
             <button
               onClick={toggleMode}
               className={`flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider transition hover:opacity-80 ${
-                relayMode === "live" ? "border-check text-check" : "border-line2 text-mist"
+                relayMode === "live" ? "border-check bg-check/10 text-check" : "border-line2 bg-line2/20 text-mist"
               }`}
               title={`Switch to ${relayMode === "live" ? "demo" : "live"} mode`}
             >
@@ -483,7 +487,7 @@ export default function Home() {
               onClick={handleThemeToggle}
               title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
               aria-label="Toggle theme"
-              className="flex shrink-0 items-center justify-center rounded-full border border-line p-1.5 text-mist hover:text-chalk"
+              className="flex shrink-0 items-center justify-center rounded-full border border-line2 bg-line2/20 p-1.5 text-mist hover:text-chalk"
             >
               <Icon name={theme === "dark" ? "dark_mode" : "light_mode"} className="text-[18px] align-middle" />
             </button>
