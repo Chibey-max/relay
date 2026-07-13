@@ -1,91 +1,15 @@
-"use client";
 // components/IntegrationStatus.tsx
-// Rule 5: map every feature to a prize track, visible IN the app.
-// Reads like a spec sheet now — plain text and hairlines, no glow, no HUD.
+// A quiet, single-line integration credit — no prize amounts or track
+// labels. Those belong in the README and the submission form, not the
+// live product UI (a real winning submission's UI has zero
+// hackathon-facing chrome). Demo/live state already has its own indicator
+// in the nav, so this doesn't repeat it. Contract/tx proof links live
+// alongside this in the footer, not duplicated here.
 
-import { RELAY_MODE, EXPLORER } from "../lib/config";
-
-interface Props {
-  contractAddress?: string;
-  lastUserOp?: string;
-  lastTx?: string;
-  uaActive?: boolean;
-  mode?: "demo" | "live";
-}
-
-const Dot = ({ on }: { on: boolean }) => (
-  <span className={`inline-block h-1.5 w-1.5 rounded-full ${on ? "bg-check" : "bg-line2"}`} />
-);
-
-export default function IntegrationStatus({
-  contractAddress,
-  lastUserOp,
-  lastTx,
-  uaActive = true,
-  mode,
-}: Props) {
-  const displayMode = mode ?? RELAY_MODE;
-  const rows = [
-    { label: "Particle UA", sub: "EIP-7702 mode", track: "Main · $2,500", on: uaActive },
-    { label: "Magic", sub: "email login", track: "Bonus · $500", on: true },
-    { label: "ZeroDev", sub: "gas sponsored", track: "Arbitrum bounty", on: true },
-    { label: "Arbitrum", sub: "execution layer", track: "Bounty · $2,000", on: !!contractAddress },
-  ];
-
+export default function IntegrationStatus() {
   return (
-    <aside className="w-full max-w-xs rounded-xl border border-line bg-slate p-4 transition-colors">
-      <div className="mb-3 flex items-center justify-between">
-        <span className="font-mono text-[10px] uppercase tracking-widest text-dim">
-          Integration status
-        </span>
-        <span
-          className={`font-mono text-[9px] uppercase tracking-wider ${
-            displayMode === "live" ? "text-check" : "text-mist"
-          }`}
-        >
-          {displayMode}
-        </span>
-      </div>
-
-      <ul>
-        {rows.map((r, i) => (
-          <li
-            key={r.label}
-            className={`flex items-center justify-between gap-3 py-2.5 ${i > 0 ? "border-t border-line" : ""}`}
-          >
-            <span className="flex min-w-0 items-center gap-2">
-              <Dot on={r.on} />
-              <span className="whitespace-nowrap text-sm text-chalk">{r.label}</span>
-              <span className="whitespace-nowrap text-xs text-dim">{r.sub}</span>
-            </span>
-            <span className="shrink-0 whitespace-nowrap font-mono text-[9px] text-mist">{r.track}</span>
-          </li>
-        ))}
-      </ul>
-
-      <div className="mt-3 space-y-1 border-t border-line pt-3 font-mono text-[10px]">
-        {contractAddress && (
-          <a
-            href={`${EXPLORER}/address/${contractAddress}`}
-            target="_blank"
-            rel="noreferrer"
-            className="block truncate text-dim hover:text-check"
-          >
-            contract: {contractAddress.slice(0, 10)}…
-          </a>
-        )}
-        {lastUserOp && <span className="block truncate text-dim">userOp: {lastUserOp.slice(0, 18)}…</span>}
-        {lastTx && (
-          <a
-            href={`${EXPLORER}/tx/${lastTx}`}
-            target="_blank"
-            rel="noreferrer"
-            className="block truncate text-dim hover:text-check"
-          >
-            tx: {lastTx}
-          </a>
-        )}
-      </div>
-    </aside>
+    <span className="font-mono text-[10px] uppercase tracking-wider text-mist">
+      Built with Particle · Magic · ZeroDev — settled on Arbitrum
+    </span>
   );
 }
