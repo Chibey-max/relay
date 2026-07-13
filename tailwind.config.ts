@@ -53,9 +53,16 @@ const config: Config = {
           from: { transform: "translateX(-50%)" },
           to: { transform: "translateX(0)" },
         },
+        // Includes the tilt in every keyframe (not just translateY) because
+        // a running CSS animation's transform value completely replaces any
+        // separately-applied inline transform for the same property — the
+        // element's own `rotate(-15deg)` inline style was silently getting
+        // overridden to zero rotation for the entire time this animation
+        // ran, which is what produced the "phone renders upright/offset"
+        // bug in the trust panel's mini-phone.
         "float-phone": {
-          "0%,100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-10px)" },
+          "0%,100%": { transform: "rotate(-15deg) translateY(0)" },
+          "50%": { transform: "rotate(-15deg) translateY(-10px)" },
         },
         // Left-to-right reveal for the "You type" node's typed-out detail
         // line in ArchitectureFlow, replayed each loop via a remount key.
