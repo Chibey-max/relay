@@ -24,51 +24,88 @@ const NODES: FlowNode[] = [
 
 const ACTIVE_MS = 1000;
 const END_HOLD_MS = 1500;
+const REWIND_STEP_MS = 320;
 const RESTART_PAUSE_MS = 500;
 
 type NodeState = "idle" | "active" | "done";
 
-function stateFor(i: number, activeIndex: number): NodeState {
+// rewindIndex !== null means we're playing the reverse-rewind: nodes with
+// array index >= rewindIndex have already faded back to idle (in order,
+// starting from the LAST node), nodes before it are still "done". Never
+// reports "active" during rewind — it's a fade, not a re-trigger of the
+// activation pulse.
+function stateFor(i: number, activeIndex: number, rewindIndex: number | null): NodeState {
+  if (rewindIndex !== null) return i < rewindIndex ? "done" : "idle";
   if (activeIndex === -1) return "idle";
   if (i < activeIndex) return "done";
   if (i === activeIndex) return "active";
   return "idle";
 }
 
+// Connector i sits between node i and node i+1. During rewind it stays
+// drawn only as long as its downstream node (i+1) hasn't retracted yet —
+// which makes the last connector (ZeroDev -> Arbitrum) retract first,
+// matching the reverse order the nodes themselves fade in.
+function isDrawn(i: number, activeIndex: number, rewindIndex: number | null): boolean {
+  if (rewindIndex !== null) return i + 1 < rewindIndex;
+  return activeIndex > i;
+}
+
 export default function ArchitectureFlow({ motionOn = true }: { motionOn?: boolean }) {
   // -1 = reset pause (all idle), 0..NODES.length-1 = that node active,
   // NODES.length = past the last node — every node reads "done", which is
-  // the fully-lit hold state before the loop resets.
+  // the fully-lit hold state before the rewind plays.
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [rewindIndex, setRewindIndex] = useState<number | null>(null);
   const [cycleCount, setCycleCount] = useState(0);
 
   useEffect(() => {
     if (!motionOn) {
       // Reduced-motion / motion-off: show the complete picture at rest —
-      // every node settled, every connector drawn — not a frozen
-      // mid-animation and not an empty idle state.
+      // every node settled, every connector drawn, no looping or rewind —
+      // not a frozen mid-animation and not an empty idle state.
       setActiveIndex(NODES.length);
+      setRewindIndex(null);
       return;
     }
 
     let cancelled = false;
     let timeoutId: ReturnType<typeof setTimeout>;
+    const after = (ms: number, fn: () => void) => {
+      timeoutId = setTimeout(() => {
+        if (!cancelled) fn();
+      }, ms);
+    };
 
     function step(i: number) {
       if (cancelled) return;
+      setRewindIndex(null);
       setActiveIndex(i);
       if (i === 0) setCycleCount((c) => c + 1);
-      const delay = i === NODES.length ? END_HOLD_MS : ACTIVE_MS;
-      timeoutId = setTimeout(() => {
-        if (cancelled) return;
-        if (i === NODES.length) {
-          setActiveIndex(-1);
-          timeoutId = setTimeout(() => step(0), RESTART_PAUSE_MS);
-        } else {
-          step(i + 1);
-        }
-      }, delay);
+      if (i === NODES.length) {
+        // Hold on the fully-complete state long enough to actually
+        // register "done" before the rewind starts.
+        after(END_HOLD_MS, () => rewind(NODES.length));
+      } else {
+        after(ACTIVE_MS, () => step(i + 1));
+      }
     }
+
+    // Plays the reverse choreography: Arbitrum fades first (its incoming
+    // connector retracts with it), then ZeroDev, Particle UA, Magic, Groq,
+    // and finally "You type" — the connector feeding each node retracts
+    // in the same step, so the rewind reads as one continuous unwind
+    // rather than a cut back to idle.
+    function rewind(cursor: number) {
+      if (cancelled) return;
+      setRewindIndex(cursor);
+      if (cursor === 0) {
+        after(RESTART_PAUSE_MS, () => step(0));
+      } else {
+        after(REWIND_STEP_MS, () => rewind(cursor - 1));
+      }
+    }
+
     step(0);
 
     return () => {
@@ -80,8 +117,8 @@ export default function ArchitectureFlow({ motionOn = true }: { motionOn?: boole
   return (
     <div className="flex flex-col gap-10 sm:flex-row sm:items-start sm:gap-0">
       {NODES.map((n, i) => {
-        const state = stateFor(i, activeIndex);
-        const drawn = activeIndex > i;
+        const state = stateFor(i, activeIndex, rewindIndex);
+        const drawn = isDrawn(i, activeIndex, rewindIndex);
         return (
           <div key={n.label} className="contents">
             <div className="flex flex-col items-center text-center sm:min-w-0 sm:flex-1">
