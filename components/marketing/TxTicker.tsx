@@ -22,7 +22,10 @@ function Chip({ to, amt }: { to: string; amt: string }) {
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60" style={{ background: "rgb(var(--mkt-sage))" }} />
         <span className="relative inline-flex h-1.5 w-1.5 rounded-full" style={{ background: "rgb(var(--mkt-sage))" }} />
       </span>
-      <span className="font-mono" style={{ color: "rgb(var(--mkt-sage))" }}>
+      {/* Amount stays ink (not sage) — every chip here is illustrative, not
+          a real send, and green on /app's equivalent ticker is reserved for
+          genuinely real/verified entries, not applied to every item. */}
+      <span className="font-mono" style={{ color: "rgb(var(--mkt-ink))" }}>
         {amt}
       </span>
       <span style={{ color: "rgb(var(--mkt-muted))" }}>→ {to}</span>
