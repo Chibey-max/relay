@@ -14,6 +14,7 @@ import TxTicker from "../components/marketing/TxTicker";
 import QuoteCarousel from "../components/marketing/QuoteCarousel";
 import TrustPanel from "../components/marketing/TrustPanel";
 import FaqAccordion from "../components/marketing/FaqAccordion";
+import ArchitectureFlow from "../components/ArchitectureFlow";
 import "./marketing.css";
 
 const STRIP = [
@@ -93,7 +94,12 @@ export default function MarketingPage() {
   }
 
   return (
-    <div className={`mkt ${theme === "dark" ? "dark" : ""} min-h-screen`}>
+    // "light" (the app's own --c-* token override, from globals.css) is
+    // added alongside "mkt"/"dark" (the marketing page's own --mkt-* scoped
+    // tokens) so components reused from the app's design system — like
+    // ArchitectureFlow below — stay theme-reactive too, without needing
+    // their own --mkt-* rewrite or risking their /app usage elsewhere.
+    <div className={`mkt ${theme === "dark" ? "dark" : "light"} min-h-screen`}>
       <nav
         className="sticky top-0 z-50 border-b backdrop-blur"
         style={{ background: "rgb(var(--mkt-cream) / 0.88)", borderColor: "rgb(var(--mkt-line))" }}
@@ -237,6 +243,25 @@ export default function MarketingPage() {
               </Reveal>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="py-20">
+        <div className="mx-auto max-w-6xl px-6">
+          <Reveal className="mx-auto mb-10 max-w-md text-center">
+            <p className="mb-2 font-mono text-xs uppercase tracking-widest" style={{ color: "rgb(var(--mkt-muted2))" }}>
+              The full path
+            </p>
+            <h2 className="mb-2 font-display text-2xl font-medium tracking-tight sm:text-3xl" style={{ color: "rgb(var(--mkt-ink))" }}>
+              Five steps, <span className="mkt-accent">invisible</span> to you.
+            </h2>
+            <p className="text-sm" style={{ color: "rgb(var(--mkt-muted))" }}>
+              Every one of these happens in under two seconds — you only see the first and the last.
+            </p>
+          </Reveal>
+          <Reveal>
+            <ArchitectureFlow motionOn={motionOn} />
+          </Reveal>
         </div>
       </section>
 
