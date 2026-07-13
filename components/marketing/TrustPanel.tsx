@@ -46,94 +46,105 @@ export default function TrustPanel({ motionOn }: { motionOn: boolean }) {
             />
 
             <div className="relative flex h-full flex-col overflow-hidden rounded-[26px]" style={{ background: "rgb(var(--mkt-card))" }}>
-              <div className="grid h-8 shrink-0 grid-cols-[1fr_auto_1fr] items-center px-3.5" style={{ color: "rgb(var(--mkt-ink))" }}>
-                <span className="font-mono text-[10px] font-medium">9:41</span>
-                <div className="relative h-[15px] w-[52px] justify-self-center rounded-lg" style={{ background: "rgb(var(--mkt-fixed-dark))" }}>
-                  <span
-                    aria-hidden
-                    className="absolute right-1.5 top-1/2 h-[4px] w-[4px] -translate-y-1/2 rounded-full"
-                    style={{ background: "radial-gradient(circle at 35% 35%, #3f3f3f, #050505 70%)" }}
-                  />
+              {/* Counter-rotates the screen CONTENT back upright, even though
+                  the phone frame/glass above stays tilted — the frame's own
+                  -15deg rotation would otherwise carry through to this text,
+                  which reads as much harder to parse (rows can look like two
+                  stacked columns instead of paired label/value lines) than
+                  it actually is. Background matches the screen behind it, so
+                  the small gaps left at the corners by the counter-rotation
+                  are invisible. */}
+              <div className="flex h-full flex-col" style={{ transform: "rotate(15deg)", background: "rgb(var(--mkt-card))" }}>
+                <div className="grid h-8 shrink-0 grid-cols-[1fr_auto_1fr] items-center px-3.5" style={{ color: "rgb(var(--mkt-ink))" }}>
+                  <span className="font-mono text-[10px] font-medium">9:41</span>
+                  <div className="relative h-[15px] w-[52px] justify-self-center rounded-lg" style={{ background: "rgb(var(--mkt-fixed-dark))" }}>
+                    <span
+                      aria-hidden
+                      className="absolute right-1.5 top-1/2 h-[4px] w-[4px] -translate-y-1/2 rounded-full"
+                      style={{ background: "radial-gradient(circle at 35% 35%, #3f3f3f, #050505 70%)" }}
+                    />
+                  </div>
+                  <span className="flex items-center justify-end gap-[3px]">
+                    <svg width="12" height="8" viewBox="0 0 16 11" fill="none">
+                      <rect x="0" y="7" width="3" height="4" rx="0.6" fill="currentColor" />
+                      <rect x="4.5" y="5" width="3" height="6" rx="0.6" fill="currentColor" />
+                      <rect x="9" y="3" width="3" height="8" rx="0.6" fill="currentColor" />
+                      <rect x="13.5" y="0.5" width="3" height="10.5" rx="0.6" fill="currentColor" />
+                    </svg>
+                    <svg width="11" height="8" viewBox="0 0 15 11" fill="none">
+                      <path d="M1 4.2C4.8 0.8 10.2 0.8 14 4.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                      <path d="M3.3 6.8C5.9 4.5 9.1 4.5 11.7 6.8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                      <circle cx="7.5" cy="9.3" r="1.1" fill="currentColor" />
+                    </svg>
+                    <svg width="18" height="9" viewBox="0 0 25 12" fill="none">
+                      <rect x="0.75" y="0.75" width="20.5" height="10.5" rx="2.75" stroke="currentColor" strokeWidth="1" />
+                      <rect x="2.25" y="2.25" width="17.5" height="7.5" rx="1.5" fill="currentColor" />
+                      <rect x="22" y="4" width="2" height="4" rx="1" fill="currentColor" />
+                    </svg>
+                  </span>
                 </div>
-                <span className="flex items-center justify-end gap-[3px]">
-                  <svg width="12" height="8" viewBox="0 0 16 11" fill="none">
-                    <rect x="0" y="7" width="3" height="4" rx="0.6" fill="currentColor" />
-                    <rect x="4.5" y="5" width="3" height="6" rx="0.6" fill="currentColor" />
-                    <rect x="9" y="3" width="3" height="8" rx="0.6" fill="currentColor" />
-                    <rect x="13.5" y="0.5" width="3" height="10.5" rx="0.6" fill="currentColor" />
-                  </svg>
-                  <svg width="11" height="8" viewBox="0 0 15 11" fill="none">
-                    <path d="M1 4.2C4.8 0.8 10.2 0.8 14 4.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                    <path d="M3.3 6.8C5.9 4.5 9.1 4.5 11.7 6.8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                    <circle cx="7.5" cy="9.3" r="1.1" fill="currentColor" />
-                  </svg>
-                  <svg width="18" height="9" viewBox="0 0 25 12" fill="none">
-                    <rect x="0.75" y="0.75" width="20.5" height="10.5" rx="2.75" stroke="currentColor" strokeWidth="1" />
-                    <rect x="2.25" y="2.25" width="17.5" height="7.5" rx="1.5" fill="currentColor" />
-                    <rect x="22" y="4" width="2" height="4" rx="1" fill="currentColor" />
-                  </svg>
-                </span>
-              </div>
-              <div
-                className="flex flex-1 flex-col items-center overflow-y-auto px-4 pb-4 pt-4 text-center"
-                style={{ justifyContent: "safe center" }}
-              >
                 <div
-                  key={idx}
-                  className="mb-3 flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full animate-stamp"
-                  style={{ background: "rgb(var(--mkt-sage))" }}
+                  className="flex flex-1 flex-col items-center overflow-y-auto px-4 pb-4 pt-4 text-center"
+                  style={{ justifyContent: "safe center" }}
                 >
-                  <span className="text-lg text-white">✓</span>
-                </div>
-                <div className={`w-full transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`}>
-                  <h5 className="font-display text-sm font-medium" style={{ color: "rgb(var(--mkt-ink))" }}>
-                    Sent.
-                  </h5>
-                  <p className="mb-3 text-[11px]" style={{ color: "rgb(var(--mkt-muted))" }}>
-                    {current.title}
-                  </p>
-                  <div className="w-full rounded-lg border p-2.5 text-left text-[10px]" style={{ background: "rgb(var(--mkt-cream))", borderColor: "rgb(var(--mkt-line))" }}>
-                    {[
-                      ["Network fee", "Sponsored"],
-                      ["Settled on", "Arbitrum"],
-                      ["Status", "Confirmed"],
-                    ].map(([k, v]) => (
-                      <div key={k} className="flex justify-between py-0.5" style={{ color: "rgb(var(--mkt-muted))" }}>
-                        <span>{k}</span>
-                        <b className="font-medium" style={{ color: "rgb(var(--mkt-ink))" }}>
-                          {v}
-                        </b>
+                  <div
+                    key={idx}
+                    className="mb-3 flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full animate-stamp"
+                    style={{ background: "rgb(var(--mkt-sage))" }}
+                  >
+                    <span className="text-lg text-white">✓</span>
+                  </div>
+                  <div className={`w-full transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`}>
+                    <h5 className="font-display text-sm font-medium" style={{ color: "rgb(var(--mkt-ink))" }}>
+                      Sent.
+                    </h5>
+                    <p className="mb-3 text-[11px]" style={{ color: "rgb(var(--mkt-muted))" }}>
+                      {current.title}
+                    </p>
+                    <div className="w-full rounded-lg border p-2.5 text-left text-[10px]" style={{ background: "rgb(var(--mkt-cream))", borderColor: "rgb(var(--mkt-line))" }}>
+                      {[
+                        ["Network fee", "Sponsored"],
+                        ["Settled on", "Arbitrum"],
+                        ["Status", "Confirmed"],
+                      ].map(([k, v]) => (
+                        <div key={k} className="flex justify-between py-0.5" style={{ color: "rgb(var(--mkt-muted))" }}>
+                          <span>{k}</span>
+                          <b className="font-medium" style={{ color: "rgb(var(--mkt-ink))" }}>
+                            {v}
+                          </b>
+                        </div>
+                      ))}
+                    </div>
+                    {current.href ? (
+                      <a
+                        href={current.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2.5 inline-block font-mono text-[10px] underline-offset-2 hover:underline"
+                        style={{ color: "rgb(var(--mkt-sage))" }}
+                      >
+                        {current.hash} ↗
+                      </a>
+                    ) : (
+                      <div className="mt-2.5 font-mono text-[10px]" style={{ color: "rgb(var(--mkt-sage))" }}>
+                        {current.hash} ↗
                       </div>
+                    )}
+                  </div>
+                  <div className="mt-3 flex shrink-0 gap-1.5">
+                    {[0, 1].map((i) => (
+                      <span
+                        key={i}
+                        className="h-1 w-1 rounded-full transition-colors"
+                        style={{ background: i === idx ? "rgb(var(--mkt-sage))" : "rgb(var(--mkt-line))" }}
+                      />
                     ))}
                   </div>
-                  {current.href ? (
-                    <a
-                      href={current.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-2.5 inline-block font-mono text-[10px] underline-offset-2 hover:underline"
-                      style={{ color: "rgb(var(--mkt-sage))" }}
-                    >
-                      {current.hash} ↗
-                    </a>
-                  ) : (
-                    <div className="mt-2.5 font-mono text-[10px]" style={{ color: "rgb(var(--mkt-sage))" }}>
-                      {current.hash} ↗
-                    </div>
-                  )}
-                </div>
-                <div className="mt-3 flex shrink-0 gap-1.5">
-                  {[0, 1].map((i) => (
-                    <span
-                      key={i}
-                      className="h-1 w-1 rounded-full transition-colors"
-                      style={{ background: i === idx ? "rgb(var(--mkt-sage))" : "rgb(var(--mkt-line))" }}
-                    />
-                  ))}
                 </div>
               </div>
 
-              {/* Screen glare — matches the hero phone's treatment */}
+              {/* Screen glare — stays tilted with the glass (a reflection on
+                  the surface, not screen content), unlike the block above. */}
               <div
                 aria-hidden
                 className="pointer-events-none absolute inset-0 rounded-[26px]"
