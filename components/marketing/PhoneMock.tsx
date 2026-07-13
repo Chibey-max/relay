@@ -16,10 +16,14 @@ function Layer({
 }) {
   return (
     <div
-      className={`absolute inset-0 overflow-y-auto px-6 pb-5 pt-5 transition-all duration-400 ${
+      className={`absolute inset-0 flex flex-col overflow-y-auto px-6 pb-5 pt-5 transition-all duration-400 ${
         active ? "pointer-events-auto opacity-100" : "pointer-events-none translate-y-2 opacity-0"
       }`}
-      style={{ background: "rgb(var(--mkt-card))" }}
+      // "safe center" (not plain center): centers short content, but falls
+      // back to top-alignment instead of clipping the top if a screen's
+      // content ever grows taller than the phone's height — the same
+      // scroll-safety the overflow-y-auto above is there for.
+      style={{ background: "rgb(var(--mkt-card))", justifyContent: "safe center" }}
     >
       {children}
     </div>

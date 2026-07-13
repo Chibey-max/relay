@@ -74,7 +74,10 @@ export default function TrustPanel({ motionOn }: { motionOn: boolean }) {
                   </svg>
                 </span>
               </div>
-              <div className="flex flex-1 flex-col items-center overflow-y-auto px-4 pb-4 pt-4 text-center">
+              <div
+                className="flex flex-1 flex-col items-center overflow-y-auto px-4 pb-4 pt-4 text-center"
+                style={{ justifyContent: "safe center" }}
+              >
                 <div
                   key={idx}
                   className="mb-3 flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full animate-stamp"
