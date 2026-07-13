@@ -24,43 +24,55 @@ Rules:
 - Never invent an address. If none is present, recipient is null.
 - Default token to "USDC" only if an amount is present but no token is named.`;
 
-export async function parseIntent(text: string): Promise<ParsedIntent> {
-  const apiKey = process.env.GROQ_API_KEY;
+// Tried in order — GROQ_API_KEY_2 is an optional second key (e.g. a
+// separate account) so a rate-limited or dead primary key doesn't take
+// the whole parser down with it.
+const API_KEYS = [process.env.GROQ_API_KEY, process.env.GROQ_API_KEY_2].filter(
+  (k): k is string => !!k
+);
 
+export async function parseIntent(text: string): Promise<ParsedIntent> {
   // Graceful fallback so the app is never dead without a key:
   // a tiny rule-based parser covers the demo script.
-  if (!apiKey) return ruleBasedFallback(text);
+  if (API_KEYS.length === 0) return ruleBasedFallback(text);
 
-  const groq = new Groq({ apiKey });
-  const completion = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
-    temperature: 0,
-    messages: [
-      { role: "system", content: SYSTEM_PROMPT },
-      { role: "user", content: text },
-    ],
-  });
+  for (const apiKey of API_KEYS) {
+    try {
+      const groq = new Groq({ apiKey });
+      const completion = await groq.chat.completions.create({
+        model: "llama-3.3-70b-versatile",
+        temperature: 0,
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: text },
+        ],
+      });
 
-  const rawOut = completion.choices[0]?.message?.content ?? "";
-  try {
-    const cleaned = rawOut.replace(/```json|```/g, "").trim();
-    const parsed = JSON.parse(cleaned);
-    return {
-      action: parsed.action ?? "unknown",
-      // Groq's JSON output occasionally pads string fields with stray
-      // whitespace/newlines — harmless for display, but Particle UA's
-      // backend rejects a receiver/amount with any extra characters as
-      // "Invalid parameters" (JSON-RPC -32602). Trim defensively here,
-      // at the source, rather than downstream at every call site.
-      amount: typeof parsed.amount === "string" ? parsed.amount.trim() : parsed.amount ?? null,
-      token: typeof parsed.token === "string" ? parsed.token.trim() : parsed.token ?? null,
-      recipient: typeof parsed.recipient === "string" ? parsed.recipient.trim() : parsed.recipient ?? null,
-      confidence: typeof parsed.confidence === "number" ? parsed.confidence : 0.5,
-      raw: text,
-    };
-  } catch {
-    return ruleBasedFallback(text);
+      const rawOut = completion.choices[0]?.message?.content ?? "";
+      const cleaned = rawOut.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(cleaned);
+      return {
+        action: parsed.action ?? "unknown",
+        // Groq's JSON output occasionally pads string fields with stray
+        // whitespace/newlines — harmless for display, but Particle UA's
+        // backend rejects a receiver/amount with any extra characters as
+        // "Invalid parameters" (JSON-RPC -32602). Trim defensively here,
+        // at the source, rather than downstream at every call site.
+        amount: typeof parsed.amount === "string" ? parsed.amount.trim() : parsed.amount ?? null,
+        token: typeof parsed.token === "string" ? parsed.token.trim() : parsed.token ?? null,
+        recipient: typeof parsed.recipient === "string" ? parsed.recipient.trim() : parsed.recipient ?? null,
+        confidence: typeof parsed.confidence === "number" ? parsed.confidence : 0.5,
+        raw: text,
+      };
+    } catch (err) {
+      // Could be a bad/rate-limited key or a malformed model response —
+      // either way, move on to the next key rather than dying here.
+      console.error("[parseIntent] Groq key failed, trying next if available:", err);
+    }
   }
+
+  // Every configured key failed (or produced unparseable output).
+  return ruleBasedFallback(text);
 }
 
 // Deterministic backup. Keeps the demo alive if Groq is unreachable.
