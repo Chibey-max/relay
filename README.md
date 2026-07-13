@@ -2,7 +2,7 @@
 
 **Speak your money.** One sentence becomes a cross-chain payment — no chains to pick, no gas to pay, no seed phrase.
 
-🔗 **Live app:** [relay-ashen-zeta.vercel.app](https://relay-ashen-zeta.vercel.app)
+🔗 **Live app:** [relay-ashen-zeta.vercel.app/app](https://relay-ashen-zeta.vercel.app/app)
 📜 **Contract (Arbitrum Sepolia):** [`0x8DD23aBBA62f10306805F0B2C8BF8459d1C3974e`](https://sepolia.arbiscan.io/address/0x8DD23aBBA62f10306805F0B2C8BF8459d1C3974e)
 🐙 **Repo:** [github.com/Chibey-max/relay](https://github.com/Chibey-max/relay)
 
