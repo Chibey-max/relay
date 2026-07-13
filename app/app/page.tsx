@@ -487,14 +487,6 @@ export default function Home() {
             >
               <Icon name={theme === "dark" ? "dark_mode" : "light_mode"} className="text-[18px] align-middle" />
             </button>
-            <button
-              onClick={() => setMotionOn((m) => !m)}
-              title={motionOn ? "Pause motion" : "Resume motion"}
-              aria-label="Toggle motion"
-              className="flex shrink-0 items-center justify-center p-1 text-dim hover:text-chalk"
-            >
-              <Icon name={motionOn ? "animation" : "motion_photos_off"} className="text-[18px] align-middle" />
-            </button>
           </div>
         </header>
 
