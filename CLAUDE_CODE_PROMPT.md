@@ -1,5 +1,7 @@
 # Claude Code Prompt — Continue Building Relay (Four-Track Plan)
 
+> **Superseded, kept for history.** This prompt assumed the ZeroDev subtrack ($500, 4 winners) stacks with the Universal Accounts Track. Per the official rules, it doesn't — that subtrack is nested under the General Track, which is mutually exclusive with Universal Accounts. Step 3 below (SRA deposit path) was later built, then intentionally dropped, and Relay does not claim the ZeroDev subtrack. See BUILD_PLAN.md and README.md for the current, corrected plan.
+
 Paste this into Claude Code (in the unzipped `relay/` directory) to take the scaffold from demo-mode to live-mode and ship. The goal: be **strongly eligible for four prizes at once** — Universal Accounts Track (main, $2,500), Arbitrum bounty ($2,000), Magic bonus ($500), and ZeroDev subtrack ($500, 4 winners). Each integration must be load-bearing and genuinely live — never a mock, never a false claim.
 
 You are working in the `relay/` repo — a natural-language cross-chain payment agent for the UXmaxx Hackathon. The scaffold builds and runs in demo mode already. Make every partner SDK call live and verifiable, in this exact order. Do not move to the next step until the current one produces a real, verifiable artifact (a real address, a real tx hash, a real balance).
