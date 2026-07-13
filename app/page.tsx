@@ -350,7 +350,7 @@ export default function MarketingPage() {
                 Connect
               </h5>
               <div className="flex flex-col gap-2 text-sm" style={{ color: "rgb(var(--mkt-muted))" }}>
-                <a href="https://x.com/0x_Dave" target="_blank" rel="noreferrer">@0x_Dave on X</a>
+                <a href="https://x.com/Daveilorah" target="_blank" rel="noreferrer">@Daveilorah on X</a>
                 <span className="font-mono text-xs">Built with Particle · Magic · ZeroDev — settled on Arbitrum</span>
               </div>
             </div>
