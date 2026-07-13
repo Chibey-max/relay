@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relay — Money that moves the way you speak</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,560;0,9..144,600;1,9..144,500;1,9..144,560&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root{
+    --c-cream: 250 249 244;
+    --c-card: 255 255 255;
+    --c-line: 226 223 209;
+    --c-ink: 21 21 18;
+    --c-muted: 102 101 90;
+    --c-muted2: 156 154 140;
+    --c-sage: 61 107 46;
+    --c-sage-soft: 184 217 168;
+    /* fixed tokens: intentionally do NOT flip with theme (hardware black, always-dark panel) */
+    --c-fixed-dark: 21 21 18;
+    --c-fixed-light: 250 249 244;
+    color-scheme: light;
+  }
+  :root[data-theme="dark"]{
+    --c-cream: 17 18 16;
+    --c-card: 37 38 34;
+    --c-line: 60 61 53;
+    --c-ink: 240 239 232;
+    --c-muted: 168 166 153;
+    --c-muted2: 112 111 100;
+    --c-sage: 145 202 122;
+    --c-sage-soft: 46 74 37;
+    color-scheme: dark;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background: rgb(var(--c-cream));
+    color: rgb(var(--c-ink));
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height:1.5;
+    transition: background-color .3s ease, color .3s ease;
+  }
+  .serif{
+    font-family:'Fraunces', serif;
+    font-variation-settings: 'SOFT' 60, 'WONK' 0;
+    font-weight:560;
+    letter-spacing:-0.01em;
+  }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  .accent{ font-style:italic; color: rgb(var(--c-sage)); }
+  a{ color:inherit; text-decoration:none; }
+  .wrap{ max-width:72rem; margin:0 auto; padding:0 1.5rem; }
+  .hairline{ border-color: rgb(var(--c-line)); }
+
+  /* ---------- Nav ---------- */
+  nav{
+    position:sticky; top:0; z-index:50;
+    background: rgb(var(--c-cream) / 0.88);
+    backdrop-filter: blur(8px);
+    border-bottom:1px solid rgb(var(--c-line));
+  }
+  .nav-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:1.1rem 0;
+  }
+  .wordmark{ display:flex; align-items:center; gap:0.55rem; font-size:1.05rem; font-weight:600; }
+  .nav-links{ display:flex; align-items:center; gap:2rem; font-size:0.9rem; color: rgb(var(--c-muted)); }
+  .nav-links a:hover{ color: rgb(var(--c-ink)); }
+  .btn-primary{
+    background: rgb(var(--c-sage)); color:#fff;
+    padding:0.6rem 1.15rem; border-radius:4px; font-size:0.88rem; font-weight:500;
+    transition: opacity .15s ease, transform .15s ease;
+    display:inline-block;
+  }
+  .btn-primary:hover{ opacity:0.88; transform:translateY(-1px); }
+  .btn-primary:active{ transform:translateY(0) scale(0.97); }
+  .theme-toggle{
+    width:34px; height:34px; border-radius:50%; border:1px solid rgb(var(--c-line));
+    background: rgb(var(--c-card)); color: rgb(var(--c-ink));
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    transition: background-color .2s ease, transform .15s ease, border-color .2s ease;
+  }
+  .theme-toggle:hover{ transform:translateY(-1px); border-color: rgb(var(--c-sage-soft)); }
+  .theme-toggle:active{ transform:scale(0.94); }
+  @media(max-width:768px){ .nav-links{ display:none; } }
+
+  /* ---------- Hero ---------- */
+  .hero{ padding:5.5rem 0 4rem; position:relative; overflow:hidden; }
+  .hero-grid{ display:grid; grid-template-columns:1.1fr 1fr; gap:3.5rem; align-items:center; }
+  @media(max-width:900px){ .hero-grid{ grid-template-columns:1fr; } }
+  .hero h1{ font-size:clamp(2.4rem, 5vw, 3.6rem); line-height:1.08; margin-bottom:1.3rem; }
+  .hero p.lead{ font-size:1.08rem; color: rgb(var(--c-muted)); max-width:34rem; margin-bottom:2rem; }
+  .hero-ctas{ display:flex; align-items:center; gap:1.5rem; }
+  .link-watch{ font-size:0.9rem; color: rgb(var(--c-muted)); border-bottom:1px solid rgb(var(--c-line)); padding-bottom:2px; }
+  .link-watch:hover{ color: rgb(var(--c-ink)); border-color: rgb(var(--c-muted)); }
+
+  /* converge dot mark */
+  .mark{ width:20px; height:20px; }
+
+  /* ---------- Hero phone mockup ---------- */
+  .phone-wrap{ display:flex; justify-content:center; }
+  .phone{
+    width:320px;
+    background: linear-gradient(155deg, #f3f2ec 0%, #dcdace 45%, #f0efe8 100%);
+    border-radius:54px;
+    padding:13px;
+    position:relative;
+    box-shadow: 0 35px 70px -30px rgb(0 0 0 / 0.4), inset 0 0 0 1px rgb(0 0 0 / 0.06);
+  }
+  .phone::before, .phone::after{
+    content:''; position:absolute; right:-2px; background:#d3d1c4; border-radius:2px 0 0 2px;
+  }
+  .phone::before{ top:140px; width:3px; height:62px; }
+  .phone::after{ top:216px; width:3px; height:36px; }
+  :root[data-theme="dark"] .phone,
+  :root[data-theme="dark"] .mini-phone{
+    background: linear-gradient(155deg, #3a3a38 0%, #1c1c1a 45%, #34342f 100%);
+    box-shadow: 0 35px 70px -30px rgb(0 0 0 / 0.6), inset 0 0 0 1px rgb(255 255 255 / 0.05);
+  }
+  :root[data-theme="dark"] .phone::before,
+  :root[data-theme="dark"] .phone::after{ background:#0e0e0d; }
+  .phone-screen{
+    background: rgb(var(--c-card));
+    border-radius:42px;
+    overflow:hidden;
+    position:relative;
+    min-height:660px;
+    padding:0 0 1.4rem;
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.04);
+  }
+  .phone-top{
+    display:flex; align-items:center;
+    height:46px; padding:0 1.4rem;
+  }
+  .status-time{
+    flex:1 1 0; text-align:left;
+    font-family:'IBM Plex Mono', monospace; font-size:0.82rem; font-weight:500;
+    color: rgb(var(--c-ink)); line-height:1;
+  }
+  .dynamic-island{
+    flex:0 0 auto;
+    width:76px; height:22px; background: rgb(var(--c-fixed-dark));
+    border-radius:12px; z-index:5;
+  }
+  .status-icons{
+    flex:1 1 0; display:flex; align-items:center; justify-content:flex-end; gap:5px;
+    color: rgb(var(--c-ink)); line-height:0;
+  }
+  .status-icons svg{ display:block; }
+  .phone-stage{ position:relative; min-height:560px; overflow:hidden; }
+  .phone-layer{
+    position:absolute; inset:0; padding:1.2rem 1.4rem 0;
+    background: rgb(var(--c-card));
+    opacity:0; transform:translateY(10px);
+    transition:opacity .4s ease, transform .4s ease;
+    pointer-events:none;
+    display:flex; flex-direction:column; justify-content:center;
+  }
+  .phone-layer.active{ opacity:1; transform:none; pointer-events:auto; }
+  .phone-label{ font-size:0.74rem; color: rgb(var(--c-muted2)); margin-bottom:0.5rem; }
+  .mock-input{
+    display:flex; align-items:center; gap:0.6rem;
+    background: rgb(var(--c-cream));
+    border:1px solid rgb(var(--c-line));
+    border-radius:8px; padding:0.75rem 0.85rem;
+    font-size:0.85rem; margin-bottom:1rem; min-height:1.3em;
+  }
+  .mock-input .dot{ width:6px; height:6px; border-radius:50%; background: rgb(var(--c-sage)); flex-shrink:0; }
+  .mock-input .cursor{ display:inline-block; width:1px; height:1em; background: rgb(var(--c-ink)); margin-left:1px; animation: blink 1s step-start infinite; vertical-align:middle; }
+  @keyframes blink{ 50%{ opacity:0; } }
+  .mock-row{
+    display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0;
+    border-top:1px solid rgb(var(--c-line)); font-size:0.82rem;
+    opacity:0; transform:translateY(6px); transition:opacity .35s ease, transform .35s ease;
+  }
+  .mock-row.shown{ opacity:1; transform:none; }
+  .mock-row:first-of-type{ border-top:none; }
+  .mock-row .label{ color: rgb(var(--c-muted)); }
+  .mock-chip{
+    font-size:0.68rem; font-family:'IBM Plex Mono', monospace;
+    background: rgb(var(--c-sage-soft) / 0.4);
+    color: rgb(var(--c-sage));
+    padding:0.2rem 0.5rem; border-radius:3px;
+  }
+  .mock-cta{
+    margin-top:1rem; text-align:center; background: rgb(var(--c-sage)); color:#fff;
+    font-size:0.85rem; font-weight:500; padding:0.75rem; border-radius:8px;
+    transform:scale(1); transition:transform .15s ease, opacity .35s ease, box-shadow .15s ease;
+    opacity:0;
+  }
+  .mock-cta.shown{ opacity:1; }
+  .mock-cta.pressed{ transform:scale(0.95); box-shadow:0 0 0 6px rgb(var(--c-sage-soft) / 0.5); }
+
+  .phone-success{ display:flex; flex-direction:column; align-items:center; text-align:center; }
+  .success-check{
+    width:56px; height:56px; border-radius:50%; background: rgb(var(--c-sage));
+    display:flex; align-items:center; justify-content:center; margin-bottom:1.2rem;
+    transform:scale(0); transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+  }
+  .phone-layer.active .success-check{ transform:scale(1); }
+  .success-check svg{ width:24px; height:24px; }
+  .phone-success h4{ font-size:1.15rem; margin-bottom:0.4rem; }
+  .phone-success p{ font-size:0.85rem; color: rgb(var(--c-muted)); margin-bottom:1.4rem; }
+  .success-receipt{
+    width:100%; background: rgb(var(--c-cream)); border:1px solid rgb(var(--c-line));
+    border-radius:8px; padding:0.9rem; font-size:0.78rem; text-align:left;
+  }
+  .success-receipt .row{ display:flex; justify-content:space-between; padding:0.3rem 0; color: rgb(var(--c-muted)); }
+  .success-receipt .row b{ color: rgb(var(--c-ink)); font-weight:500; }
+  .success-link{ margin-top:1rem; font-size:0.78rem; font-family:'IBM Plex Mono', monospace; color: rgb(var(--c-sage)); }
+
+  .phone-processing{ text-align:center; }
+  .proc-mark{
+    width:48px; height:48px; margin:0 auto 1.2rem; border-radius:50%;
+    background: rgb(var(--c-sage-soft) / 0.4);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .proc-mark-inner{
+    width:22px; height:22px; border-radius:50%;
+    border:2.5px solid rgb(var(--c-sage));
+    border-top-color: transparent;
+    animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .phone-processing h4{ font-size:1.1rem; margin-bottom:1.3rem; }
+  .proc-list{ text-align:left; background: rgb(var(--c-cream)); border:1px solid rgb(var(--c-line)); border-radius:10px; padding:0.3rem 1rem; }
+  .proc-item{
+    display:flex; align-items:center; gap:0.7rem; padding:0.6rem 0;
+    font-size:0.85rem; color: rgb(var(--c-muted2));
+    transition: color .25s ease;
+  }
+  .proc-item:not(:last-child){ border-bottom:1px solid rgb(var(--c-line)); }
+  .proc-item.done{ color: rgb(var(--c-ink)); }
+  .proc-check{
+    width:18px; height:18px; border-radius:50%; flex-shrink:0;
+    border:1.5px solid rgb(var(--c-line));
+    display:flex; align-items:center; justify-content:center;
+    transition: all .25s ease;
+  }
+  .proc-item.done .proc-check{ background: rgb(var(--c-sage)); border-color: rgb(var(--c-sage)); }
+  .proc-check::after{
+    content:''; width:5px; height:8px; border-right:2px solid #fff; border-bottom:2px solid #fff;
+    transform:rotate(45deg) translate(-1px,-1px); opacity:0; transition:opacity .15s ease;
+  }
+  .proc-item.done .proc-check::after{ opacity:1; }
+  .proc-foot{ margin-top:1rem; font-size:0.76rem; font-family:'IBM Plex Mono', monospace; color: rgb(var(--c-muted2)); }
+
+  /* ---------- Phone screen 0: agent identity ---------- */
+  .phone-agent{ display:flex; flex-direction:column; align-items:center; text-align:center; gap:0.4rem; padding-bottom:2.6rem; }
+  .agent-orb{
+    width:44px; height:44px; border-radius:50%; margin-bottom:0.15rem;
+    background: radial-gradient(circle at 32% 28%, rgb(var(--c-sage-soft)) 0%, rgb(var(--c-sage)) 72%);
+    box-shadow: inset 0 0 8px rgb(255 255 255 / 0.5), 0 6px 14px -8px rgb(var(--c-sage) / 0.6);
+  }
+  .phone-agent h4{ font-size:1.15rem; }
+  .agent-sub{ font-size:0.76rem; color: rgb(var(--c-muted)); margin-top:-0.3rem; }
+  .agent-badge{
+    display:inline-flex; align-items:center; gap:0.35rem; margin-top:0.1rem;
+    background: rgb(var(--c-sage-soft) / 0.35); color: rgb(var(--c-sage));
+    padding:0.25rem 0.65rem; border-radius:20px; font-size:0.72rem; font-weight:500;
+  }
+  .agent-badge svg{ flex-shrink:0; }
+  .agent-address{ font-family:'IBM Plex Mono', monospace; font-size:0.64rem; color: rgb(var(--c-muted2)); margin-top:0.1rem; }
+  .agent-stats{
+    display:flex; width:100%; background: rgb(var(--c-cream)); border:1px solid rgb(var(--c-line));
+    border-radius:12px; padding:0.6rem 0; margin-top:0.4rem;
+  }
+  .agent-stat{ flex:1; text-align:center; }
+  .agent-stat:not(:last-child){ border-right:1px solid rgb(var(--c-line)); }
+  .agent-stat .num{ font-weight:600; font-size:0.92rem; }
+  .agent-stat.mid .num{ color: rgb(var(--c-sage)); }
+  .agent-stat .lbl{ font-size:0.56rem; color: rgb(var(--c-muted2)); text-transform:uppercase; letter-spacing:0.04em; margin-top:0.15rem; }
+  .agent-cta{
+    width:100%; text-align:left; border-radius:12px; padding:0.55rem 0.75rem;
+    display:flex; align-items:center; gap:0.6rem; margin-top:0.4rem;
+  }
+  .agent-cta.primary{ background: rgb(var(--c-sage)); color:#fff; }
+  .agent-cta.secondary{ background: rgb(var(--c-cream)); border:1px solid rgb(var(--c-line)); color: rgb(var(--c-ink)); }
+  .agent-cta .icon{
+    width:26px; height:26px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .agent-cta.primary .icon{ background: rgb(255 255 255 / 0.18); }
+  .agent-cta.secondary .icon{ background: rgb(var(--c-sage-soft) / 0.4); }
+  .agent-cta .txt{ line-height:1.25; }
+  .agent-cta .txt b{ display:block; font-size:0.78rem; font-weight:500; }
+  .agent-cta .txt span{ font-size:0.66rem; opacity:0.8; }
+  .agent-quote{
+    display:flex; align-items:flex-start; gap:0.55rem; text-align:left;
+    background: rgb(var(--c-cream)); border:1px solid rgb(var(--c-line)); border-radius:12px;
+    padding:0.75rem 0.85rem; font-size:0.74rem; color: rgb(var(--c-muted)); margin-top:0.6rem; line-height:1.4;
+  }
+  .agent-quote .mini-orb{ width:18px; height:18px; border-radius:50%; flex-shrink:0; margin-top:0.1rem; background: radial-gradient(circle at 32% 28%, rgb(var(--c-sage-soft)), rgb(var(--c-sage)) 75%); }
+
+  .phone-nav{
+    position:absolute; left:1.1rem; right:1.1rem; bottom:0.9rem;
+    background: rgb(var(--c-card)); border:1px solid rgb(var(--c-line)); border-radius:16px;
+    padding:0.5rem; display:flex; justify-content:space-around; box-shadow:0 6px 16px -10px rgb(0 0 0/0.15);
+  }
+  .nav-item{ display:flex; flex-direction:column; align-items:center; gap:2px; font-size:0.58rem; color: rgb(var(--c-muted2)); padding:0.15rem 0.4rem; }
+  .nav-item svg{ display:block; }
+  .nav-item.active{ background: rgb(var(--c-sage)); color:#fff; border-radius:12px; padding:0.35rem 0.65rem; }
+
+  /* ---------- Ticker marquee ---------- */
+  .ticker-section{ padding:2.5rem 0; overflow:hidden; }
+  .ticker-label{ text-align:center; font-family:'IBM Plex Mono', monospace; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color: rgb(var(--c-muted2)); margin-bottom:1.4rem; }
+  .marquee-row{ display:flex; overflow:hidden; mask-image:linear-gradient(90deg, transparent, black 8%, black 92%, transparent); margin-bottom:0.7rem; }
+  .marquee-track{ display:flex; gap:0.75rem; flex-shrink:0; animation: marquee-left 38s linear infinite; padding-right:0.75rem; }
+  .marquee-track.rev{ animation-name: marquee-right; }
+  @keyframes marquee-left{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+  @keyframes marquee-right{ from{ transform:translateX(-50%); } to{ transform:translateX(0); } }
+  .ticker-chip{
+    flex-shrink:0; display:flex; align-items:center; gap:0.55rem;
+    background: rgb(var(--c-card)); border:1px solid rgb(var(--c-line));
+    border-radius:20px; padding:0.5rem 0.95rem; font-size:0.8rem; white-space:nowrap;
+    transition: transform .2s ease, border-color .2s ease;
+  }
+  .ticker-chip:hover{ transform:translateY(-2px); border-color: rgb(var(--c-sage-soft)); }
+  .marquee-row:hover .marquee-track{ animation-play-state:paused; }
+  .ticker-chip .live-dot{ width:6px; height:6px; border-radius:50%; background: rgb(var(--c-sage)); animation: pulse-dot 2s infinite; }
+  @keyframes pulse-dot{
+    0%{ box-shadow:0 0 0 0 rgb(var(--c-sage) / 0.4); }
+    70%{ box-shadow:0 0 0 6px rgb(var(--c-sage) / 0); }
+    100%{ box-shadow:0 0 0 0 rgb(var(--c-sage) / 0); }
+  }
+  .ticker-chip .amt{ font-family:'IBM Plex Mono', monospace; color: rgb(var(--c-sage)); }
+  .ticker-chip .to{ color: rgb(var(--c-muted)); }
+  @media (prefers-reduced-motion: reduce){
+    .marquee-track{ animation:none; }
+  }
+
+  /* ---------- Feature strip ---------- */
+  .strip{ border-top:1px solid rgb(var(--c-line)); border-bottom:1px solid rgb(var(--c-line)); padding:2.2rem 0; }
+  .strip-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:2rem; }
+  @media(max-width:768px){ .strip-grid{ grid-template-columns:repeat(2,1fr); } }
+  .strip-item h4{ font-size:0.95rem; font-weight:600; margin-bottom:0.3rem; }
+  .strip-item p{ font-size:0.82rem; color: rgb(var(--c-muted)); }
+  .strip-item:nth-child(1){ transition-delay:0s; }
+  .strip-item:nth-child(2){ transition-delay:.08s; }
+  .strip-item:nth-child(3){ transition-delay:.16s; }
+  .strip-item:nth-child(4){ transition-delay:.24s; }
+
+  /* ---------- Section shell ---------- */
+  section{ padding:5rem 0; }
+  .eyebrow{ font-family:'IBM Plex Mono', monospace; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color: rgb(var(--c-muted2)); margin-bottom:0.9rem; }
+  .section-head{ max-width:38rem; margin-bottom:3rem; }
+  .section-head h2{ font-size:clamp(1.7rem,3vw,2.3rem); margin-bottom:0.9rem; }
+  .section-head p{ color: rgb(var(--c-muted)); font-size:1rem; }
+
+  /* ---------- Quote carousel ---------- */
+  .quote-wrap{ text-align:center; max-width:44rem; margin:0 auto; }
+  .quote-eyebrow{ font-family:'IBM Plex Mono', monospace; font-size:0.8rem; color: rgb(var(--c-muted)); margin-bottom:1.2rem; }
+  .quote-text{
+    font-size:clamp(1.6rem, 3.4vw, 2.5rem); font-style:italic; line-height:1.28;
+    min-height:4.5em; display:flex; align-items:center; justify-content:center;
+  }
+  .quote-text::before{ content:'“'; }
+  .quote-text::after{ content:'”'; }
+  .quote-result{
+    display:inline-flex; align-items:center; gap:0.6rem; margin-top:1.6rem;
+    background: rgb(var(--c-card)); border:1px solid rgb(var(--c-line)); border-radius:24px;
+    padding:0.6rem 1.1rem 0.6rem 0.6rem; font-size:0.86rem;
+  }
+  .quote-result .avatar{ width:26px; height:26px; border-radius:50%; background: rgb(var(--c-sage-soft)); display:flex; align-items:center; justify-content:center; }
+  .quote-result b{ font-weight:600; }
+  .quote-dots{ display:flex; justify-content:center; align-items:center; gap:0.5rem; margin-top:2.2rem; }
+  .qdot{ width:7px; height:7px; border-radius:50%; background: rgb(var(--c-line)); cursor:pointer; transition: all .2s ease; border:none; padding:0; }
+  .qdot.active{ background: rgb(var(--c-sage)); width:20px; border-radius:4px; }
+  .quote-cta{ margin-left:0.6rem; font-size:0.86rem; color: rgb(var(--c-sage)); font-weight:500; }
+  .quote-cta:hover{ text-decoration:underline; }
+
+  /* ---------- Trust (always a fixed dark panel, independent of page theme) ---------- */
+  .trust{ background: rgb(var(--c-fixed-dark)); color: rgb(var(--c-fixed-light)); border-radius:12px; padding:3rem 2.5rem; }
+  .trust .section-head p{ color: rgb(var(--c-fixed-light) / 0.65); }
+  .trust .section-head h2{ color:#fff; }
+  .trust-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:2rem; margin-top:2.5rem; }
+  @media(max-width:768px){ .trust-grid{ grid-template-columns:1fr; } }
+  .trust-item .num{ font-family:'IBM Plex Mono', monospace; font-size:0.78rem; color: rgb(184 217 168); margin-bottom:0.6rem; }
+  .trust-item h4{ font-size:1.05rem; margin-bottom:0.5rem; }
+  .trust-item p{ font-size:0.86rem; color: rgb(var(--c-fixed-light) / 0.6); }
+  .trust-link{ display:inline-block; margin-top:2rem; font-size:0.88rem; border-bottom:1px solid rgb(var(--c-fixed-light) / 0.3); padding-bottom:2px; }
+  .trust-link:hover{ border-color: rgb(var(--c-fixed-light) / 0.7); }
+
+  /* ---------- Mini phone (static, tilted, secondary mockup — always a dark screenshot) ---------- */
+  .trust-flex{ display:grid; grid-template-columns:0.85fr 1.15fr; gap:3rem; align-items:center; }
+  @media(max-width:900px){ .trust-flex{ grid-template-columns:1fr; } }
+  .mini-phone-wrap{
+    display:flex; justify-content:center; align-items:center;
+    position:relative; padding:2.5rem 0;
+  }
+  .mini-phone-wrap::before{
+    content:''; position:absolute; inset:-20% -10%;
+    background: radial-gradient(circle at 42% 45%, rgb(var(--c-sage) / 0.35), transparent 62%);
+    filter: blur(30px); pointer-events:none; z-index:0;
+  }
+  .mini-phone{
+    width:216px; position:relative; z-index:1;
+    background: linear-gradient(155deg, #f3f2ec 0%, #dcdace 45%, #f0efe8 100%);
+    border-radius:36px; padding:9px;
+    transform: rotate(-15deg);
+    box-shadow: 0 40px 70px -20px rgb(0 0 0 / 0.65);
+    animation: float-phone 5.5s ease-in-out infinite;
+  }
+  @keyframes float-phone{ 0%,100%{ transform:rotate(-15deg) translateY(0); } 50%{ transform:rotate(-15deg) translateY(-10px); } }
+  @media (prefers-reduced-motion: reduce){ .mini-phone{ animation:none; } }
+  .mini-screen{ background: rgb(var(--c-card)); border-radius:28px; overflow:hidden; min-height:400px; padding-bottom:1rem; }
+  .mini-top{ display:flex; align-items:center; height:32px; padding:0 0.95rem; }
+  .mini-time{ flex:1; font-family:'IBM Plex Mono', monospace; font-size:0.6rem; font-weight:500; color: rgb(var(--c-ink)); line-height:1; }
+  .mini-island{ flex:0 0 auto; width:52px; height:15px; background: rgb(var(--c-fixed-dark)); border-radius:8px; }
+  .mini-icons{ flex:1; display:flex; justify-content:flex-end; align-items:center; gap:3px; color: rgb(var(--c-ink)); }
+  .mini-stage{ position:relative; min-height:340px; overflow:hidden; }
+  .mini-layer{
+    position:absolute; inset:0; padding:1rem 1rem 0;
+    background: rgb(var(--c-card));
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+    opacity:0; transform:translateY(8px);
+    transition:opacity .4s ease, transform .4s ease;
+    pointer-events:none;
+  }
+  .mini-layer.active{ opacity:1; transform:none; pointer-events:auto; }
+  .mini-check{
+    width:38px; height:38px; border-radius:50%; background: rgb(var(--c-sage));
+    display:flex; align-items:center; justify-content:center; margin-bottom:0.7rem;
+    transform:scale(0); transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+  }
+  .mini-layer.active .mini-check{ transform:scale(1); }
+  .mini-content h5{ font-family:'Fraunces', serif; font-weight:560; font-size:0.95rem; margin-bottom:0.2rem; color: rgb(var(--c-ink)); }
+  .mini-content p{ font-size:0.7rem; color: rgb(var(--c-muted)); margin-bottom:0.9rem; }
+  .mini-receipt{ width:100%; background: rgb(var(--c-cream)); border:1px solid rgb(var(--c-line)); border-radius:8px; padding:0.6rem 0.7rem; font-size:0.62rem; text-align:left; }
+  .mini-receipt .row{ display:flex; justify-content:space-between; padding:0.2rem 0; color: rgb(var(--c-muted)); }
+  .mini-receipt .row b{ color: rgb(var(--c-ink)); font-weight:500; }
+  .mini-hash{ margin-top:0.7rem; font-family:'IBM Plex Mono', monospace; font-size:0.6rem; color: rgb(var(--c-sage-soft)); }
+  .mini-dots{ display:flex; gap:5px; margin-top:0.9rem; }
+  .mini-dot{ width:5px; height:5px; border-radius:50%; background: rgb(var(--c-line)); transition:background .3s ease; }
+  .mini-dot.active{ background: rgb(var(--c-sage)); }
+
+  /* ---------- Steps ---------- */
+  .steps{ display:grid; grid-template-columns:repeat(3,1fr); gap:2.5rem; }
+  @media(max-width:768px){ .steps{ grid-template-columns:1fr; } }
+  .step .num{ font-family:'IBM Plex Mono', monospace; font-size:0.8rem; color: rgb(var(--c-sage)); margin-bottom:0.8rem; }
+  .step h3{ font-size:1.15rem; margin-bottom:0.6rem; }
+  .step p{ font-size:0.88rem; color: rgb(var(--c-muted)); }
+  .step:nth-child(1){ transition-delay:0s; }
+  .step:nth-child(2){ transition-delay:.1s; }
+  .step:nth-child(3){ transition-delay:.2s; }
+
+  /* ---------- Feature grid (4 card) ---------- */
+  .fgrid{ display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background: rgb(var(--c-line)); border:1px solid rgb(var(--c-line)); border-radius:10px; overflow:hidden; }
+  @media(max-width:768px){ .fgrid{ grid-template-columns:1fr; } }
+  .fcard{ background: rgb(var(--c-card)); padding:2.2rem; transition: transform .2s ease, box-shadow .2s ease; }
+  .fcard:hover{ transform:translateY(-3px); box-shadow:0 12px 24px -18px rgb(0 0 0 / 0.25); position:relative; z-index:1; }
+  .fcard h3{ font-size:1.1rem; margin-bottom:0.6rem; }
+  .fcard p{ font-size:0.88rem; color: rgb(var(--c-muted)); }
+  .fcard .hashes{ margin-top:1rem; font-family:'IBM Plex Mono', monospace; font-size:0.76rem; color: rgb(var(--c-muted2)); display:flex; flex-direction:column; gap:0.35rem; }
+
+  /* ---------- FAQ ---------- */
+  .faq-item{ border-top:1px solid rgb(var(--c-line)); padding:1.4rem 0; }
+  .faq-item:last-child{ border-bottom:1px solid rgb(var(--c-line)); }
+  .faq-q{ display:flex; justify-content:space-between; align-items:center; cursor:pointer; font-size:1rem; font-weight:500; }
+  .faq-q .plus{ font-family:'IBM Plex Mono', monospace; color: rgb(var(--c-muted2)); transition:transform .2s ease; }
+  .faq-item.open .plus{ transform:rotate(45deg); }
+  .faq-a{ font-size:0.9rem; color: rgb(var(--c-muted)); max-width:38rem; overflow:hidden; max-height:0; transition:max-height .25s ease; }
+  .faq-item.open .faq-a{ max-height:12rem; padding-top:0.8rem; }
+
+  /* ---------- Final CTA ---------- */
+  .finale{ text-align:center; padding:5.5rem 0; }
+  .finale h2{ font-size:clamp(2rem,4vw,2.8rem); margin-bottom:1.6rem; }
+  .finale-ctas{ display:flex; justify-content:center; gap:1.5rem; }
+
+  /* ---------- Footer ---------- */
+  footer{ border-top:1px solid rgb(var(--c-line)); padding:3.5rem 0 2.5rem; }
+  .foot-top{ display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:2rem; margin-bottom:2.5rem; }
+  @media(max-width:768px){ .foot-top{ grid-template-columns:1fr 1fr; } }
+  .foot-top h5{ font-size:0.78rem; text-transform:uppercase; letter-spacing:0.06em; color: rgb(var(--c-muted2)); margin-bottom:0.9rem; }
+  .foot-top a, .foot-top div.line{ display:block; font-size:0.87rem; color: rgb(var(--c-muted)); margin-bottom:0.55rem; }
+  .foot-top a:hover{ color: rgb(var(--c-ink)); }
+  .foot-desc{ font-size:0.88rem; color: rgb(var(--c-muted)); max-width:20rem; margin-top:0.9rem; }
+  .foot-bottom{ display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgb(var(--c-line)); padding-top:1.5rem; font-size:0.78rem; color: rgb(var(--c-muted2)); flex-wrap:wrap; gap:0.8rem; }
+
+  /* reveal */
+  .reveal{ opacity:0; transform:translateY(14px); transition:opacity .5s ease, transform .5s ease; }
+  .reveal.in{ opacity:1; transform:none; }
+  @media (prefers-reduced-motion: reduce){
+    .reveal{ opacity:1; transform:none; transition:none; }
+    html{ scroll-behavior:auto; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-inner">
+    <div class="wordmark">
+      <svg class="mark" viewBox="0 0 20 20" fill="none">
+        <circle cx="16" cy="10" r="2.3" style="fill:currentColor"/>
+        <circle cx="3" cy="3" r="1.3" style="fill:rgb(var(--c-muted2))"/>
+        <circle cx="2" cy="11" r="1.3" style="fill:rgb(var(--c-muted2))"/>
+        <circle cx="3" cy="17" r="1.3" style="fill:rgb(var(--c-muted2))"/>
+        <line x1="3" y1="3" x2="16" y2="10" style="stroke:rgb(var(--c-sage-soft))" stroke-width="1"/>
+        <line x1="2" y1="11" x2="16" y2="10" style="stroke:rgb(var(--c-sage-soft))" stroke-width="1"/>
+        <line x1="3" y1="17" x2="16" y2="10" style="stroke:rgb(var(--c-sage-soft))" stroke-width="1"/>
+      </svg>
+      Relay
+    </div>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#proof">Try the demo</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div style="display:flex; align-items:center; gap:0.8rem;">
+      <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark mode">
+        <svg id="themeIconSun" width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.4"/><path d="M10 1.5v2M10 16.5v2M18.5 10h-2M3.5 10h-2M15.6 4.4l-1.4 1.4M5.8 14.2l-1.4 1.4M15.6 15.6l-1.4-1.4M5.8 5.8L4.4 4.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <svg id="themeIconMoon" width="17" height="17" viewBox="0 0 20 20" fill="none" style="display:none;"><path d="M17 11.5A7.5 7.5 0 018.5 3 7.5 7.5 0 1017 11.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      </button>
+      <a href="https://relay-ashen-zeta.vercel.app" class="btn-primary">Open the app</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <h1 class="serif reveal">Money that moves<br>the way you <span class="accent">speak</span>.</h1>
+      <p class="lead reveal">Type a sentence — "send 5 USDC to sarah.eth" — and Relay finds your funds, covers the network fee, and sends. No chain picker, no gas quote, no seed phrase.</p>
+      <div class="hero-ctas reveal">
+        <a href="https://relay-ashen-zeta.vercel.app" class="btn-primary">Open the app</a>
+        <a href="https://youtu.be/Lsi5LygN5V0" class="link-watch">Watch the demo · 90s</a>
+      </div>
+    </div>
+
+    <div class="phone-wrap reveal">
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="phone-top">
+            <span class="status-time">9:41</span>
+            <div class="dynamic-island"></div>
+            <span class="status-icons">
+              <svg width="16" height="11" viewBox="0 0 16 11" fill="none"><rect x="0" y="7" width="3" height="4" rx="0.6" fill="currentColor"/><rect x="4.5" y="5" width="3" height="6" rx="0.6" fill="currentColor"/><rect x="9" y="3" width="3" height="8" rx="0.6" fill="currentColor"/><rect x="13.5" y="0.5" width="3" height="10.5" rx="0.6" fill="currentColor"/></svg>
+              <svg width="15" height="11" viewBox="0 0 15 11" fill="none"><path d="M1 4.2C4.8 0.8 10.2 0.8 14 4.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M3.3 6.8C5.9 4.5 9.1 4.5 11.7 6.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="7.5" cy="9.3" r="1.1" fill="currentColor"/></svg>
+              <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.75" y="0.75" width="20.5" height="10.5" rx="2.75" stroke="currentColor" stroke-width="1"/><rect x="2.25" y="2.25" width="17.5" height="7.5" rx="1.5" fill="currentColor"/><rect x="22" y="4" width="2" height="4" rx="1" fill="currentColor"/></svg>
+            </span>
+          </div>
+          <div class="phone-stage">
+            <div class="phone-layer active" id="agentLayer">
+              <div class="phone-agent">
+                <div class="agent-orb"></div>
+                <h4 class="serif">Relay</h4>
+                <div class="agent-sub">your payment agent</div>
+                <div class="agent-badge">
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6.5" fill="currentColor"/><path d="M3.6 6.7l1.8 1.8 3.4-3.8" stroke="#fff" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  Verified on Arbitrum
+                </div>
+                <div class="agent-address">RelayPolicy.sol · 0x8DD2…c3974e ↗</div>
+
+                <div class="agent-stats">
+                  <div class="agent-stat"><div class="num">2</div><div class="lbl">Real sends</div></div>
+                  <div class="agent-stat mid"><div class="num">100%</div><div class="lbl">Gas sponsored</div></div>
+                  <div class="agent-stat"><div class="num">0</div><div class="lbl">Seed phrases</div></div>
+                </div>
+
+                <div class="agent-cta primary">
+                  <div class="icon">
+                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M1 7.5h11M8 3l4.5 4.5L8 12" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </div>
+                  <div class="txt"><b>Send with Relay</b><span>Say it in plain words — I'll handle the rest</span></div>
+                </div>
+                <div class="agent-cta secondary">
+                  <div class="icon">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v6l4 2" stroke="rgb(61,107,46)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7" cy="7" r="6" stroke="rgb(61,107,46)" stroke-width="1.3"/></svg>
+                  </div>
+                  <div class="txt"><b>View real transactions</b><span>Every send links straight to Arbiscan</span></div>
+                </div>
+
+                <div class="agent-quote">
+                  <div class="mini-orb"></div>
+                  <span>I only move funds you approve. Every real send is signed and public — you don't have to take my word for it.</span>
+                </div>
+              </div>
+              <div class="phone-nav">
+                <div class="nav-item">
+                  <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2 6.5L7.5 2l5.5 4.5V13a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+                  <span>Home</span>
+                </div>
+                <div class="nav-item">
+                  <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M1.5 13V9M6 13V5M10.5 13V7M13.5 13V2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                  <span>Activity</span>
+                </div>
+                <div class="nav-item active">
+                  <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><circle cx="16" cy="10" r="1.8" fill="#fff"/><circle cx="4" cy="4" r="1.1" fill="#fff" opacity="0.6"/><circle cx="3" cy="11" r="1.1" fill="#fff" opacity="0.6"/><circle cx="4" cy="17" r="1.1" fill="#fff" opacity="0.6"/><line x1="4" y1="4" x2="16" y2="10" stroke="#fff" stroke-width="0.8" opacity="0.6"/><line x1="3" y1="11" x2="16" y2="10" stroke="#fff" stroke-width="0.8" opacity="0.6"/><line x1="4" y1="17" x2="16" y2="10" stroke="#fff" stroke-width="0.8" opacity="0.6"/></svg>
+                  <span>Relay</span>
+                </div>
+              </div>
+            </div>
+            <div class="phone-layer" id="composeLayer">
+              <div class="phone-label">Say it</div>
+              <div class="mock-input">
+                <span class="dot"></span>
+                <span id="typedText"></span><span class="cursor" id="typedCursor"></span>
+              </div>
+              <div class="phone-label" style="margin-top:0.4rem;">Relay reads it as</div>
+              <div class="mock-row" id="row1"><span class="label">Recipient</span><span class="mono" style="font-size:0.8rem">sarah.eth</span></div>
+              <div class="mock-row" id="row2"><span class="label">Amount</span><span>5.00 USDC</span></div>
+              <div class="mock-row" id="row3"><span class="label">Network fee</span><span class="mock-chip">Sponsored</span></div>
+              <div class="mock-row" id="row4"><span class="label">Settling on</span><span>Arbitrum</span></div>
+              <div class="mock-cta" id="composeCta">Confirm send</div>
+            </div>
+            <div class="phone-layer" id="processingLayer">
+              <div class="phone-processing">
+                <div class="proc-mark"><div class="proc-mark-inner"></div></div>
+                <h4 class="serif">Sending your payment</h4>
+                <div class="proc-list">
+                  <div class="proc-item" id="proc1"><span class="proc-check"></span>Confirming instruction</div>
+                  <div class="proc-item" id="proc2"><span class="proc-check"></span>Sponsoring the gas</div>
+                  <div class="proc-item" id="proc3"><span class="proc-check"></span>Settling on Arbitrum</div>
+                </div>
+                <div class="proc-foot">Gas-free · signed on-chain</div>
+              </div>
+            </div>
+            <div class="phone-layer" id="successLayer">
+              <div class="phone-success">
+                <div class="success-check">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <h4 class="serif">Sent.</h4>
+                <p>5.00 USDC to sarah.eth</p>
+                <div class="success-receipt">
+                  <div class="row"><span>Network fee</span><b>Sponsored</b></div>
+                  <div class="row"><span>Settled on</span><b>Arbitrum</b></div>
+                  <div class="row"><span>Status</span><b>Confirmed</b></div>
+                </div>
+                <div class="success-link">0x118ff4…0dcfe ↗</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="ticker-section">
+  <div class="ticker-label">Real sends, on the record</div>
+  <div class="marquee-row">
+    <div class="marquee-track" id="tickA"></div>
+  </div>
+  <div class="marquee-row">
+    <div class="marquee-track rev" id="tickB"></div>
+  </div>
+</div>
+
+<div class="strip">
+  <div class="wrap strip-grid">
+    <div class="strip-item reveal">
+      <h4>Real transfers</h4>
+      <p>Live on Arbitrum mainnet, not a simulation.</p>
+    </div>
+    <div class="strip-item reveal">
+      <h4>No seed phrase</h4>
+      <p>Log in with email. Your wallet is created for you.</p>
+    </div>
+    <div class="strip-item reveal">
+      <h4>We cover the gas</h4>
+      <p>Every network fee is sponsored while this is live.</p>
+    </div>
+    <div class="strip-item reveal">
+      <h4>One balance, any chain</h4>
+      <p>Relay treats what you own as a single balance.</p>
+    </div>
+  </div>
+</div>
+
+<section id="how">
+  <div class="wrap quote-wrap">
+    <div class="quote-eyebrow reveal">You could just say</div>
+    <div class="quote-text serif reveal" id="quoteText">send 5 USDC to sarah.eth</div>
+    <div class="quote-result reveal" id="quoteResult">
+      <span class="avatar">↗</span>
+      <span><b>Relay resolves</b> the name, finds your funds, settles on Arbitrum</span>
+    </div>
+    <div class="quote-dots reveal" id="quoteDots"></div>
+  </div>
+</section>
+
+<section id="proof">
+  <div class="wrap">
+    <div class="trust reveal">
+      <div class="trust-flex">
+        <div class="mini-phone-wrap">
+          <div class="mini-phone">
+            <div class="mini-screen">
+              <div class="mini-top">
+                <span class="mini-time">9:41</span>
+                <div class="mini-island"></div>
+                <span class="mini-icons">
+                  <svg width="12" height="8" viewBox="0 0 16 11" fill="none"><rect x="0" y="7" width="3" height="4" rx="0.6" fill="currentColor"/><rect x="4.5" y="5" width="3" height="6" rx="0.6" fill="currentColor"/><rect x="9" y="3" width="3" height="8" rx="0.6" fill="currentColor"/><rect x="13.5" y="0.5" width="3" height="10.5" rx="0.6" fill="currentColor"/></svg>
+                  <svg width="18" height="9" viewBox="0 0 25 12" fill="none"><rect x="0.75" y="0.75" width="20.5" height="10.5" rx="2.75" stroke="currentColor" stroke-width="1"/><rect x="2.25" y="2.25" width="17.5" height="7.5" rx="1.5" fill="currentColor"/><rect x="22" y="4" width="2" height="4" rx="1" fill="currentColor"/></svg>
+                </span>
+              </div>
+              <div class="mini-stage">
+                <div class="mini-layer active" id="miniLayer1">
+                  <div class="mini-check">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </div>
+                  <h5>Sent.</h5>
+                  <p>5.00 USDC to sarah.eth</p>
+                  <div class="mini-receipt">
+                    <div class="row"><span>Network fee</span><b>Sponsored</b></div>
+                    <div class="row"><span>Settled on</span><b>Arbitrum</b></div>
+                    <div class="row"><span>Status</span><b>Confirmed</b></div>
+                  </div>
+                  <div class="mini-hash">0x118ff4…0dcfe ↗</div>
+                  <div class="mini-dots"><span class="mini-dot active"></span><span class="mini-dot"></span></div>
+                </div>
+                <div class="mini-layer" id="miniLayer2">
+                  <div class="mini-check">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </div>
+                  <h5>Sent.</h5>
+                  <p>0.00005 ETH · EIP-7702</p>
+                  <div class="mini-receipt">
+                    <div class="row"><span>Network fee</span><b>Sponsored</b></div>
+                    <div class="row"><span>Settled on</span><b>Arbitrum</b></div>
+                    <div class="row"><span>Status</span><b>Confirmed</b></div>
+                  </div>
+                  <div class="mini-hash">0x065631…f839e ↗</div>
+                  <div class="mini-dots"><span class="mini-dot"></span><span class="mini-dot active"></span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-head" style="margin-bottom:1.5rem;">
+            <div class="eyebrow" style="color:rgb(184 217 168)">A record that can't be edited</div>
+            <h2 class="serif">Parsed. Sponsored. Settled.</h2>
+            <p>Every real send is signed and public. You check the numbers, not the marketing.</p>
+          </div>
+          <div class="trust-grid" style="grid-template-columns:1fr; gap:0; margin-top:0;">
+            <div class="trust-item" style="border-top:1px solid rgb(255 255 255/0.12); padding-top:1.1rem; padding-bottom:1.1rem;">
+              <div class="num mono">01</div>
+              <h4>Parsed</h4>
+              <p>Your sentence becomes an exact instruction — recipient, amount, chain — shown to you before anything moves.</p>
+            </div>
+            <div class="trust-item" style="border-top:1px solid rgb(255 255 255/0.12); padding-top:1.1rem; padding-bottom:1.1rem;">
+              <div class="num mono">02</div>
+              <h4>Sponsored</h4>
+              <p>The network fee is paid for you. Nothing is held back for gas.</p>
+            </div>
+            <div class="trust-item" style="border-top:1px solid rgb(255 255 255/0.12); padding-top:1.1rem;">
+              <div class="num mono">03</div>
+              <h4>Settled</h4>
+              <p>A real transaction, signed on-chain, checkable in under a minute on Arbiscan.</p>
+            </div>
+          </div>
+          <a href="https://arbiscan.io/tx/0x118ff441d1bb070c000b74a940ebc3637dfd3d989781321bd8ec47b22f80dcfe" class="trust-link mono">View the live transaction →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">From a sentence to a settled send</div>
+      <h2 class="serif">Three steps, <span class="accent">invisible</span> to you.</h2>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="num">01</div>
+        <h3>Speak</h3>
+        <p>Type it the way you'd text a friend. Relay reads the intent, not a form.</p>
+      </div>
+      <div class="step reveal">
+        <div class="num">02</div>
+        <h3>Unify</h3>
+        <p>Relay treats what you own across chains as one balance — no picking a network first.</p>
+      </div>
+      <div class="step reveal">
+        <div class="num">03</div>
+        <h3>Settle</h3>
+        <p>Sent for real, gas covered, with a receipt you can verify yourself.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">Built for your first send, and your hundredth</div>
+      <h2 class="serif">Nothing to <span class="accent">learn</span>, everything to check.</h2>
+    </div>
+    <div class="fgrid reveal">
+      <div class="fcard">
+        <h3>No jargon, ever</h3>
+        <p>Describe a payment in plain words. Relay handles the chain, the gas, and the routing behind it.</p>
+      </div>
+      <div class="fcard">
+        <h3>Trust you can check</h3>
+        <p>Every real send links straight to the transaction on Arbiscan — not a screenshot, the actual record.</p>
+        <div class="hashes">
+          <span>0x118ff4…0dcfe</span>
+          <span>0x065631…f839e</span>
+        </div>
+      </div>
+      <div class="fcard">
+        <h3>One balance, any chain</h3>
+        <p>Your funds don't need to already be in the right place. Relay finds them and unifies the view.</p>
+      </div>
+      <div class="fcard">
+        <h3>We cover the gas</h3>
+        <p>No ETH sitting idle just to pay network fees. Sponsorship is built into every send.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">Questions you'd actually ask</div>
+      <h2 class="serif">Straight answers, plainly put.</h2>
+    </div>
+
+    <div class="faq-list">
+      <div class="faq-item reveal">
+        <div class="faq-q">What exactly happens when I hit send?<span class="plus mono">+</span></div>
+        <div class="faq-a">Relay reads your sentence, works out who and how much, finds where your funds already sit, and moves them — no chain picker, no gas step for you to fill in.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q">Where does my money actually live?<span class="plus mono">+</span></div>
+        <div class="faq-a">In a wallet only you control, created the moment you log in with your email. Relay never holds your funds.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q">Do I need a seed phrase?<span class="plus mono">+</span></div>
+        <div class="faq-a">No. You log in with email, and your wallet is created for you behind the scenes.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q">What does this cost?<span class="plus mono">+</span></div>
+        <div class="faq-a">Nothing extra right now — every network fee is sponsored while this is live.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q">Is this really on-chain, or a demo?<span class="plus mono">+</span></div>
+        <div class="faq-a">Both exist in the app, and each is clearly labeled. Two real sends are already public on Arbitrum — you can open them directly from this page.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q">What if my funds aren't already on Arbitrum?<span class="plus mono">+</span></div>
+        <div class="faq-a">Today, Relay settles from funds already unified onto Arbitrum. Sourcing directly from other chains in the same send is the next thing being built — nothing here claims that's live yet.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="finale">
+  <div class="wrap reveal">
+    <h2 class="serif">Your first send is one sentence away.</h2>
+    <div class="finale-ctas">
+      <a href="https://relay-ashen-zeta.vercel.app" class="btn-primary">Open the app</a>
+      <a href="#how" class="link-watch">How it works</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <div>
+        <div class="wordmark" style="margin-bottom:0.9rem;">
+          <svg class="mark" viewBox="0 0 20 20" fill="none">
+            <circle cx="16" cy="10" r="2.3" style="fill:currentColor"/>
+            <circle cx="3" cy="3" r="1.3" style="fill:rgb(var(--c-muted2))"/>
+            <circle cx="2" cy="11" r="1.3" style="fill:rgb(var(--c-muted2))"/>
+            <circle cx="3" cy="17" r="1.3" style="fill:rgb(var(--c-muted2))"/>
+            <line x1="3" y1="3" x2="16" y2="10" style="stroke:rgb(var(--c-sage-soft))" stroke-width="1"/>
+            <line x1="2" y1="11" x2="16" y2="10" style="stroke:rgb(var(--c-sage-soft))" stroke-width="1"/>
+            <line x1="3" y1="17" x2="16" y2="10" style="stroke:rgb(var(--c-sage-soft))" stroke-width="1"/>
+          </svg>
+          Relay
+        </div>
+        <p class="foot-desc">Money that moves the way you speak. Real transfers, sponsored gas, checkable on-chain.</p>
+      </div>
+      <div>
+        <h5>Product</h5>
+        <a href="#how">How it works</a>
+        <a href="#proof">Live proof</a>
+        <a href="https://relay-ashen-zeta.vercel.app">Open the app</a>
+      </div>
+      <div>
+        <h5>Learn</h5>
+        <a href="https://github.com/Chibey-max/relay">Read the code</a>
+        <a href="https://arbiscan.io/address/0x8DD23aBBA62f10306805F0B2C8bF8459d1C3974e">Verified contract</a>
+      </div>
+      <div>
+        <h5>Connect</h5>
+        <a href="https://x.com/0x_Dave">@0x_Dave on X</a>
+        <div class="line mono" style="margin-top:0.7rem; font-size:0.78rem;">Built with Particle · Magic · ZeroDev — settled on Arbitrum</div>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Relay. Sends are real; demo mode is always labeled.</span>
+      <span class="mono">Policy verified on Arbitrum Sepolia — settlement proven on Arbitrum One mainnet.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ---------- Theme toggle (light/dark) ----------
+  // Note: in-memory only (no localStorage), defaults to system preference on load.
+  const root = document.documentElement;
+  const themeToggleBtn = document.getElementById('themeToggle');
+  const sunIcon = document.getElementById('themeIconSun');
+  const moonIcon = document.getElementById('themeIconMoon');
+
+  function applyTheme(theme){
+    root.setAttribute('data-theme', theme);
+    sunIcon.style.display = theme === 'dark' ? 'none' : 'block';
+    moonIcon.style.display = theme === 'dark' ? 'block' : 'none';
+  }
+
+  const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(systemPrefersDark ? 'dark' : 'light');
+
+  themeToggleBtn.addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+  });
+
+
+  // ---------- Phone animation loop (4 screens, sequential, non-overlapping) ----------
+  const agentLayer = document.getElementById('agentLayer');
+  const composeLayer = document.getElementById('composeLayer');
+  const processingLayer = document.getElementById('processingLayer');
+  const successLayer = document.getElementById('successLayer');
+  const typedTextEl = document.getElementById('typedText');
+  const typedCursorEl = document.getElementById('typedCursor');
+  const composeCta = document.getElementById('composeCta');
+  const rows = ['row1','row2','row3','row4'].map(id => document.getElementById(id));
+  const procItems = ['proc1','proc2','proc3'].map(id => document.getElementById(id));
+  const sentence = 'send 5 USDC to sarah.eth';
+  const allLayers = [agentLayer, composeLayer, processingLayer, successLayer];
+
+  function wait(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+  async function typeText(){
+    typedTextEl.textContent = '';
+    for(let i=0; i<sentence.length; i++){
+      typedTextEl.textContent += sentence[i];
+      await wait(38);
+    }
+  }
+
+  // Fully hides current layer before the next one fades in, so they never bleed together
+  async function switchTo(layer){
+    allLayers.forEach(l => { if(l !== layer) l.classList.remove('active'); });
+    await wait(400);
+    layer.classList.add('active');
+  }
+
+  async function phoneLoop(){
+    // ---- Screen 0: agent identity ----
+    await switchTo(agentLayer);
+    await wait(2600);
+
+    // ---- Screen 1: compose ----
+    typedTextEl.textContent = '';
+    rows.forEach(r => r.classList.remove('shown'));
+    composeCta.classList.remove('shown','pressed');
+    procItems.forEach(p => p.classList.remove('done'));
+    await switchTo(composeLayer);
+
+    await wait(400);
+    await typeText();
+    await wait(350);
+
+    for(const r of rows){
+      r.classList.add('shown');
+      await wait(160);
+    }
+    composeCta.classList.add('shown');
+    await wait(650);
+
+    composeCta.classList.add('pressed');
+    await wait(200);
+    composeCta.classList.remove('pressed');
+
+    // ---- Screen 2: processing ----
+    await switchTo(processingLayer);
+    for(const p of procItems){
+      await wait(500);
+      p.classList.add('done');
+    }
+    await wait(500);
+
+    // ---- Screen 3: success ----
+    await switchTo(successLayer);
+    await wait(2600);
+
+    phoneLoop();
+  }
+
+  if(!prefersReducedMotionCheck()){
+    phoneLoop();
+  } else {
+    // static end-state for reduced motion
+    typedTextEl.textContent = sentence;
+    typedCursorEl.style.display = 'none';
+    rows.forEach(r => r.classList.add('shown'));
+    composeCta.classList.add('shown');
+    allLayers.forEach(l => l.classList.remove('active'));
+    successLayer.classList.add('active');
+  }
+  function prefersReducedMotionCheck(){
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  // ---------- Mini phone loop (crossfades between the two real proof sends) ----------
+  const miniLayers = [document.getElementById('miniLayer1'), document.getElementById('miniLayer2')];
+  if(miniLayers[0] && miniLayers[1]){
+    if(!prefersReducedMotionCheck()){
+      let mIdx = 0;
+      setInterval(() => {
+        miniLayers[mIdx].classList.remove('active');
+        mIdx = (mIdx + 1) % miniLayers.length;
+        setTimeout(() => { miniLayers[mIdx].classList.add('active'); }, 400);
+      }, 3800);
+    }
+  }
+
+  // ---------- Ticker marquee ----------
+  const ticks = [
+    { to: 'sarah.eth', amt: '5.00 USDC' },
+    { to: 'alex.eth', amt: '20.00 USDC' },
+    { to: 'landlord.eth', amt: '300.00 USDC' },
+    { to: '0x829c…102e3', amt: '0.0002 ETH' },
+    { to: 'maria.eth', amt: '12.50 USDC' },
+    { to: 'savings.eth', amt: '50.00 USDC' },
+  ];
+  function renderTicker(el, list){
+    const html = list.map(t => `
+      <div class="ticker-chip">
+        <span class="live-dot"></span>
+        <span class="amt">${t.amt}</span>
+        <span class="to">→ ${t.to}</span>
+      </div>`).join('');
+    el.innerHTML = html + html; // duplicate for seamless loop
+  }
+  renderTicker(document.getElementById('tickA'), ticks);
+  renderTicker(document.getElementById('tickB'), [...ticks].reverse());
+
+  // ---------- Quote carousel ----------
+  const quotes = [
+    { say:'send 5 USDC to sarah.eth', result:'<b>Relay resolves</b> the name, finds your funds, settles on Arbitrum' },
+    { say:'pay alex 20 for lunch', result:'<b>Relay matches</b> your contact, sends, gas covered' },
+    { say:'move 50 to my savings wallet', result:'<b>Relay sends</b> between your own wallets, no extra steps' },
+    { say:'split rent, 300 to landlord.eth', result:'<b>Relay parses</b> the amount and recipient, confirms before sending' },
+  ];
+  const quoteTextEl = document.getElementById('quoteText');
+  const quoteResultEl = document.getElementById('quoteResult');
+  const quoteDotsEl = document.getElementById('quoteDots');
+  let qi = 0;
+  quotes.forEach((_, i) => {
+    const b = document.createElement('button');
+    b.className = 'qdot' + (i===0 ? ' active' : '');
+    b.addEventListener('click', () => showQuote(i, true));
+    quoteDotsEl.appendChild(b);
+  });
+  function showQuote(i, manual){
+    qi = i;
+    quoteTextEl.style.opacity = 0;
+    quoteResultEl.style.opacity = 0;
+    setTimeout(() => {
+      quoteTextEl.textContent = quotes[qi].say;
+      quoteResultEl.innerHTML = `<span class="avatar">↗</span><span>${quotes[qi].result}</span>`;
+      quoteTextEl.style.opacity = 1;
+      quoteResultEl.style.opacity = 1;
+    }, 200);
+    [...quoteDotsEl.children].forEach((d, idx) => d.classList.toggle('active', idx === qi));
+    if(manual) resetAutoplay();
+  }
+  quoteTextEl.style.transition = 'opacity .2s ease';
+  quoteResultEl.style.transition = 'opacity .2s ease';
+  let autoplay;
+  function resetAutoplay(){
+    clearInterval(autoplay);
+    if(!prefersReducedGlobal) autoplay = setInterval(() => showQuote((qi+1) % quotes.length), 4200);
+  }
+  const prefersReducedGlobal = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  resetAutoplay();
+
+  // FAQ toggle
+  document.querySelectorAll('.faq-item').forEach(item=>{
+    item.querySelector('.faq-q').addEventListener('click', ()=>{
+      item.classList.toggle('open');
+    });
+  });
+
+  // Scroll reveal
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!prefersReduced && 'IntersectionObserver' in window){
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold:0.12 });
+    document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+  } else {
+    document.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));
+  }
+</script>
+
+</body>
+</html>
