@@ -25,7 +25,14 @@ export default function TrustPanel({ motionOn }: { motionOn: boolean }) {
             style={{ background: "radial-gradient(circle at 42% 45%, rgb(var(--mkt-sage) / 0.35), transparent 62%)" }}
           />
           <div
-            className={`relative w-full max-w-[216px] rounded-[36px] p-2.5 ${motionOn ? "animate-float-phone" : ""}`}
+            // A rotated element's visual (rotated) bounding box is wider
+            // than its own layout width — at max-w-[216px] that box is
+            // ~330px, which doesn't fit this column at narrow/mobile
+            // widths and was getting cut off by the page edge instead of
+            // shrinking. Cap it smaller below sm/lg so the whole tilted
+            // phone always stays inside its column, then let it grow back
+            // to full size once there's actually room for it.
+            className={`relative w-full max-w-[130px] rounded-[36px] p-2.5 sm:max-w-[170px] lg:max-w-[216px] ${motionOn ? "animate-float-phone" : ""}`}
             style={{
               aspectRatio: "9 / 19.5",
               background:
@@ -92,13 +99,18 @@ export default function TrustPanel({ motionOn }: { motionOn: boolean }) {
                   <p className="mb-3 text-[11px]" style={{ color: "rgb(var(--mkt-muted))" }}>
                     {current.title}
                   </p>
-                  <div className="w-full rounded-lg border p-2.5 text-left text-[10px]" style={{ background: "rgb(var(--mkt-cream))", borderColor: "rgb(var(--mkt-line))" }}>
+                  <div className="w-full rounded-lg border p-2 text-left text-[8px] sm:p-2.5 sm:text-[10px]" style={{ background: "rgb(var(--mkt-cream))", borderColor: "rgb(var(--mkt-line))" }}>
                     {[
                       ["Network fee", "Sponsored"],
                       ["Settled on", "Arbitrum"],
                       ["Status", "Confirmed"],
                     ].map(([k, v]) => (
-                      <div key={k} className="flex justify-between py-0.5" style={{ color: "rgb(var(--mkt-muted))" }}>
+                      // Stacked at the smallest phone size (where the tilted
+                      // frame is shrunk to avoid clipping and there isn't
+                      // room for label+value side by side without them
+                      // colliding), back to a normal row once the phone's
+                      // bigger again from sm: up.
+                      <div key={k} className="flex flex-col py-0.5 sm:flex-row sm:justify-between" style={{ color: "rgb(var(--mkt-muted))" }}>
                         <span>{k}</span>
                         <b className="font-medium" style={{ color: "rgb(var(--mkt-ink))" }}>
                           {v}
