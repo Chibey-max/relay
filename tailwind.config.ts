@@ -67,16 +67,15 @@ const config: Config = {
           "0%,100%": { transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(29deg) rotateX(4deg) rotateZ(-8deg) translateY(0)" },
           "50%": { transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(29deg) rotateX(4deg) rotateZ(-8deg) translateY(-10px)" },
         },
-        // Mobile-only sway: drifts the phone from the right side of its
-        // reserved box to the left and back, instead of the vertical bounce
-        // used at sm+. Same base transform (centering translate + scale +
-        // 3D tilt) each keyframe, just with a horizontal offset added before
-        // the centering translate resolves, so nothing else about the tilt
-        // changes. animation-direction: alternate (set below, not here)
+        // Mobile-only: turns the phone in place between its two facing
+        // angles (rotateY swings from 29deg to -29deg) instead of the
+        // vertical bounce used at sm+ — it's a rotation, not a slide, so
+        // position/scale/rotateX/rotateZ all stay fixed and only rotateY
+        // animates. animation-direction: alternate (set below, not here)
         // handles the "and back" half of the loop smoothly.
         "float-phone-mobile": {
-          "0%": { transform: "translate(calc(-50% + 14px), -50%) scale(var(--phone-scale)) rotateY(29deg) rotateX(4deg) rotateZ(-8deg)" },
-          "100%": { transform: "translate(calc(-50% - 14px), -50%) scale(var(--phone-scale)) rotateY(29deg) rotateX(4deg) rotateZ(-8deg)" },
+          "0%": { transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(29deg) rotateX(4deg) rotateZ(-8deg)" },
+          "100%": { transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(-29deg) rotateX(4deg) rotateZ(-8deg)" },
         },
         // Left-to-right reveal for the "You type" node's typed-out detail
         // line in ArchitectureFlow, replayed each loop via a remount key.

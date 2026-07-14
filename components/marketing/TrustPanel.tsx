@@ -43,10 +43,11 @@ export default function TrustPanel({ motionOn }: { motionOn: boolean }) {
               // ever reflows or collides at smaller sizes; it's the same
               // layout at every size, just visually bigger or smaller as
               // one image.
-              // Mobile-only: a left-right drift (animate-float-phone-mobile)
-              // instead of the sm+ vertical bounce (animate-float-phone) —
-              // the sm: variant simply overrides the base class at that
-              // breakpoint since both set the same "animation" property.
+              // Mobile-only: turns in place between its two facing angles
+              // (animate-float-phone-mobile) instead of the sm+ vertical
+              // bounce (animate-float-phone) — the sm: variant simply
+              // overrides the base class at that breakpoint since both set
+              // the same "animation" property.
               className={`absolute left-1/2 top-1/2 w-[216px] rounded-[36px] p-2.5 [--phone-scale:0.62] sm:[--phone-scale:0.85] lg:[--phone-scale:1] ${motionOn ? "animate-float-phone-mobile sm:animate-float-phone" : ""}`}
               style={{
                 aspectRatio: "9 / 19.5",
