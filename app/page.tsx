@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useReveal } from "../lib/useReveal";
 import ParticleField from "../components/ParticleField";
 import AmbientGradient from "../components/AmbientGradient";
+import NavMenu from "../components/NavMenu";
 import PhoneMock from "../components/marketing/PhoneMock";
 import TxTicker from "../components/marketing/TxTicker";
 import QuoteCarousel from "../components/marketing/QuoteCarousel";
@@ -131,6 +132,21 @@ export default function MarketingPage() {
             <a href="#faq" className="hover:opacity-100">FAQ</a>
           </div>
           <div className="flex items-center gap-3">
+            {/* Mobile only — md:flex above already gives desktop a full
+                text nav, so the compact menu would just duplicate it there.
+                Below md this is the only way to reach How it works/FAQ. */}
+            <div className="md:hidden">
+              <NavMenu
+                page="marketing"
+                colors={{
+                  ink: "rgb(var(--mkt-ink))",
+                  muted: "rgb(var(--mkt-muted))",
+                  line: "rgb(var(--mkt-line))",
+                  card: "rgb(var(--mkt-card))",
+                  accent: "rgb(var(--mkt-sage))",
+                }}
+              />
+            </div>
             <button
               ref={themeToggleRef}
               onClick={handleThemeToggle}

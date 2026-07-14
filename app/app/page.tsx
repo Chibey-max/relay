@@ -10,6 +10,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import ParticleField from "../../components/ParticleField";
 import AmbientGradient from "../../components/AmbientGradient";
+import NavMenu from "../../components/NavMenu";
 import CyclingWord from "../../components/CyclingWord";
 import IntegrationStatus from "../../components/IntegrationStatus";
 import UnifiedBalance from "../../components/UnifiedBalance";
@@ -463,6 +464,21 @@ export default function Home() {
             </span>
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Separate from the mode toggle below on purpose — this is
+                page navigation (home / demo), that's a within-app data
+                mode switch (demo/live sandbox vs a real wallet). Keeping
+                them as two distinct controls avoids conflating "where am
+                I" with "what mode is my data in". */}
+            <NavMenu
+              page="app"
+              colors={{
+                ink: "rgb(var(--c-chalk))",
+                muted: "rgb(var(--c-mist))",
+                line: "rgb(var(--c-line2))",
+                card: "rgb(var(--c-slate))",
+                accent: "rgb(var(--c-check))",
+              }}
+            />
             {/* Icon-only controls at every width — real Material Symbols
                 glyphs read clearly at 18px, so there's no need for a
                 separate mobile/desktop text-label split anymore; this is
