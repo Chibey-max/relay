@@ -43,7 +43,11 @@ export default function TrustPanel({ motionOn }: { motionOn: boolean }) {
               // ever reflows or collides at smaller sizes; it's the same
               // layout at every size, just visually bigger or smaller as
               // one image.
-              className={`absolute left-1/2 top-1/2 w-[216px] rounded-[36px] p-2.5 [--phone-scale:0.62] sm:[--phone-scale:0.85] lg:[--phone-scale:1] ${motionOn ? "animate-float-phone" : ""}`}
+              // Mobile-only: a left-right drift (animate-float-phone-mobile)
+              // instead of the sm+ vertical bounce (animate-float-phone) —
+              // the sm: variant simply overrides the base class at that
+              // breakpoint since both set the same "animation" property.
+              className={`absolute left-1/2 top-1/2 w-[216px] rounded-[36px] p-2.5 [--phone-scale:0.62] sm:[--phone-scale:0.85] lg:[--phone-scale:1] ${motionOn ? "animate-float-phone-mobile sm:animate-float-phone" : ""}`}
               style={{
                 aspectRatio: "9 / 19.5",
                 background:
@@ -55,10 +59,12 @@ export default function TrustPanel({ motionOn }: { motionOn: boolean }) {
                 // POSITIVE (not negative) — verified empirically that this
                 // is the sign that compresses the RIGHT edge into depth
                 // while the LEFT edge stays larger/closer to the viewer;
-                // the negative sign produces the mirror image. Bumped again
-                // (10deg -> 18deg -> 26deg) so the phone reads as facing
-                // toward the text column on the right more distinctly.
-                transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(26deg) rotateX(4deg) rotateZ(-8deg)",
+                // the negative sign produces the mirror image. Bumped
+                // several times (10 -> 18 -> 26 -> 29deg) so the phone reads
+                // as facing toward the text column on the right more
+                // distinctly. Kept in sync with the float-phone keyframe's
+                // resting angle in tailwind.config.ts.
+                transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(29deg) rotateX(4deg) rotateZ(-8deg)",
                 transformStyle: "preserve-3d",
                 boxShadow:
                   "0 40px 80px -20px rgba(0,0,0,0.5), 0 15px 30px -15px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 1px rgba(0,0,0,0.25)",

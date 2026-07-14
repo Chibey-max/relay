@@ -67,6 +67,17 @@ const config: Config = {
           "0%,100%": { transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(29deg) rotateX(4deg) rotateZ(-8deg) translateY(0)" },
           "50%": { transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(29deg) rotateX(4deg) rotateZ(-8deg) translateY(-10px)" },
         },
+        // Mobile-only sway: drifts the phone from the right side of its
+        // reserved box to the left and back, instead of the vertical bounce
+        // used at sm+. Same base transform (centering translate + scale +
+        // 3D tilt) each keyframe, just with a horizontal offset added before
+        // the centering translate resolves, so nothing else about the tilt
+        // changes. animation-direction: alternate (set below, not here)
+        // handles the "and back" half of the loop smoothly.
+        "float-phone-mobile": {
+          "0%": { transform: "translate(calc(-50% + 14px), -50%) scale(var(--phone-scale)) rotateY(29deg) rotateX(4deg) rotateZ(-8deg)" },
+          "100%": { transform: "translate(calc(-50% - 14px), -50%) scale(var(--phone-scale)) rotateY(29deg) rotateX(4deg) rotateZ(-8deg)" },
+        },
         // Left-to-right reveal for the "You type" node's typed-out detail
         // line in ArchitectureFlow, replayed each loop via a remount key.
         typewriter: {
@@ -82,6 +93,7 @@ const config: Config = {
         "scroll-left": "scroll-left 26s linear infinite",
         "scroll-right": "scroll-right 26s linear infinite",
         "float-phone": "float-phone 5.5s ease-in-out infinite",
+        "float-phone-mobile": "float-phone-mobile 4s ease-in-out infinite alternate",
         typewriter: "typewriter 0.7s steps(20,end) 1",
       },
     },
