@@ -55,8 +55,10 @@ export default function TrustPanel({ motionOn }: { motionOn: boolean }) {
                 // POSITIVE (not negative) — verified empirically that this
                 // is the sign that compresses the RIGHT edge into depth
                 // while the LEFT edge stays larger/closer to the viewer;
-                // the negative sign produces the mirror image.
-                transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(10deg) rotateX(4deg) rotateZ(-8deg)",
+                // the negative sign produces the mirror image. Bumped from
+                // 10deg to 18deg so the phone reads as facing toward the
+                // text column on the right more distinctly.
+                transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(18deg) rotateX(4deg) rotateZ(-8deg)",
                 transformStyle: "preserve-3d",
                 boxShadow:
                   "0 40px 80px -20px rgba(0,0,0,0.5), 0 15px 30px -15px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 1px rgba(0,0,0,0.25)",
