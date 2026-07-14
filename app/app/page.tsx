@@ -428,7 +428,12 @@ export default function Home() {
   }
 
   return (
-    <main className={`relative overflow-hidden bg-ink transition-colors duration-300 ${motionOn ? "" : "motion-off"} ${theme === "light" ? "light" : ""}`}>
+    // animate-converge (same reveal keyframe used elsewhere) fades/rises
+    // the page in on mount, so arriving here from / reads as a soft
+    // entrance rather than an abrupt cut — client-side nav between the
+    // two routes unmounts/mounts each page tree with no transition
+    // otherwise.
+    <main className={`relative overflow-hidden bg-ink transition-colors duration-300 ${motionOn ? "animate-converge" : "motion-off"} ${theme === "light" ? "light" : ""}`}>
       <AmbientGradient sageVar="--c-check" sageSoftVar="--c-check-soft" amberVar="--c-amber" />
       <ParticleField paused={!motionOn} />
 

@@ -102,7 +102,12 @@ export default function MarketingPage() {
     // tokens) so components reused from the app's design system — like
     // ArchitectureFlow below — stay theme-reactive too, without needing
     // their own --mkt-* rewrite or risking their /app usage elsewhere.
-    <div className={`mkt relative ${theme === "dark" ? "dark" : "light"} min-h-screen`}>
+    // animate-converge fades/rises the whole page in on mount (same
+    // keyframe scroll reveals already use) so arriving here from /app
+    // reads as a soft entrance instead of an abrupt cut — client-side nav
+    // between the two routes unmounts/mounts each page tree with no
+    // transition otherwise.
+    <div className={`mkt relative ${theme === "dark" ? "dark" : "light"} min-h-screen ${motionOn ? "animate-converge" : ""}`}>
       <AmbientGradient sageVar="--mkt-sage" sageSoftVar="--mkt-sage-soft" amberVar="--mkt-amber" />
       {/* Same canvas-based particle background /app uses — reused directly
           (not rebuilt) so density/speed/motion-off/reduced-motion behavior
@@ -388,7 +393,6 @@ export default function MarketingPage() {
                 Learn
               </h5>
               <div className="flex flex-col gap-2 text-sm" style={{ color: "rgb(var(--mkt-muted))" }}>
-                <a href="https://github.com/Chibey-max/relay" target="_blank" rel="noreferrer">Read the code</a>
                 <a href="https://arbiscan.io/address/0x8DD23aBBA62f10306805F0B2C8bF8459d1C3974e" target="_blank" rel="noreferrer">
                   Verified contract
                 </a>

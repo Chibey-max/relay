@@ -18,7 +18,11 @@ export default function TrustPanel({ motionOn }: { motionOn: boolean }) {
       style={{ background: "rgb(var(--mkt-card))", color: "rgb(var(--mkt-ink))" }}
     >
       <div className="grid items-center gap-10 md:grid-cols-[0.85fr_1.15fr]">
-        <div className="relative flex min-w-0 items-center justify-center py-8">
+        {/* Hidden below sm — the tilted, animated mini-phone reads as
+            clutter at phone width where there's no room for the 3D depth
+            to register anyway. The trust copy in the second column carries
+            the section on its own on mobile. */}
+        <div className="relative hidden min-w-0 items-center justify-center py-8 sm:flex">
           {/* No local glow here — the page-level AmbientGradient already
               supplies atmosphere behind this whole section. A second,
               separate blur here used to double up with it and read as an
