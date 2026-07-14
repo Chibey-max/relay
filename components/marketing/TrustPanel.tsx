@@ -55,8 +55,10 @@ export default function TrustPanel({ motionOn }: { motionOn: boolean }) {
               className={`absolute left-1/2 top-1/2 w-[216px] rounded-[36px] p-2.5 [--phone-scale:0.62] sm:[--phone-scale:0.85] lg:[--phone-scale:1] ${motionOn ? "animate-float-phone-mobile sm:animate-float-phone" : ""}`}
               style={{
                 aspectRatio: "9 / 19.5",
-                background:
-                  "linear-gradient(160deg, rgb(var(--mkt-card)) 0%, rgb(var(--mkt-line)) 22%, rgb(var(--mkt-card)) 48%, rgb(var(--mkt-line)) 76%, rgb(var(--mkt-card)) 100%)",
+                // Flat single-tone frame, not a multi-stop gradient — a
+                // banded gradient here read as the bezel randomly shifting
+                // color rather than one consistent material.
+                background: "rgb(var(--mkt-line))",
                 // Real 3D tilt (perspective + rotateX/rotateY) instead of a
                 // flat in-plane rotate() — the phone now recedes in depth
                 // rather than just spinning like a flat rotated photo.
@@ -85,7 +87,15 @@ export default function TrustPanel({ motionOn }: { motionOn: boolean }) {
               style={{ background: "linear-gradient(90deg, rgb(var(--mkt-muted2)) 0%, rgb(var(--mkt-line)) 100%)", boxShadow: "1px 0 1px rgba(0,0,0,0.2)" }}
             />
 
-            <div className="relative flex h-full flex-col overflow-hidden rounded-[26px]" style={{ background: "rgb(var(--mkt-card))" }}>
+            <div
+              className="relative flex h-full flex-col overflow-hidden rounded-[26px] border-[1.7px]"
+              // A real border (not box-shadow) — the screen content inside
+              // paints its own opaque background edge-to-edge, which sits
+              // above a box-shadow and silently covered all but a sliver of
+              // it. A real border occupies its own space outside the
+              // content box, so children can never paint over it.
+              style={{ background: "rgb(var(--mkt-card))", borderColor: "rgb(var(--mkt-line))" }}
+            >
               <div className="grid h-8 shrink-0 grid-cols-[1fr_auto_1fr] items-center px-3.5" style={{ color: "rgb(var(--mkt-ink))" }}>
                 <span className="font-mono text-[10px] font-medium">9:41</span>
                 <div className="relative h-[15px] w-[52px] justify-self-center rounded-lg" style={{ background: "rgb(var(--mkt-fixed-dark))" }}>

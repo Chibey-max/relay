@@ -56,8 +56,10 @@ export default function PhoneMock({ motionOn }: { motionOn: boolean }) {
           className="absolute left-1/2 top-1/2 w-[320px] rounded-[54px] p-3 [--phone-scale:0.6] sm:[--phone-scale:0.85] lg:[--phone-scale:1]"
           style={{
             aspectRatio: "9 / 19.5",
-            background:
-              "linear-gradient(160deg, rgb(var(--mkt-card)) 0%, rgb(var(--mkt-line)) 22%, rgb(var(--mkt-card)) 48%, rgb(var(--mkt-line)) 76%, rgb(var(--mkt-card)) 100%)",
+            // Flat single-tone frame, not a multi-stop gradient — a banded
+            // gradient here read as the bezel randomly shifting color
+            // rather than one consistent material.
+            background: "rgb(var(--mkt-line))",
             // The wide, soft drop shadow picks up a faint warm amber cast
             // (rather than plain neutral gray) since this phone sits near
             // the amber anchor of the page's ambient background gradient —
@@ -79,8 +81,14 @@ export default function PhoneMock({ motionOn }: { motionOn: boolean }) {
         />
 
         <div
-          className="relative flex h-full flex-col overflow-hidden rounded-[42px]"
-          style={{ background: "rgb(var(--mkt-card))" }}
+          className="relative flex h-full flex-col overflow-hidden rounded-[42px] border-[3px]"
+          // A real border (not box-shadow) — the Layer screens inside paint
+          // their own opaque background edge-to-edge via inset-0, which sits
+          // above a box-shadow and silently covered all but the sliver where
+          // no Layer background reached (only showing around the status
+          // bar). A real border occupies its own space outside the content
+          // box, so children can never paint over it.
+          style={{ background: "rgb(var(--mkt-card))", borderColor: "rgb(var(--mkt-line))" }}
         >
           <StatusBar />
 
