@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import ParticleField from "../../components/ParticleField";
+import AmbientGradient from "../../components/AmbientGradient";
 import CyclingWord from "../../components/CyclingWord";
 import IntegrationStatus from "../../components/IntegrationStatus";
 import UnifiedBalance from "../../components/UnifiedBalance";
@@ -427,6 +428,7 @@ export default function Home() {
 
   return (
     <main className={`relative overflow-hidden bg-ink transition-colors duration-300 ${motionOn ? "" : "motion-off"} ${theme === "light" ? "light" : ""}`}>
+      <AmbientGradient sageVar="--c-check" amberVar="--c-amber" />
       <ParticleField paused={!motionOn} />
 
       <div className="relative z-10 mx-auto max-w-4xl px-6 pb-16 lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl">

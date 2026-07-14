@@ -21,6 +21,9 @@
   --c-mist: 155 154 142;
   --c-dim: 92 92 82;
   --c-check: 184 217 168;
+  /* Warm accent used only by the ambient background gradient — pairs
+     with --c-check for the two-tone sage/amber wash. */
+  --c-amber: 210 150 90;
   color-scheme: dark;
 }
 
@@ -34,6 +37,7 @@
   --c-mist: 102 101 90;
   --c-dim: 156 154 140;
   --c-check: 61 107 46;
+  --c-amber: 224 168 122;
   color-scheme: light;
 }
 

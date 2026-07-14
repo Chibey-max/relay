@@ -58,8 +58,13 @@ export default function PhoneMock({ motionOn }: { motionOn: boolean }) {
             aspectRatio: "9 / 19.5",
             background:
               "linear-gradient(160deg, rgb(var(--mkt-card)) 0%, rgb(var(--mkt-line)) 22%, rgb(var(--mkt-card)) 48%, rgb(var(--mkt-line)) 76%, rgb(var(--mkt-card)) 100%)",
+            // The wide, soft drop shadow picks up a faint warm amber cast
+            // (rather than plain neutral gray) since this phone sits near
+            // the amber anchor of the page's ambient background gradient —
+            // a small detail toward reading as "in" that light instead of
+            // pasted on top of it.
             boxShadow:
-              "0 40px 80px -20px rgba(0,0,0,0.45), 0 15px 30px -15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 1px rgba(0,0,0,0.25)",
+              "0 40px 80px -20px rgba(0,0,0,0.45), 0 15px 30px -15px rgba(0,0,0,0.3), 0 60px 90px -35px rgb(var(--mkt-amber) / 0.18), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 1px rgba(0,0,0,0.25)",
             transform: "translate(-50%, -50%) scale(var(--phone-scale))",
           }}
         >

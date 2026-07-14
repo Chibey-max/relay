@@ -16,6 +16,9 @@
   --mkt-muted2: 156 154 140;
   --mkt-sage: 61 107 46;
   --mkt-sage-soft: 184 217 168;
+  /* Warm accent used only by the ambient background gradient — pairs
+     with --mkt-sage for the two-tone sage/amber wash. */
+  --mkt-amber: 224 168 122;
   /* Fixed tokens: intentionally do NOT flip with .mkt.light / .mkt (dark
      default) — the trust panel is always a dark, hardware-black panel
      regardless of page theme. */
@@ -36,6 +39,7 @@
   --mkt-muted2: 112 111 100;
   --mkt-sage: 145 202 122;
   --mkt-sage-soft: 46 74 37;
+  --mkt-amber: 210 150 90;
 }
 
 .mkt .mkt-accent {
