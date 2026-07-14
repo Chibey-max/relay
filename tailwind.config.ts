@@ -64,8 +64,8 @@ const config: Config = {
         // inherited from the element the animation is applied to, not
         // hardcoded here.
         "float-phone": {
-          "0%,100%": { transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(18deg) rotateX(4deg) rotateZ(-8deg) translateY(0)" },
-          "50%": { transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(18deg) rotateX(4deg) rotateZ(-8deg) translateY(-10px)" },
+          "0%,100%": { transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(26deg) rotateX(4deg) rotateZ(-8deg) translateY(0)" },
+          "50%": { transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(26deg) rotateX(4deg) rotateZ(-8deg) translateY(-10px)" },
         },
         // Left-to-right reveal for the "You type" node's typed-out detail
         // line in ArchitectureFlow, replayed each loop via a remount key.
