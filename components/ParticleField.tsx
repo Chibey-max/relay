@@ -124,7 +124,7 @@ export default function ParticleField({ paused = false }: { paused?: boolean }) 
           const dy = (a.y - b.y) * height;
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < 130) {
-            ctx!.strokeStyle = `rgba(${col},${0.14 * (1 - dist / 130)})`;
+            ctx!.strokeStyle = `rgba(${col},${0.09 * (1 - dist / 130)})`;
             ctx!.lineWidth = 0.6;
             ctx!.beginPath();
             ctx!.moveTo(a.x * width, a.y * height);
@@ -135,7 +135,7 @@ export default function ParticleField({ paused = false }: { paused?: boolean }) 
       }
 
       particles.forEach((p) => {
-        ctx!.fillStyle = `rgba(${col},0.5)`;
+        ctx!.fillStyle = `rgba(${col},0.35)`;
         ctx!.beginPath();
         ctx!.arc(p.x * width, p.y * height, p.r, 0, Math.PI * 2);
         ctx!.fill();
