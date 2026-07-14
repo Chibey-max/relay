@@ -19,19 +19,23 @@ export default function TrustPanel({ motionOn }: { motionOn: boolean }) {
     >
       <div className="grid items-center gap-10 md:grid-cols-[0.85fr_1.15fr]">
         <div className="relative flex min-w-0 items-center justify-center py-8">
+          {/* No local glow here — the page-level AmbientGradient already
+              supplies atmosphere behind this whole section. A second,
+              separate blur here used to double up with it and read as an
+              uneven, "dirty" patch rather than clean ambient light. */}
+          {/* Reserves the footprint the tilted phone ACTUALLY occupies once
+              rendered, not just its flat scaled size. A rotateY/rotateX
+              perspective transform visually grows the bounding box beyond
+              the flat width*height*scale math — measured via
+              getBoundingClientRect at every breakpoint: the rendered phone
+              is ~1.30x wider and ~1.05x taller than its flat footprint, and
+              that ratio holds constant across the 0.62/0.85/1 scale steps.
+              Sizing this box to match (rather than the flat footprint)
+              keeps the phone fully inside its allotted space instead of
+              spilling past it on mobile and desktop alike. */}
           <div
-            aria-hidden
-            className="pointer-events-none absolute -inset-x-10 -inset-y-10 blur-3xl"
-            style={{ background: "radial-gradient(circle at 42% 45%, rgb(var(--mkt-sage) / 0.35), transparent 62%)" }}
-          />
-          {/* Reserves exactly the SCALED-DOWN footprint at each breakpoint
-              (216 * the same 0.62/0.85/1 factors used below), so there's no
-              leftover dead space around a visually-shrunk phone. perspective
-              lives here (not further out) so it applies directly to the
-              rotated phone below, giving it real 3D depth. */}
-          <div
-            className="relative w-full max-w-[135px] sm:max-w-[184px] lg:max-w-[216px]"
-            style={{ aspectRatio: "9 / 19.5", perspective: "1400px" }}
+            className="relative w-full max-w-[176px] sm:max-w-[239px] lg:max-w-[280px]"
+            style={{ aspectRatio: "280 / 492", perspective: "1400px" }}
           >
             <div
               // Fixed 216px design width, never responsive — only the
