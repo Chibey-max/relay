@@ -24,6 +24,13 @@
      regardless of page theme. */
   --mkt-fixed-dark: 21 21 18;
   --mkt-fixed-light: 250 249 244;
+  /* Phone frame body + outer ring, for both phone mockups. The phone
+     stays a dark device in light mode too (not a pale cream slab) — the
+     ring color is intentionally the SAME value as dark mode's below
+     (not white), so the ring itself doesn't change between themes, only
+     the surrounding page does. */
+  --mkt-phone-frame: 1 0 50;
+  --mkt-phone-ring: 112 111 100;
 
   background: rgb(var(--mkt-cream));
   color: rgb(var(--mkt-ink));
@@ -40,6 +47,8 @@
   --mkt-sage: 145 202 122;
   --mkt-sage-soft: 46 74 37;
   --mkt-amber: 210 150 90;
+  --mkt-phone-frame: 60 61 53;
+  --mkt-phone-ring: 112 111 100;
 }
 
 .mkt .mkt-accent {

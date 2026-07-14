@@ -58,12 +58,12 @@ export default function TrustPanel({ motionOn }: { motionOn: boolean }) {
                 // Flat single-tone frame, not a multi-stop gradient — a
                 // banded gradient here read as the bezel randomly shifting
                 // color rather than one consistent material.
-                background: "rgb(var(--mkt-line))",
-                // A distinct outer ring (different tone from the frame
-                // fill) so the phone's own silhouette reads as a defined
-                // edge against the page background, not just a soft
-                // drop-shadow falloff.
-                borderColor: "rgb(var(--mkt-muted2))",
+                // --mkt-phone-frame (not --mkt-line) so the phone body
+                // stays a dark device in light mode too.
+                background: "rgb(var(--mkt-phone-frame))",
+                // A distinct outer ring — white in light mode, matching
+                // the old dark-mode tone in dark mode (unchanged there).
+                borderColor: "rgb(var(--mkt-phone-ring))",
                 // Real 3D tilt (perspective + rotateX/rotateY) instead of a
                 // flat in-plane rotate() — the phone now recedes in depth
                 // rather than just spinning like a flat rotated photo.

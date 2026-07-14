@@ -58,13 +58,15 @@ export default function PhoneMock({ motionOn }: { motionOn: boolean }) {
             aspectRatio: "9 / 19.5",
             // Flat single-tone frame, not a multi-stop gradient — a banded
             // gradient here read as the bezel randomly shifting color
-            // rather than one consistent material.
-            background: "rgb(var(--mkt-line))",
-            // A distinct outer ring (different tone from the frame fill,
-            // not just the same --mkt-line) so the phone's own silhouette
-            // reads as a defined edge against the page background, not
-            // just a soft drop-shadow falloff.
-            borderColor: "rgb(var(--mkt-muted2))",
+            // rather than one consistent material. --mkt-phone-frame (not
+            // --mkt-line) so the phone body stays a dark device in light
+            // mode too, instead of turning into a pale cream slab.
+            background: "rgb(var(--mkt-phone-frame))",
+            // A distinct outer ring — white in light mode, matching
+            // --mkt-line's old dark-mode tone in dark mode (unchanged
+            // there) — so the phone's silhouette reads as a defined edge
+            // against the page background either way.
+            borderColor: "rgb(var(--mkt-phone-ring))",
             // The wide, soft drop shadow picks up a faint warm amber cast
             // (rather than plain neutral gray) since this phone sits near
             // the amber anchor of the page's ambient background gradient —
