@@ -42,16 +42,27 @@ export default function PhoneMock({ motionOn }: { motionOn: boolean }) {
 
   return (
     <div className="flex min-w-0 justify-center">
-      <div
-        className="relative w-full max-w-[320px] rounded-[54px] p-3"
-        style={{
-          aspectRatio: "9 / 19.5",
-          background:
-            "linear-gradient(160deg, rgb(var(--mkt-card)) 0%, rgb(var(--mkt-line)) 22%, rgb(var(--mkt-card)) 48%, rgb(var(--mkt-line)) 76%, rgb(var(--mkt-card)) 100%)",
-          boxShadow:
-            "0 40px 80px -20px rgba(0,0,0,0.45), 0 15px 30px -15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 1px rgba(0,0,0,0.25)",
-        }}
-      >
+      {/* Outer box reserves exactly the SCALED-DOWN footprint at each
+          breakpoint (320 * the same 0.6/0.85/1 factors used below) so
+          there's no leftover dead space around a visually-shrunk phone —
+          the inner phone (next div) always renders at its native 320px
+          design width and is scaled + centered to fill this box exactly. */}
+      <div className="relative w-full max-w-[192px] sm:max-w-[272px] lg:max-w-[320px]" style={{ aspectRatio: "9 / 19.5" }}>
+        <div
+          // Fixed 320px design width, never responsive — only the transform
+          // scales it, via --phone-scale, so nothing inside ever reflows or
+          // collides at smaller sizes; it's the same layout at every size,
+          // just visually bigger or smaller as one image.
+          className="absolute left-1/2 top-1/2 w-[320px] rounded-[54px] p-3 [--phone-scale:0.6] sm:[--phone-scale:0.85] lg:[--phone-scale:1]"
+          style={{
+            aspectRatio: "9 / 19.5",
+            background:
+              "linear-gradient(160deg, rgb(var(--mkt-card)) 0%, rgb(var(--mkt-line)) 22%, rgb(var(--mkt-card)) 48%, rgb(var(--mkt-line)) 76%, rgb(var(--mkt-card)) 100%)",
+            boxShadow:
+              "0 40px 80px -20px rgba(0,0,0,0.45), 0 15px 30px -15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 1px rgba(0,0,0,0.25)",
+            transform: "translate(-50%, -50%) scale(var(--phone-scale))",
+          }}
+        >
         {/* Side buttons — raised via their own tiny highlight/shadow gradient rather than a flat rectangle */}
         <div
           className="absolute -right-[2px] top-[26%] h-[62px] w-[3px] rounded-l-sm"
@@ -90,6 +101,7 @@ export default function PhoneMock({ motionOn }: { motionOn: boolean }) {
             className="pointer-events-none absolute inset-0 rounded-[42px]"
             style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 40%)" }}
           />
+        </div>
         </div>
       </div>
     </div>
