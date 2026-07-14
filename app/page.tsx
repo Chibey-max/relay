@@ -115,12 +115,31 @@ export default function MarketingPage() {
           stays identical and the two pages can't drift apart again. */}
       <ParticleField paused={!motionOn} />
       <div className="relative z-10">
-      <nav
-        className="sticky top-0 z-50 border-b backdrop-blur"
-        style={{ background: "rgb(var(--mkt-cream) / 0.88)", borderColor: "rgb(var(--mkt-line))" }}
-      >
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2 text-base font-semibold" style={{ color: "rgb(var(--mkt-ink))" }}>
+      <header className="relative isolate overflow-visible py-16 sm:py-24">
+        {/* clip the video/vignette to the hero's own box without clipping
+            the phone mockup below, which is allowed to bleed past this
+            boundary — see the separately-positioned phone wrapper further
+            down. */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <HeroVideo motionOn={motionOn} />
+        </div>
+
+        {/* Floating translucent pill, not a solid edge-to-edge bar — sits
+            directly over the video (not sticky/fixed) so it scrolls away
+            with the rest of the hero, matching the reference. Text is
+            fixed-light (not theme-reactive) since this nav only ever
+            renders on top of the video, never the page's own cream/dark
+            surface — a text-shadow adds contrast insurance against
+            whatever the lightest/darkest points of the footage are doing
+            underneath the blur. */}
+        <nav
+          className="relative z-30 mx-auto mt-2 flex max-w-3xl items-center justify-between gap-4 rounded-full border px-6 py-3 backdrop-blur-md sm:mt-4"
+          style={{ background: "rgba(255,255,255,0.12)", borderColor: "rgba(255,255,255,0.15)" }}
+        >
+          <div
+            className="flex items-center gap-2 text-base font-semibold"
+            style={{ color: "rgb(var(--mkt-fixed-light))", textShadow: "0 1px 4px rgba(0,0,0,0.35)" }}
+          >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <circle cx="16" cy="10" r="2.3" fill="currentColor" />
               <circle cx="3" cy="3" r="1.3" fill="currentColor" opacity="0.5" />
@@ -132,7 +151,10 @@ export default function MarketingPage() {
             </svg>
             Relay
           </div>
-          <div className="hidden items-center gap-8 text-sm md:flex" style={{ color: "rgb(var(--mkt-muted))" }}>
+          <div
+            className="hidden items-center gap-8 text-sm md:flex"
+            style={{ color: "rgb(var(--mkt-fixed-light) / 0.85)", textShadow: "0 1px 4px rgba(0,0,0,0.35)" }}
+          >
             <a href="#how" className="hover:opacity-100">How it works</a>
             <Link href="/app?mode=demo" className="hover:opacity-100">Try the demo</Link>
             <a href="#faq" className="hover:opacity-100">FAQ</a>
@@ -151,6 +173,7 @@ export default function MarketingPage() {
                   card: "rgb(var(--mkt-card))",
                   accent: "rgb(var(--mkt-sage))",
                 }}
+                buttonColors={{ icon: "rgb(var(--mkt-fixed-light))", border: "rgba(255,255,255,0.4)" }}
               />
             </div>
             <button
@@ -158,7 +181,7 @@ export default function MarketingPage() {
               onClick={handleThemeToggle}
               aria-label="Toggle dark mode"
               className="flex h-8 w-8 items-center justify-center rounded-full border transition hover:-translate-y-px"
-              style={{ borderColor: "rgb(var(--mkt-line))", color: "rgb(var(--mkt-ink))" }}
+              style={{ borderColor: "rgba(255,255,255,0.4)", color: "rgb(var(--mkt-fixed-light))" }}
             >
               {theme === "dark" ? "☾" : "☀"}
             </button>
@@ -170,11 +193,8 @@ export default function MarketingPage() {
               Open the app
             </Link>
           </div>
-        </div>
-      </nav>
+        </nav>
 
-      <header className="relative isolate overflow-hidden py-16 sm:py-24">
-        <HeroVideo motionOn={motionOn} />
         {/* Fixed light text (--mkt-fixed-light), not the theme-reactive
             --mkt-ink/--mkt-muted used everywhere else on this page — those
             flip to near-black in light mode, which would go invisible

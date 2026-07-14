@@ -10,6 +10,15 @@
 // of a <video> element entirely — not a paused video — so no video
 // decoding/loading ever happens for a reduced-motion visitor.
 export default function HeroVideo({ motionOn }: { motionOn: boolean }) {
+  // Fades the video/poster's own top and bottom edges to transparent
+  // instead of a hard rectangular cutoff — applied to whichever of the two
+  // is actually rendered, so the fade looks identical whether or not
+  // reduced-motion swapped the video out for the static poster.
+  const edgeFadeStyle = {
+    maskImage: "linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)",
+    WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)",
+  };
+
   return (
     <>
       {motionOn ? (
@@ -21,6 +30,7 @@ export default function HeroVideo({ motionOn }: { motionOn: boolean }) {
           preload="auto"
           poster="/videos/hero-bg-poster.jpg"
           className="absolute inset-0 z-0 h-full w-full object-cover"
+          style={edgeFadeStyle}
         >
           <source src="/videos/hero-bg.mp4" type="video/mp4" />
         </video>
@@ -34,6 +44,7 @@ export default function HeroVideo({ motionOn }: { motionOn: boolean }) {
           alt=""
           aria-hidden="true"
           className="absolute inset-0 z-0 h-full w-full object-cover"
+          style={edgeFadeStyle}
         />
       )}
       {/* Dark gradient + radial vignette so the cream/white headline stays

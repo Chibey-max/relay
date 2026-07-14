@@ -74,6 +74,12 @@ export default function PhoneMock({ motionOn }: { motionOn: boolean }) {
             // pasted on top of it.
             boxShadow:
               "0 40px 80px -20px rgba(0,0,0,0.45), 0 15px 30px -15px rgba(0,0,0,0.3), 0 60px 90px -35px rgb(var(--mkt-amber) / 0.18), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 1px rgba(0,0,0,0.25)",
+            // --mkt-amber's value differs between themes, so without a
+            // transition this shadow layer snapped to its new color
+            // instantly on toggle while the rest of the page (which does
+            // have a transition on background/color) faded smoothly —
+            // that mismatch was the visible "shadow flash" on theme switch.
+            transition: "box-shadow 0.3s ease",
             transform: "translate(-50%, -50%) scale(var(--phone-scale))",
           }}
         >

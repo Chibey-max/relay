@@ -22,10 +22,13 @@ type NavMenuColors = {
 export default function NavMenu({
   page,
   colors,
+  buttonColors,
 }: {
   /** Which page this menu is rendered on — controls which links show and which one is the primary "go to the other side" link. */
   page: "marketing" | "app";
   colors: NavMenuColors;
+  /** Override just the CLOSED button's icon/border colors, independent of colors.ink/line — needed when the button sits over a variable background (e.g. the hero video) but the opened dropdown panel is still a normal opaque card that should use the page's regular theme colors. Falls back to colors.ink/colors.line when omitted. */
+  buttonColors?: { icon: string; border: string };
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -58,7 +61,7 @@ export default function NavMenu({
         aria-label="Navigation menu"
         aria-expanded={open}
         className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition hover:opacity-80"
-        style={{ borderColor: colors.line, color: colors.ink }}
+        style={{ borderColor: buttonColors?.border ?? colors.line, color: buttonColors?.icon ?? colors.ink }}
       >
         <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
           <line x1="1.5" y1="4" x2="14.5" y2="4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
