@@ -53,7 +53,7 @@ export default function PhoneMock({ motionOn }: { motionOn: boolean }) {
           // scales it, via --phone-scale, so nothing inside ever reflows or
           // collides at smaller sizes; it's the same layout at every size,
           // just visually bigger or smaller as one image.
-          className="absolute left-1/2 top-1/2 w-[320px] rounded-[54px] border-[2px] p-3 [--phone-scale:0.6] sm:[--phone-scale:0.85] lg:[--phone-scale:1]"
+          className="absolute left-1/2 top-1/2 w-[320px] rounded-[54px] border-[1px] p-3 [--phone-scale:0.6] sm:[--phone-scale:0.85] lg:[--phone-scale:1]"
           style={{
             aspectRatio: "9 / 19.5",
             // Flat single-tone frame, not a multi-stop gradient — a banded

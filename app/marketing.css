@@ -29,7 +29,7 @@
      ring color is intentionally the SAME value as dark mode's below
      (not white), so the ring itself doesn't change between themes, only
      the surrounding page does. */
-  --mkt-phone-frame: 1 0 50;
+  --mkt-phone-frame: 60 61 53;
   --mkt-phone-ring: 112 111 100;
 
   background: rgb(var(--mkt-cream));
