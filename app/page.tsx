@@ -102,7 +102,7 @@ export default function MarketingPage() {
     // ArchitectureFlow below — stay theme-reactive too, without needing
     // their own --mkt-* rewrite or risking their /app usage elsewhere.
     <div className={`mkt relative ${theme === "dark" ? "dark" : "light"} min-h-screen`}>
-      <AmbientGradient sageVar="--mkt-sage" amberVar="--mkt-amber" />
+      <AmbientGradient sageVar="--mkt-sage" sageSoftVar="--mkt-sage-soft" amberVar="--mkt-amber" />
       {/* Same canvas-based particle background /app uses — reused directly
           (not rebuilt) so density/speed/motion-off/reduced-motion behavior
           stays identical and the two pages can't drift apart again. */}

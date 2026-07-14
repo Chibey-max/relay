@@ -428,7 +428,7 @@ export default function Home() {
 
   return (
     <main className={`relative overflow-hidden bg-ink transition-colors duration-300 ${motionOn ? "" : "motion-off"} ${theme === "light" ? "light" : ""}`}>
-      <AmbientGradient sageVar="--c-check" amberVar="--c-amber" />
+      <AmbientGradient sageVar="--c-check" sageSoftVar="--c-check-soft" amberVar="--c-amber" />
       <ParticleField paused={!motionOn} />
 
       <div className="relative z-10 mx-auto max-w-4xl px-6 pb-16 lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl">

@@ -47,8 +47,12 @@ export default function TrustPanel({ motionOn }: { motionOn: boolean }) {
                 // Real 3D tilt (perspective + rotateX/rotateY) instead of a
                 // flat in-plane rotate() — the phone now recedes in depth
                 // rather than just spinning like a flat rotated photo.
-                // rotateZ adds a residual lean on top of that.
-                transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(-10deg) rotateX(4deg) rotateZ(-8deg)",
+                // rotateZ adds a residual lean on top of that. rotateY is
+                // POSITIVE (not negative) — verified empirically that this
+                // is the sign that compresses the RIGHT edge into depth
+                // while the LEFT edge stays larger/closer to the viewer;
+                // the negative sign produces the mirror image.
+                transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(10deg) rotateX(4deg) rotateZ(-8deg)",
                 transformStyle: "preserve-3d",
                 boxShadow:
                   "0 40px 80px -20px rgba(0,0,0,0.5), 0 15px 30px -15px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 1px rgba(0,0,0,0.25)",
