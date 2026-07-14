@@ -13,6 +13,7 @@ import ParticleField from "../components/ParticleField";
 import AmbientGradient from "../components/AmbientGradient";
 import NavMenu from "../components/NavMenu";
 import PhoneMock from "../components/marketing/PhoneMock";
+import HeroVideo from "../components/marketing/HeroVideo";
 import TxTicker from "../components/marketing/TxTicker";
 import QuoteCarousel from "../components/marketing/QuoteCarousel";
 import TrustPanel from "../components/marketing/TrustPanel";
@@ -172,18 +173,26 @@ export default function MarketingPage() {
         </div>
       </nav>
 
-      <header className="overflow-hidden py-16 sm:py-24">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 md:grid-cols-[1.1fr_1fr]">
+      <header className="relative isolate overflow-hidden py-16 sm:py-24">
+        <HeroVideo motionOn={motionOn} />
+        {/* Fixed light text (--mkt-fixed-light), not the theme-reactive
+            --mkt-ink/--mkt-muted used everywhere else on this page — those
+            flip to near-black in light mode, which would go invisible
+            against the video's dark vignette. The hero now always needs
+            light text regardless of the page's own light/dark toggle,
+            since it's sitting on a photo/video background, not the page's
+            own cream/dark surface. */}
+        <div className="relative z-20 mx-auto grid max-w-6xl items-center gap-12 px-6 md:grid-cols-[1.1fr_1fr]">
           <div>
             <Reveal>
-              <h1 className="font-display text-4xl font-medium leading-tight tracking-tight sm:text-5xl" style={{ color: "rgb(var(--mkt-ink))" }}>
+              <h1 className="font-display text-4xl font-medium leading-tight tracking-tight sm:text-5xl" style={{ color: "rgb(var(--mkt-fixed-light))" }}>
                 Money that moves
                 <br />
                 the way you <span className="mkt-accent">speak</span>.
               </h1>
             </Reveal>
             <Reveal className="mt-5">
-              <p className="max-w-md text-lg" style={{ color: "rgb(var(--mkt-muted))" }}>
+              <p className="max-w-md text-lg" style={{ color: "rgb(var(--mkt-fixed-light) / 0.8)" }}>
                 Type a sentence — &ldquo;send 5 USDC to sarah.eth&rdquo; — and Relay finds your funds, covers the network fee, and sends. No chain picker, no gas quote, no seed phrase.
               </p>
             </Reveal>
@@ -201,7 +210,7 @@ export default function MarketingPage() {
                   target="_blank"
                   rel="noreferrer"
                   className="border-b pb-0.5 text-sm"
-                  style={{ borderColor: "rgb(var(--mkt-line))", color: "rgb(var(--mkt-muted))" }}
+                  style={{ borderColor: "rgb(var(--mkt-fixed-light) / 0.4)", color: "rgb(var(--mkt-fixed-light) / 0.8)" }}
                 >
                   Watch the demo · 90s
                 </a>
