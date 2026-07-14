@@ -53,16 +53,19 @@ const config: Config = {
           from: { transform: "translateX(-50%)" },
           to: { transform: "translateX(0)" },
         },
-        // Includes the tilt in every keyframe (not just translateY) because
-        // a running CSS animation's transform value completely replaces any
-        // separately-applied inline transform for the same property — the
-        // element's own `rotate(-15deg)` inline style was silently getting
-        // overridden to zero rotation for the entire time this animation
-        // ran, which is what produced the "phone renders upright/offset"
-        // bug in the trust panel's mini-phone.
+        // Includes the FULL resting transform (centering translate, the
+        // responsive --phone-scale, and the 3D rotateY/rotateX/rotateZ tilt)
+        // in every keyframe, not just translateY — a running CSS animation's
+        // transform value completely replaces any separately-applied inline
+        // transform for the same property, so leaving any part out here
+        // would silently drop it for as long as this animation runs (this
+        // is what previously produced the "phone renders upright/offset"
+        // bug). var(--phone-scale) still resolves per breakpoint since it's
+        // inherited from the element the animation is applied to, not
+        // hardcoded here.
         "float-phone": {
-          "0%,100%": { transform: "rotate(-15deg) translateY(0)" },
-          "50%": { transform: "rotate(-15deg) translateY(-10px)" },
+          "0%,100%": { transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(-10deg) rotateX(4deg) rotateZ(-8deg) translateY(0)" },
+          "50%": { transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(-10deg) rotateX(4deg) rotateZ(-8deg) translateY(-10px)" },
         },
         // Left-to-right reveal for the "You type" node's typed-out detail
         // line in ArchitectureFlow, replayed each loop via a remount key.

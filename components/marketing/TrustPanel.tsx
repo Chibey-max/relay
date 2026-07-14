@@ -24,17 +24,36 @@ export default function TrustPanel({ motionOn }: { motionOn: boolean }) {
             className="pointer-events-none absolute -inset-x-10 -inset-y-10 blur-3xl"
             style={{ background: "radial-gradient(circle at 42% 45%, rgb(var(--mkt-sage) / 0.35), transparent 62%)" }}
           />
+          {/* Reserves exactly the SCALED-DOWN footprint at each breakpoint
+              (216 * the same 0.62/0.85/1 factors used below), so there's no
+              leftover dead space around a visually-shrunk phone. perspective
+              lives here (not further out) so it applies directly to the
+              rotated phone below, giving it real 3D depth. */}
           <div
-            className={`relative w-full max-w-[216px] rounded-[36px] p-2.5 ${motionOn ? "animate-float-phone" : ""}`}
-            style={{
-              aspectRatio: "9 / 19.5",
-              background:
-                "linear-gradient(160deg, rgb(var(--mkt-card)) 0%, rgb(var(--mkt-line)) 22%, rgb(var(--mkt-card)) 48%, rgb(var(--mkt-line)) 76%, rgb(var(--mkt-card)) 100%)",
-              transform: "rotate(-15deg)",
-              boxShadow:
-                "0 40px 80px -20px rgba(0,0,0,0.5), 0 15px 30px -15px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 1px rgba(0,0,0,0.25)",
-            }}
+            className="relative w-full max-w-[135px] sm:max-w-[184px] lg:max-w-[216px]"
+            style={{ aspectRatio: "9 / 19.5", perspective: "1400px" }}
           >
+            <div
+              // Fixed 216px design width, never responsive — only the
+              // transform scales it (via --phone-scale), so nothing inside
+              // ever reflows or collides at smaller sizes; it's the same
+              // layout at every size, just visually bigger or smaller as
+              // one image.
+              className={`absolute left-1/2 top-1/2 w-[216px] rounded-[36px] p-2.5 [--phone-scale:0.62] sm:[--phone-scale:0.85] lg:[--phone-scale:1] ${motionOn ? "animate-float-phone" : ""}`}
+              style={{
+                aspectRatio: "9 / 19.5",
+                background:
+                  "linear-gradient(160deg, rgb(var(--mkt-card)) 0%, rgb(var(--mkt-line)) 22%, rgb(var(--mkt-card)) 48%, rgb(var(--mkt-line)) 76%, rgb(var(--mkt-card)) 100%)",
+                // Real 3D tilt (perspective + rotateX/rotateY) instead of a
+                // flat in-plane rotate() — the phone now recedes in depth
+                // rather than just spinning like a flat rotated photo.
+                // rotateZ adds a residual lean on top of that.
+                transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(-10deg) rotateX(4deg) rotateZ(-8deg)",
+                transformStyle: "preserve-3d",
+                boxShadow:
+                  "0 40px 80px -20px rgba(0,0,0,0.5), 0 15px 30px -15px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 1px rgba(0,0,0,0.25)",
+              }}
+            >
             {/* Side buttons, scaled down to match this phone's smaller frame */}
             <div
               className="absolute -right-[1.5px] top-[26%] h-[42px] w-[2px] rounded-l-sm"
@@ -140,6 +159,7 @@ export default function TrustPanel({ motionOn }: { motionOn: boolean }) {
                 style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 40%)" }}
               />
             </div>
+          </div>
           </div>
         </div>
 
