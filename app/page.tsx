@@ -9,6 +9,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useReveal } from "../lib/useReveal";
+import ParticleField from "../components/ParticleField";
 import PhoneMock from "../components/marketing/PhoneMock";
 import TxTicker from "../components/marketing/TxTicker";
 import QuoteCarousel from "../components/marketing/QuoteCarousel";
@@ -99,7 +100,12 @@ export default function MarketingPage() {
     // tokens) so components reused from the app's design system — like
     // ArchitectureFlow below — stay theme-reactive too, without needing
     // their own --mkt-* rewrite or risking their /app usage elsewhere.
-    <div className={`mkt ${theme === "dark" ? "dark" : "light"} min-h-screen`}>
+    <div className={`mkt relative ${theme === "dark" ? "dark" : "light"} min-h-screen`}>
+      {/* Same canvas-based particle background /app uses — reused directly
+          (not rebuilt) so density/speed/motion-off/reduced-motion behavior
+          stays identical and the two pages can't drift apart again. */}
+      <ParticleField paused={!motionOn} />
+      <div className="relative z-10">
       <nav
         className="sticky top-0 z-50 border-b backdrop-blur"
         style={{ background: "rgb(var(--mkt-cream) / 0.88)", borderColor: "rgb(var(--mkt-line))" }}
@@ -389,6 +395,7 @@ export default function MarketingPage() {
           </div>
         </div>
       </footer>
+      </div>
     </div>
   );
 }
