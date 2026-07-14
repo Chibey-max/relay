@@ -53,13 +53,18 @@ export default function PhoneMock({ motionOn }: { motionOn: boolean }) {
           // scales it, via --phone-scale, so nothing inside ever reflows or
           // collides at smaller sizes; it's the same layout at every size,
           // just visually bigger or smaller as one image.
-          className="absolute left-1/2 top-1/2 w-[320px] rounded-[54px] p-3 [--phone-scale:0.6] sm:[--phone-scale:0.85] lg:[--phone-scale:1]"
+          className="absolute left-1/2 top-1/2 w-[320px] rounded-[54px] border-[2px] p-3 [--phone-scale:0.6] sm:[--phone-scale:0.85] lg:[--phone-scale:1]"
           style={{
             aspectRatio: "9 / 19.5",
             // Flat single-tone frame, not a multi-stop gradient — a banded
             // gradient here read as the bezel randomly shifting color
             // rather than one consistent material.
             background: "rgb(var(--mkt-line))",
+            // A distinct outer ring (different tone from the frame fill,
+            // not just the same --mkt-line) so the phone's own silhouette
+            // reads as a defined edge against the page background, not
+            // just a soft drop-shadow falloff.
+            borderColor: "rgb(var(--mkt-muted2))",
             // The wide, soft drop shadow picks up a faint warm amber cast
             // (rather than plain neutral gray) since this phone sits near
             // the amber anchor of the page's ambient background gradient —
@@ -81,7 +86,7 @@ export default function PhoneMock({ motionOn }: { motionOn: boolean }) {
         />
 
         <div
-          className="relative flex h-full flex-col overflow-hidden rounded-[42px] border-[3px]"
+          className="relative flex h-full flex-col overflow-hidden rounded-[42px] border-[2px]"
           // A real border (not box-shadow) — the Layer screens inside paint
           // their own opaque background edge-to-edge via inset-0, which sits
           // above a box-shadow and silently covered all but the sliver where
