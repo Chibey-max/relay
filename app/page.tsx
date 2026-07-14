@@ -67,11 +67,35 @@ export default function MarketingPage() {
   const [motionOn, setMotionOn] = useState(true);
   const themeToggleRef = useRef<HTMLButtonElement>(null);
 
+  // Smart-sticky nav: normal in-flow near the top, hidden while scrolling
+  // down (matches the reference — nav scrolls away with the hero), fixed
+  // and visible again the moment the user scrolls up, from anywhere on the
+  // page. Plain scroll-position state, not a class toggled outside React,
+  // since the nav's markup/styling already lives here.
+  const [navFixed, setNavFixed] = useState(false);
+  const lastScrollY = useRef(0);
+
   useEffect(() => {
     const saved = localStorage.getItem("relayTheme") as "dark" | "light" | null;
     if (saved) setTheme(saved);
     const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReduced) setMotionOn(false);
+  }, []);
+
+  useEffect(() => {
+    function onScroll() {
+      const y = window.scrollY;
+      if (y < 80) {
+        setNavFixed(false);
+      } else if (y > lastScrollY.current) {
+        setNavFixed(false); // scrolling down — let it scroll away
+      } else {
+        setNavFixed(true); // scrolling up — bring it back, pinned
+      }
+      lastScrollY.current = y;
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   async function handleThemeToggle() {
@@ -103,42 +127,51 @@ export default function MarketingPage() {
     // tokens) so components reused from the app's design system — like
     // ArchitectureFlow below — stay theme-reactive too, without needing
     // their own --mkt-* rewrite or risking their /app usage elsewhere.
-    // animate-converge fades/rises the whole page in on mount (same
-    // keyframe scroll reveals already use) so arriving here from /app
+    // animate-fade-in (opacity only — NOT animate-converge, which animates
+    // transform and would make this root div a containing block for every
+    // position:fixed descendant on the page, breaking the hero nav's fixed
+    // state) fades the whole page in on mount so arriving here from /app
     // reads as a soft entrance instead of an abrupt cut — client-side nav
     // between the two routes unmounts/mounts each page tree with no
     // transition otherwise.
-    <div className={`mkt relative ${theme === "dark" ? "dark" : "light"} min-h-screen ${motionOn ? "animate-converge" : ""}`}>
+    <div className={`mkt relative ${theme === "dark" ? "dark" : "light"} min-h-screen ${motionOn ? "animate-fade-in" : ""}`}>
       <AmbientGradient sageVar="--mkt-sage" sageSoftVar="--mkt-sage-soft" amberVar="--mkt-amber" />
       {/* Same canvas-based particle background /app uses — reused directly
           (not rebuilt) so density/speed/motion-off/reduced-motion behavior
           stays identical and the two pages can't drift apart again. */}
       <ParticleField paused={!motionOn} />
       <div className="relative z-10">
-      <header className="relative isolate overflow-visible py-16 sm:py-24">
-        {/* clip the video/vignette to the hero's own box without clipping
-            the phone mockup below, which is allowed to bleed past this
-            boundary — see the separately-positioned phone wrapper further
-            down. */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <HeroVideo motionOn={motionOn} />
-        </div>
-
-        {/* Floating translucent pill, not a solid edge-to-edge bar — sits
-            directly over the video (not sticky/fixed) so it scrolls away
-            with the rest of the hero, matching the reference. Text is
-            fixed-light (not theme-reactive) since this nav only ever
-            renders on top of the video, never the page's own cream/dark
-            surface — a text-shadow adds contrast insurance against
-            whatever the lightest/darkest points of the footage are doing
-            underneath the blur. */}
+      {/* overflow-hidden (not visible) — the phone mockup stays fully
+          contained within the hero instead of bleeding past its bottom
+          edge into the ticker section. That bleed effect looked more
+          dynamic at rest, but once the page scrolls, a tall element's
+          top scrolling above the viewport edge before its bottom does is
+          ordinary/unavoidable browser scrolling behavior (true of the
+          whole hero, not just the phone) — combined with the phone
+          straddling both the dark hero and the light section below, the
+          cropped-top phone read as broken rather than as expected
+          scrolling. Containing it fully within the hero's own box at
+          least keeps it entirely within one visual zone. */}
+      {/* Nav lives OUTSIDE header on purpose — header has overflow-hidden
+          (needed to clip the video to the hero's box), and CSS overflow
+          clips position:fixed descendants too once the ancestor scrolls
+          out of view, even though "fixed" is normally viewport-relative.
+          Nesting nav inside header meant it silently vanished once you'd
+          scrolled far enough that header itself was off-screen. As a
+          sibling, positioned absolutely over the hero at rest, it isn't
+          subject to header's clipping at all. */}
+      <div className="relative">
         <nav
-          className="relative z-30 mx-auto mt-2 flex max-w-3xl items-center justify-between gap-4 rounded-full border px-6 py-3 backdrop-blur-md sm:mt-4"
-          style={{ background: "rgba(255,255,255,0.12)", borderColor: "rgba(255,255,255,0.15)" }}
+          className={`z-30 mx-auto flex max-w-4xl items-center justify-between gap-4 rounded-full border px-6 py-3 backdrop-blur-md transition-transform duration-300 ${
+            navFixed
+              ? "fixed left-1/2 top-3 w-[calc(100%-2rem)] -translate-x-1/2 sm:w-auto"
+              : "absolute inset-x-0 top-4 sm:top-5"
+          }`}
+          style={{ background: "rgb(var(--mkt-card) / 0.9)", borderColor: "rgb(var(--mkt-line) / 0.6)" }}
         >
           <div
             className="flex items-center gap-2 text-base font-semibold"
-            style={{ color: "rgb(var(--mkt-fixed-light))", textShadow: "0 1px 4px rgba(0,0,0,0.35)" }}
+            style={{ color: "rgb(var(--mkt-ink))" }}
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <circle cx="16" cy="10" r="2.3" fill="currentColor" />
@@ -153,7 +186,7 @@ export default function MarketingPage() {
           </div>
           <div
             className="hidden items-center gap-8 text-sm md:flex"
-            style={{ color: "rgb(var(--mkt-fixed-light) / 0.85)", textShadow: "0 1px 4px rgba(0,0,0,0.35)" }}
+            style={{ color: "rgb(var(--mkt-muted))" }}
           >
             <a href="#how" className="hover:opacity-100">How it works</a>
             <Link href="/app?mode=demo" className="hover:opacity-100">Try the demo</Link>
@@ -173,7 +206,7 @@ export default function MarketingPage() {
                   card: "rgb(var(--mkt-card))",
                   accent: "rgb(var(--mkt-sage))",
                 }}
-                buttonColors={{ icon: "rgb(var(--mkt-fixed-light))", border: "rgba(255,255,255,0.4)" }}
+                buttonColors={{ icon: "rgb(var(--mkt-ink))", border: "rgb(var(--mkt-line))" }}
               />
             </div>
             <button
@@ -181,7 +214,7 @@ export default function MarketingPage() {
               onClick={handleThemeToggle}
               aria-label="Toggle dark mode"
               className="flex h-8 w-8 items-center justify-center rounded-full border transition hover:-translate-y-px"
-              style={{ borderColor: "rgba(255,255,255,0.4)", color: "rgb(var(--mkt-fixed-light))" }}
+              style={{ borderColor: "rgb(var(--mkt-line))", color: "rgb(var(--mkt-ink))" }}
             >
               {theme === "dark" ? "☾" : "☀"}
             </button>
@@ -195,6 +228,16 @@ export default function MarketingPage() {
           </div>
         </nav>
 
+        {/* overflow-hidden (not visible) — the phone mockup stays fully
+            contained within the hero instead of bleeding past its bottom
+            edge into the ticker section. pt-4 (not py-16/24) — the nav
+            used to live inside here and needed to sit close to the top;
+            now that it's a sibling above, this is just breathing room
+            before the content grid, which carries its own top/bottom
+            spacing. */}
+        <header className="relative isolate overflow-hidden pt-4 pb-16 sm:pb-24">
+          <HeroVideo motionOn={motionOn} theme={theme} />
+
         {/* Fixed light text (--mkt-fixed-light), not the theme-reactive
             --mkt-ink/--mkt-muted used everywhere else on this page — those
             flip to near-black in light mode, which would go invisible
@@ -202,17 +245,31 @@ export default function MarketingPage() {
             light text regardless of the page's own light/dark toggle,
             since it's sitting on a photo/video background, not the page's
             own cream/dark surface. */}
-        <div className="relative z-20 mx-auto grid max-w-6xl items-center gap-12 px-6 md:grid-cols-[1.1fr_1fr]">
+        {/* items-start (not items-center): the phone (~693px) is much
+            taller than the text column (~350-400px) — centering them
+            against each other pushed the phone's top ABOVE the headline's
+            top, so scrolling down cut the phone's status bar/frame off
+            above the viewport edge while the headline was still fully
+            visible (looked like the phone was "breaking"). Top-aligning
+            means the phone's extra height only extends downward past the
+            hero (the intended bleed effect), never upward past the nav. */}
+        <div className="relative z-20 mx-auto grid max-w-6xl items-start gap-12 px-6 pt-12 sm:pt-20 md:grid-cols-[1.1fr_1fr]">
           <div>
             <Reveal>
-              <h1 className="font-display text-4xl font-medium leading-tight tracking-tight sm:text-5xl" style={{ color: "rgb(var(--mkt-fixed-light))" }}>
+              <h1
+                className="font-display text-4xl font-medium leading-tight tracking-tight sm:text-5xl"
+                style={{ color: "rgb(var(--mkt-fixed-light))", textShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
+              >
                 Money that moves
                 <br />
                 the way you <span className="mkt-accent">speak</span>.
               </h1>
             </Reveal>
             <Reveal className="mt-5">
-              <p className="max-w-md text-lg" style={{ color: "rgb(var(--mkt-fixed-light) / 0.8)" }}>
+              <p
+                className="max-w-md text-lg"
+                style={{ color: "rgb(var(--mkt-fixed-light) / 0.8)", textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}
+              >
                 Type a sentence — &ldquo;send 5 USDC to sarah.eth&rdquo; — and Relay finds your funds, covers the network fee, and sends. No chain picker, no gas quote, no seed phrase.
               </p>
             </Reveal>
@@ -241,7 +298,8 @@ export default function MarketingPage() {
             <PhoneMock motionOn={motionOn} />
           </Reveal>
         </div>
-      </header>
+        </header>
+      </div>
 
       <TxTicker />
 

@@ -30,7 +30,23 @@ const config: Config = {
       keyframes: {
         converge: {
           "0%": { transform: "translateY(18px)", opacity: "0" },
-          "100%": { transform: "translateY(0)", opacity: "1" },
+          "100%": { transform: "none", opacity: "1" },
+        },
+        // Opacity-only page-arrival fade — NOT a variant of converge. Any
+        // element with an animated "transform" property becomes a
+        // containing block for position:fixed descendants, in Chromium,
+        // even once the animation settles on a value that's visually
+        // identical to identity ("none") — the computed style still
+        // resolves to an explicit matrix, not the literal "none" keyword,
+        // and that's enough to trigger it. Applying converge (which
+        // animates transform) to a page ROOT permanently broke every
+        // position:fixed descendant anywhere on that page (the hero nav's
+        // "fixed" state was rendering relative to the root div's box
+        // instead of the real viewport). This keyframe only ever touches
+        // opacity, so it can't cause that regardless of fill-mode.
+        "fade-in": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
         },
         pulseline: {
           "0%,100%": { opacity: "1" },
@@ -86,6 +102,7 @@ const config: Config = {
       },
       animation: {
         converge: "converge 0.7s cubic-bezier(0.16,1,0.3,1) both",
+        "fade-in": "fade-in 0.5s ease-out both",
         pulseline: "pulseline 1.6s ease-in-out infinite",
         blink: "blink 1.1s step-end infinite",
         stamp: "stamp 0.5s cubic-bezier(0.34,1.56,0.64,1) both",
