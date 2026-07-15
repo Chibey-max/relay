@@ -14,13 +14,19 @@
 import { useEffect, useRef, useState } from "react";
 
 export default function HeroVideo({ motionOn, theme }: { motionOn: boolean; theme: "dark" | "light" }) {
-  // Fades the video/poster's own top and bottom edges to transparent
-  // instead of a hard rectangular cutoff — applied to whichever of the two
-  // is actually rendered, so the fade looks identical whether or not
-  // reduced-motion swapped the video out for the static poster.
+  // Fades the video/poster's BOTTOM edge only, blending it into the
+  // section below — no top fade, since the hero is the first thing on
+  // the page with nothing above it to blend into. A top fade here reveals
+  // the page's own background through the video's transparent mask
+  // before the dark footage becomes fully opaque a bit further down; in
+  // light mode that page background is light/cream, so the reveal-then-
+  // darken read as an added shadow descending from the top edge, not a
+  // blend. Applied to whichever of video/poster is actually rendered, so
+  // it looks identical whether or not reduced-motion swapped one for the
+  // other.
   const edgeFadeStyle = {
-    maskImage: "linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)",
-    WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)",
+    maskImage: "linear-gradient(to bottom, black 90%, transparent 100%)",
+    WebkitMaskImage: "linear-gradient(to bottom, black 90%, transparent 100%)",
   };
 
   // Fades the whole hero visual out as the user scrolls past it — smoother
