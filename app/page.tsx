@@ -73,6 +73,14 @@ export default function MarketingPage() {
   // page. Plain scroll-position state, not a class toggled outside React,
   // since the nav's markup/styling already lives here.
   const [navFixed, setNavFixed] = useState(false);
+  // True one frame AFTER navFixed flips to true — gives the browser a
+  // paint with the "just became fixed" resting styles (slightly raised +
+  // transparent) before switching to the settled ones, so the CSS
+  // transition on transform/opacity actually has a start and end state to
+  // animate between (position:absolute -> position:fixed itself can't be
+  // transitioned, but this lets everything else about the appearance
+  // still animate in smoothly right after).
+  const [navEntered, setNavEntered] = useState(false);
   const lastScrollY = useRef(0);
 
   useEffect(() => {
@@ -97,6 +105,15 @@ export default function MarketingPage() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    if (!navFixed) {
+      setNavEntered(false);
+      return;
+    }
+    const raf = requestAnimationFrame(() => setNavEntered(true));
+    return () => cancelAnimationFrame(raf);
+  }, [navFixed]);
 
   async function handleThemeToggle() {
     const next = theme === "dark" ? "light" : "dark";
@@ -161,13 +178,50 @@ export default function MarketingPage() {
           sibling, positioned absolutely over the hero at rest, it isn't
           subject to header's clipping at all. */}
       <div className="relative">
+        {/* left-1/2 and the same w-[calc(100%-2rem)] sm:w-[calc(100%-4rem)]
+            max-w-7xl sizing appear in BOTH the normal (absolute) and fixed
+            states, identically — the transform's translateX(-50%)
+            component (set via inline style below, not a Tailwind
+            translate utility, so it can be combined with an animated
+            translateY without one clobbering the other) never changes
+            value between states, so it never animates on its own. It
+            previously used inset-x-0 (no transform at all) at rest and
+            only introduced translateX(-50%) once fixed, with
+            transition-transform active — since -50% is relative to the
+            element's own width, and the width ALSO differed between
+            states, switching states produced a visible horizontal slide
+            that had nothing to do with an intentional entrance
+            animation. Only translateY, opacity, and the shadow differ
+            between states now, so it can only ever move vertically/fade. */}
         <nav
-          className={`z-30 mx-auto flex max-w-4xl items-center justify-between gap-4 rounded-full border px-6 py-3 backdrop-blur-md transition-transform duration-300 ${
-            navFixed
-              ? "fixed left-1/2 top-3 w-[calc(100%-2rem)] -translate-x-1/2 sm:w-auto"
-              : "absolute inset-x-0 top-4 sm:top-5"
+          className={`z-30 left-1/2 flex w-[calc(100%-2rem)] max-w-7xl items-center justify-between gap-4 rounded-full border px-6 py-3 backdrop-blur-md transition-[top,transform,opacity,box-shadow] duration-300 ease-out sm:w-[calc(100%-4rem)] ${
+            navFixed ? "fixed top-3" : "absolute top-6"
           }`}
-          style={{ background: "rgb(var(--mkt-card) / 0.9)", borderColor: "rgb(var(--mkt-line) / 0.6)" }}
+          style={{
+            background: "rgb(var(--mkt-card) / 0.9)",
+            borderColor: "rgb(var(--mkt-line) / 0.6)",
+            // Only meaningful while fixed: starts lifted + transparent for
+            // exactly one frame (navEntered still false, see the effect
+            // that sets it a tick after navFixed goes true), then settles
+            // to its resting position/opacity, giving the transition above
+            // an actual start and end state to animate — position:absolute
+            // -> position:fixed itself can't be transitioned, but this
+            // makes everything else about the appearance slide/fade in
+            // right after. At rest (not fixed) it's just the constant
+            // horizontal centering translate, never animated.
+            transform: navFixed ? `translateX(-50%) translateY(${navEntered ? 0 : -16}px)` : "translateX(-50%)",
+            opacity: navFixed && !navEntered ? 0 : 1,
+            // Shadow only once fixed (the resting pill over the video
+            // doesn't need one) — and theme-reactive, since a shadow
+            // opacity tuned to read well against the dark hero looked
+            // muddy/too harsh once the fixed pill is floating over
+            // whatever light-mode content has scrolled beneath it.
+            boxShadow: navFixed
+              ? theme === "dark"
+                ? "0 8px 24px -8px rgba(0,0,0,0.35)"
+                : "0 8px 24px -8px rgba(0,0,0,0.12)"
+              : "none",
+          }}
         >
           <div
             className="flex items-center gap-2 text-base font-semibold"
@@ -230,12 +284,14 @@ export default function MarketingPage() {
 
         {/* overflow-hidden (not visible) — the phone mockup stays fully
             contained within the hero instead of bleeding past its bottom
-            edge into the ticker section. pt-4 (not py-16/24) — the nav
-            used to live inside here and needed to sit close to the top;
-            now that it's a sibling above, this is just breathing room
-            before the content grid, which carries its own top/bottom
-            spacing. */}
-        <header className="relative isolate overflow-hidden pt-4 pb-16 sm:pb-24">
+            edge into the ticker section. pt-24/32 — real clearance below
+            the absolutely-positioned nav pill above (a flex/min-h
+            vertical-centering attempt here was reverted: the phone is
+            ~693px tall, close to or taller than any reasonable min-height
+            on a real viewport, leaving so little slack that "centering"
+            just landed the content flush at the top anyway — directly
+            behind/overlapping the nav pill). */}
+        <header className="relative isolate overflow-hidden pt-24 pb-16 sm:pt-32 sm:pb-24">
           <HeroVideo motionOn={motionOn} theme={theme} />
 
         {/* Fixed light text (--mkt-fixed-light), not the theme-reactive
@@ -245,16 +301,22 @@ export default function MarketingPage() {
             light text regardless of the page's own light/dark toggle,
             since it's sitting on a photo/video background, not the page's
             own cream/dark surface. */}
-        {/* items-start (not items-center): the phone (~693px) is much
+        {/* items-start on the GRID (not items-center) — for the two
+            columns relative to EACH OTHER. The phone (~693px) is much
             taller than the text column (~350-400px) — centering them
-            against each other pushed the phone's top ABOVE the headline's
-            top, so scrolling down cut the phone's status bar/frame off
-            above the viewport edge while the headline was still fully
-            visible (looked like the phone was "breaking"). Top-aligning
-            means the phone's extra height only extends downward past the
-            hero (the intended bleed effect), never upward past the nav. */}
-        <div className="relative z-20 mx-auto grid max-w-6xl items-start gap-12 px-6 pt-12 sm:pt-20 md:grid-cols-[1.1fr_1fr]">
-          <div>
+            against each other pushed the phone's top ABOVE the
+            headline's top, so scrolling down cut the phone's status
+            bar/frame off above the viewport edge while the headline was
+            still fully visible (looked like the phone was "breaking").
+            Top-aligning the columns means the phone's extra height only
+            extends downward past the hero (the intended bleed effect),
+            never upward past the nav. The text column instead gets its
+            OWN self-center (see its wrapper below) to visually sit
+            toward the middle of the shared row height (which the taller
+            phone dictates) without affecting the phone's alignment at
+            all. */}
+        <div className="relative z-20 mx-auto grid w-full max-w-6xl items-start gap-12 px-6 md:grid-cols-[1.1fr_1fr]">
+          <div className="self-center">
             <Reveal>
               <h1
                 className="font-display text-4xl font-medium leading-tight tracking-tight sm:text-5xl"
