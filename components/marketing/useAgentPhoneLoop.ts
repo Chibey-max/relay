@@ -1,11 +1,15 @@
 "use client";
-// components/marketing/useAgentPhoneLoop.ts
-// Decorative state machine for the hero phone mockup — ported from the
-// design reference's <script> timing (design-reference/relay-landing-v10 (1).html),
-// as a React hook instead of raw DOM manipulation. Never calls a real SDK or
-// API; this is purely a scripted animation loop.
+/**
+ * components/marketing/useAgentPhoneLoop.ts
+ *
+ * Decorative state machine for the hero phone mockup, ported from the
+ * design reference's <script> timing
+ * (design-reference/relay-landing-v10 (1).html), as a React hook
+ * instead of raw DOM manipulation. Never calls a real SDK or API, this
+ * is purely a scripted animation loop.
+ */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 export type PhoneScreen = "agent" | "compose" | "processing" | "success";
 

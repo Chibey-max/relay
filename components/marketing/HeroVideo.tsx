@@ -1,38 +1,47 @@
 "use client";
-// components/marketing/HeroVideo.tsx
-// Hero background video — sits behind the headline/CTAs/phone mockup inside
-// the hero <header>. Takes motionOn as a prop (the same reduced-motion
-// signal the rest of the page already derives from
-// matchMedia("(prefers-reduced-motion: reduce)") — see app/page.tsx)
-// instead of re-deriving it here, so there's one source of truth instead of
-// a second listener that could drift out of sync with the rest of the page.
-//
-// When motionOn is false, this renders the poster as a plain <img> instead
-// of a <video> element entirely — not a paused video — so no video
-// decoding/loading ever happens for a reduced-motion visitor.
+/**
+ * components/marketing/HeroVideo.tsx
+ *
+ * Hero background video, sits behind the headline, CTAs, and phone
+ * mockup inside the hero <header>. Takes motionOn as a prop, the same
+ * reduced-motion signal the rest of the page already derives from
+ * matchMedia("(prefers-reduced-motion: reduce)") in app/page.tsx,
+ * instead of re-deriving it here, so there is one source of truth
+ * instead of a second listener that could drift out of sync with the
+ * rest of the page.
+ *
+ * When motionOn is false, this renders the poster as a plain <img>
+ * instead of a <video> element entirely, not a paused video, so no
+ * video decoding or loading ever happens for a reduced-motion visitor.
+ */
 
 import { useEffect, useRef, useState } from "react";
 
-export default function HeroVideo({ motionOn, theme }: { motionOn: boolean; theme: "dark" | "light" }) {
-  // Fades the video/poster's BOTTOM edge only, blending it into the
-  // section below — no top fade, since the hero is the first thing on
-  // the page with nothing above it to blend into. A top fade here reveals
-  // the page's own background through the video's transparent mask
-  // before the dark footage becomes fully opaque a bit further down; in
-  // light mode that page background is light/cream, so the reveal-then-
-  // darken read as an added shadow descending from the top edge, not a
-  // blend. Applied to whichever of video/poster is actually rendered, so
-  // it looks identical whether or not reduced-motion swapped one for the
-  // other.
+export default function HeroVideo({
+  motionOn,
+  theme,
+}: {
+  motionOn: boolean;
+  theme: "dark" | "light";
+}) {
+  /**
+   * Fades the video/poster's bottom edge only, blending it into the
+   * section below. No top fade, since the hero is the first thing on
+   * the page with nothing above it to blend into. A top fade here would
+   * reveal the page's own background through the video's transparent
+   * mask before the dark footage becomes fully opaque a bit further
+   * down. In light mode that page background is light, so the reveal
+   * then darken read as an added shadow descending from the top edge,
+   * not a blend. Applied to whichever of video/poster is actually
+   * rendered, so it looks identical whether or not reduced-motion
+   * swapped one for the other.
+   */
   const edgeFadeStyle = {
     maskImage: "linear-gradient(to bottom, black 90%, transparent 100%)",
     WebkitMaskImage: "linear-gradient(to bottom, black 90%, transparent 100%)",
   };
 
-  // Fades the whole hero visual out as the user scrolls past it — smoother
-  // than an abrupt disappearance once the hero scrolls out of the layout.
-  // Scoped to this component's own root so it doesn't need to touch the
-  // page's other scroll-driven state (the nav's show/hide tracking).
+  // Fades the whole hero visual out as the user scrolls past it, smoother than an abrupt disappearance once the hero scrolls out of the layout. Scoped to this component's own root so it does not need to touch the page's other scroll-driven state (the nav's show/hide tracking).
   const rootRef = useRef<HTMLDivElement>(null);
   const [scrollOpacity, setScrollOpacity] = useState(1);
 
@@ -41,8 +50,7 @@ export default function HeroVideo({ motionOn, theme }: { motionOn: boolean; them
       const el = rootRef.current;
       if (!el) return;
       const heroHeight = el.offsetHeight || 1;
-      // Fully faded by the time the user has scrolled one hero-height's
-      // worth — matches how far the hero itself has scrolled away.
+      // Fully faded by the time the user has scrolled one hero-height's worth, matching how far the hero itself has scrolled away.
       const progress = Math.min(Math.max(window.scrollY / heroHeight, 0), 1);
       setScrollOpacity(1 - progress);
     }
@@ -52,7 +60,11 @@ export default function HeroVideo({ motionOn, theme }: { motionOn: boolean; them
   }, []);
 
   return (
-    <div ref={rootRef} className="absolute inset-0" style={{ opacity: scrollOpacity }}>
+    <div
+      ref={rootRef}
+      className="absolute inset-0"
+      style={{ opacity: scrollOpacity }}
+    >
       {motionOn ? (
         <video
           autoPlay
@@ -67,10 +79,7 @@ export default function HeroVideo({ motionOn, theme }: { motionOn: boolean; them
           <source src="/videos/hero-bg.mp4" type="video/mp4" />
         </video>
       ) : (
-        // eslint-disable-next-line @next/next/no-img-element -- deliberately
-        // a plain <img>, not next/image: this is a full-bleed absolute
-        // background layer sized by its parent, not a content image that
-        // needs Next's responsive-srcset handling.
+        // eslint-disable-next-line @next/next/no-img-element -- deliberately a plain <img>, not next/image: this is a full-bleed absolute background layer sized by its parent, not a content image that needs Next's responsive srcset handling.
         <img
           src="/videos/hero-bg-poster.jpg"
           alt=""
@@ -79,25 +88,30 @@ export default function HeroVideo({ motionOn, theme }: { motionOn: boolean; them
           style={edgeFadeStyle}
         />
       )}
-      {/* Soft wash, not a heavy shadow — clear at the top (no darkening
-          there at all) and only a short, gentle dim confined to roughly
-          the bottom quarter. The headline itself carries a text-shadow
-          (see app/page.tsx) as its own contrast insurance, so this doesn't
-          need to do all the legibility work by itself. */}
+      {/**
+       * Soft wash, not a heavy shadow. Clear at the top (no darkening
+       * there at all) and only a short, gentle dim confined to roughly
+       * the bottom quarter. The headline itself carries a text-shadow
+       * (see app/page.tsx) as its own contrast insurance, so this does
+       * not need to do all the legibility work by itself.
+       */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 z-10"
-        style={{ background: "linear-gradient(180deg, transparent 0%, transparent 45%, rgba(0,0,0,0.18) 70%, transparent 100%)" }}
+        style={{
+          background:
+            "linear-gradient(180deg, transparent 0%, transparent 45%, rgba(0,0,0,0.18) 70%, transparent 100%)",
+        }}
       />
-      {/* Radial vignette — only in dark mode. In light mode its faint
-          reach toward the top/center still read as an unwanted shadow
-          over the video, so it's cut entirely there rather than just
-          reduced. */}
+      {/* Radial vignette, only in dark mode. In light mode its faint reach toward the top/center still read as an unwanted shadow over the video, so it is cut entirely there rather than just reduced. */}
       {theme === "dark" && (
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 z-10"
-          style={{ background: "radial-gradient(ellipse 90% 70% at 50% 45%, transparent 55%, rgba(0,0,0,0.14) 100%)" }}
+          style={{
+            background:
+              "radial-gradient(ellipse 90% 70% at 50% 45%, transparent 55%, rgba(0,0,0,0.14) 100%)",
+          }}
         />
       )}
     </div>

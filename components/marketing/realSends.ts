@@ -1,14 +1,19 @@
-// components/marketing/realSends.ts
-// The two REAL, verified Relay sends shown across the phone mockups on
-// the marketing page. Both moved between the same two wallets — the
-// Magic-derived Relay wallet 0xE732457153a6dbA7C0E1b9D4B1EA1F4E090cf03E
-// and recipient 0x829Ca89412Df6fe0bBC5C5d94aEf62B5b2102e63. Kept
-// verbatim — these are not placeholders.
+/**
+ * components/marketing/realSends.ts
+ *
+ * The two real, verified Relay sends shown across the phone mockups on
+ * the marketing page. Both moved between the same two wallets, the
+ * Magic-derived Relay wallet 0xE732457153a6dbA7C0E1b9D4B1EA1F4E090cf03E
+ * and recipient 0x829Ca89412Df6fe0bBC5C5d94aEf62B5b2102e63. Kept
+ * verbatim, these are not placeholders.
+ */
 
 export interface RealSend {
   title: string;
-  hash: string; // display form (may be truncated)
-  href?: string; // Arbiscan link — omitted when the full hash can't be verified, rather than risk linking to a wrong or incomplete tx
+  /** Display form, may be truncated. */
+  hash: string;
+  /** Arbiscan link. Omitted when the full hash cannot be verified, rather than risk linking to a wrong or incomplete transaction. */
+  href?: string;
 }
 
 export const REAL_SENDS: RealSend[] = [
@@ -19,9 +24,7 @@ export const REAL_SENDS: RealSend[] = [
   },
   {
     title: "0.00005 ETH · EIP-7702",
-    // Only the truncated form is confirmed — the full hash wasn't
-    // reliably recorded (conflicting start/end fragments in source
-    // notes), so this deliberately has no href rather than guessing.
+    // Only the truncated form is confirmed, the full hash was not reliably recorded (conflicting start and end fragments in source notes), so this deliberately has no href rather than guessing.
     hash: "0x065631…f839e",
     href: undefined,
   },

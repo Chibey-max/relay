@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const FAQS = [
   {
     q: "What exactly happens when I hit send?",
-    a: "Relay reads your sentence, works out who and how much, finds where your funds already sit, and moves them — no chain picker, no gas step for you to fill in.",
+    a: "Relay reads your sentence, works out who and how much, finds where your funds already sit, and moves them. No chain picker, no gas step for you to fill in.",
   },
   {
     q: "Where does my money actually live?",
@@ -19,15 +19,15 @@ const FAQS = [
   },
   {
     q: "What does this cost?",
-    a: "Nothing extra right now — every network fee is sponsored while this is live.",
+    a: "Nothing extra right now. Every network fee is sponsored while this is live.",
   },
   {
     q: "Is this really on-chain, or a demo?",
-    a: "Both exist in the app, and each is clearly labeled. Two real sends are already public on Arbitrum — you can open them directly from this page.",
+    a: "Both exist in the app, and each is clearly labeled. Two real sends are already public on Arbitrum, you can open them directly from this page.",
   },
   {
     q: "What if my funds aren't already on Arbitrum?",
-    a: "Today, Relay settles from funds already unified onto Arbitrum. Sourcing directly from other chains in the same send is the next thing being built — nothing here claims that's live yet.",
+    a: "Today, Relay settles from funds already unified onto Arbitrum. Sourcing directly from other chains in the same send is the next thing being built, nothing here claims that's live yet.",
   },
 ];
 
@@ -39,7 +39,11 @@ export default function FaqAccordion() {
       {FAQS.map((f, i) => {
         const isOpen = open === i;
         return (
-          <div key={f.q} className="border-t last:border-b" style={{ borderColor: "rgb(var(--mkt-line))" }}>
+          <div
+            key={f.q}
+            className="border-t last:border-b"
+            style={{ borderColor: "rgb(var(--mkt-line))" }}
+          >
             <button
               onClick={() => setOpen(isOpen ? null : i)}
               className="flex w-full items-center justify-between py-5 text-left text-base font-medium"
@@ -55,11 +59,11 @@ export default function FaqAccordion() {
                 +
               </motion.span>
             </button>
-            {/* AnimatePresence + an animated height (not the previous
-                max-height CSS transition) — framer-motion measures the
-                real content height via "auto", so the reveal doesn't
-                overshoot/undershoot a hand-picked max-height guess, and
-                exit plays the same animation in reverse instead of
+            {/* AnimatePresence plus an animated height (not the previous
+                max-height CSS transition). Framer Motion measures the
+                real content height via "auto", so the reveal does not
+                overshoot or undershoot a hand-picked max-height guess,
+                and exit plays the same animation in reverse instead of
                 relying on a CSS transition to happen to match going the
                 other way. */}
             <AnimatePresence initial={false}>

@@ -1,15 +1,17 @@
 #!/usr/bin/env node
 // scripts/get-agent-address.mjs
-// Prints the Kernel smart account address for RELAY_AGENT_PRIVATE_KEY.
-//
-// This is the address RelayPolicy's `agent` must be set to — NOT the raw
-// EOA address of the private key. On-chain, `msg.sender` inside
-// checkAndRecord is the Kernel account (the smart contract wallet that
-// executes the UserOp), not the EOA that signs for it. Pass this value as
-// AGENT_ADDRESS when running contracts/script/Deploy.s.sol.
-//
-// Usage: node scripts/get-agent-address.mjs
-// Reads RELAY_AGENT_PRIVATE_KEY and ZERODEV_BUNDLER_RPC from .env.local.
+/**
+ * Prints the Kernel smart account address for RELAY_AGENT_PRIVATE_KEY.
+ *
+ * This is the address RelayPolicy's `agent` must be set to, NOT the raw
+ * EOA address of the private key. On-chain, `msg.sender` inside
+ * checkAndRecord is the Kernel account (the smart contract wallet that
+ * executes the UserOp), not the EOA that signs for it. Pass this value as
+ * AGENT_ADDRESS when running contracts/script/Deploy.s.sol.
+ *
+ * Usage: node scripts/get-agent-address.mjs
+ * Reads RELAY_AGENT_PRIVATE_KEY and ZERODEV_BUNDLER_RPC from .env.local.
+ */
 
 import { readFileSync } from "node:fs";
 import { createKernelAccount } from "@zerodev/sdk";
@@ -32,7 +34,7 @@ function loadEnvLocal() {
       if (!(key in process.env)) process.env[key] = value;
     }
   } catch {
-    // .env.local not found — rely on already-exported env vars
+    // .env.local not found, rely on already-exported env vars
   }
 }
 

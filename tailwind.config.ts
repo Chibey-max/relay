@@ -5,13 +5,16 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Colors reference CSS variables (see globals.css) so the
-        // dark/light toggle works by flipping a class, not by duplicating
-        // every utility class across two color sets. Wrapped in
-        // rgb(... / <alpha-value>) — not just var(--c-x) — so Tailwind's
-        // opacity modifiers (border-line/40, bg-check/30, etc.) actually
-        // splice in an alpha channel instead of silently falling back to
-        // the default gray border/bg color.
+        /**
+         * Colors reference CSS variables (see app/globals.css) so the
+         * dark/light toggle works by flipping a class, not by duplicating
+         * every utility class across two color sets. Wrapped in
+         * rgb(... / <alpha-value>), not just var(--c-x), so Tailwind's
+         * opacity modifiers (border-line/40, bg-check/30, etc.) actually
+         * splice in an alpha channel instead of silently falling back to
+         * the default gray border/bg color. See docs/frontend.md for the
+         * full token list and when to reach for a new one.
+         */
         ink: "rgb(var(--c-ink) / <alpha-value>)",
         slate: "rgb(var(--c-slate) / <alpha-value>)",
         slate2: "rgb(var(--c-slate2) / <alpha-value>)",
@@ -21,6 +24,43 @@ const config: Config = {
         mist: "rgb(var(--c-mist) / <alpha-value>)",
         dim: "rgb(var(--c-dim) / <alpha-value>)",
         check: "rgb(var(--c-check) / <alpha-value>)",
+        /**
+         * Marketing page tokens (see app/marketing.css). Same
+         * rgb(... / <alpha-value>) wrapping as the app tokens above, kept
+         * on a separate "mkt-" prefix so a copy-pasted class never
+         * silently resolves to the wrong page's palette.
+         */
+        "mkt-ink": "rgb(var(--mkt-ink) / <alpha-value>)",
+        "mkt-muted": "rgb(var(--mkt-muted) / <alpha-value>)",
+        "mkt-muted2": "rgb(var(--mkt-muted2) / <alpha-value>)",
+        "mkt-card": "rgb(var(--mkt-card) / <alpha-value>)",
+        "mkt-cream": "rgb(var(--mkt-cream) / <alpha-value>)",
+        "mkt-line": "rgb(var(--mkt-line) / <alpha-value>)",
+        "mkt-sage": "rgb(var(--mkt-sage) / <alpha-value>)",
+        "mkt-sage-soft": "rgb(var(--mkt-sage-soft) / <alpha-value>)",
+        "mkt-amber": "rgb(var(--mkt-amber) / <alpha-value>)",
+        "mkt-fixed-light": "rgb(var(--mkt-fixed-light) / <alpha-value>)",
+        "mkt-fixed-dark": "rgb(var(--mkt-fixed-dark) / <alpha-value>)",
+        "mkt-phone-frame": "rgb(var(--mkt-phone-frame) / <alpha-value>)",
+        "mkt-phone-ring": "rgb(var(--mkt-phone-ring) / <alpha-value>)",
+      },
+      spacing: {
+        /**
+         * Section-level padding tokens. Deliberately escalating (not a
+         * flat repeat) so mobile gets tighter breathing room and larger
+         * screens get more, applied as
+         * `px-section-px sm:px-section-px-sm lg:px-section-px-lg` (and the
+         * `py-` equivalents) on every top-level marketing section instead
+         * of each section picking its own px-6/py-20/py-24 by hand. Change
+         * the values here, not at each call site, when the scale needs to
+         * move. See docs/frontend.md for the full rationale.
+         */
+        "section-px": "1rem",
+        "section-px-sm": "1.5rem",
+        "section-px-lg": "2rem",
+        "section-py": "3rem",
+        "section-py-sm": "5rem",
+        "section-py-lg": "6rem",
       },
       fontFamily: {
         display: ["var(--font-display)", "serif"],
@@ -80,8 +120,14 @@ const config: Config = {
         // inherited from the element the animation is applied to, not
         // hardcoded here.
         "float-phone": {
-          "0%,100%": { transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(29deg) rotateX(4deg) rotateZ(-8deg) translateY(0)" },
-          "50%": { transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(29deg) rotateX(4deg) rotateZ(-8deg) translateY(-10px)" },
+          "0%,100%": {
+            transform:
+              "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(29deg) rotateX(4deg) rotateZ(-8deg) translateY(0)",
+          },
+          "50%": {
+            transform:
+              "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(29deg) rotateX(4deg) rotateZ(-8deg) translateY(-10px)",
+          },
         },
         // Mobile-only: turns the phone in place between its two facing
         // angles (rotateY swings from 29deg to -29deg) instead of the
@@ -90,8 +136,14 @@ const config: Config = {
         // animates. animation-direction: alternate (set below, not here)
         // handles the "and back" half of the loop smoothly.
         "float-phone-mobile": {
-          "0%": { transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(29deg) rotateX(4deg) rotateZ(-8deg)" },
-          "100%": { transform: "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(-29deg) rotateX(4deg) rotateZ(-8deg)" },
+          "0%": {
+            transform:
+              "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(29deg) rotateX(4deg) rotateZ(-8deg)",
+          },
+          "100%": {
+            transform:
+              "translate(-50%, -50%) scale(var(--phone-scale)) rotateY(-29deg) rotateX(4deg) rotateZ(-8deg)",
+          },
         },
         // Left-to-right reveal for the "You type" node's typed-out detail
         // line in ArchitectureFlow, replayed each loop via a remount key.
@@ -109,7 +161,8 @@ const config: Config = {
         "scroll-left": "scroll-left 26s linear infinite",
         "scroll-right": "scroll-right 26s linear infinite",
         "float-phone": "float-phone 5.5s ease-in-out infinite",
-        "float-phone-mobile": "float-phone-mobile 4s ease-in-out infinite alternate",
+        "float-phone-mobile":
+          "float-phone-mobile 4s ease-in-out infinite alternate",
         typewriter: "typewriter 0.7s steps(20,end) 1",
       },
     },

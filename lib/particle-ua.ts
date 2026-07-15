@@ -1,8 +1,13 @@
 // lib/particle-ua.ts
-// Adapter: wraps lib/particle.ts for the page's live-execute flow.
-// Creates the UA from the signer address, resolves the token, and dispatches.
+/**
+ * Adapter: wraps lib/particle.ts for the page's live-execute flow.
+ * Creates the UA from the signer address, resolves the token, and dispatches.
+ */
 
-import { createUniversalAccount, sendUnifiedTransfer as _send } from "./particle";
+import {
+  createUniversalAccount,
+  sendUnifiedTransfer as _send,
+} from "./particle";
 import type { Signer } from "./particle";
 import type { ExecutionResult } from "./config";
 
@@ -17,7 +22,9 @@ interface TransferParams {
   tokenAddress?: string;
 }
 
-export async function sendUnifiedTransfer(params: TransferParams): Promise<ExecutionResult> {
+export async function sendUnifiedTransfer(
+  params: TransferParams
+): Promise<ExecutionResult> {
   const ua = createUniversalAccount(params.signer.address);
   // Use the token address from the server if provided; fallback to USDC mainnet
   const tokenAddress = params.tokenAddress ?? USDC_ARB_MAINNET;

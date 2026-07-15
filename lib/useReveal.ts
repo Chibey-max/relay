@@ -1,7 +1,9 @@
 "use client";
 // lib/useReveal.ts
-// A tiny hook that fades+lifts an element in once when it scrolls into view.
-// Respects reduced-motion (elements are visible immediately, no flicker).
+/**
+ * A tiny hook that fades+lifts an element in once when it scrolls into view.
+ * Respects reduced-motion (elements are visible immediately, no flicker).
+ */
 
 import { useEffect, useRef, useState } from "react";
 
@@ -13,7 +15,9 @@ export function useReveal<T extends HTMLElement = HTMLDivElement>() {
     const el = ref.current;
     if (!el) return;
 
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const prefersReduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
     if (prefersReduced) {
       setVisible(true);
       return;

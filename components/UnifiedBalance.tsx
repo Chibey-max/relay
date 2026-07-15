@@ -1,8 +1,10 @@
 "use client";
 // components/UnifiedBalance.tsx
-// THE SIGNATURE ELEMENT. Money scattered across chains, converging into one
-// number. Editorial monochrome — the number itself carries the weight, not
-// color. Fraunces for the hero figure, IBM Plex Mono for chain metadata.
+/**
+ * THE SIGNATURE ELEMENT. Money scattered across chains, converging into one
+ * number. Editorial monochrome: the number itself carries the weight, not
+ * color. Fraunces for the hero figure, IBM Plex Mono for chain metadata.
+ */
 
 import { useEffect, useState } from "react";
 import type { UnifiedBalance as Balance } from "../lib/config";
@@ -14,7 +16,11 @@ const CHAIN_COLOR: Record<string, string> = {
   Polygon: "#8247E5",
 };
 
-export default function UnifiedBalance({ balance }: { balance: Balance | null }) {
+export default function UnifiedBalance({
+  balance,
+}: {
+  balance: Balance | null;
+}) {
   const [revealed, setRevealed] = useState(false);
   const [showAll, setShowAll] = useState(false);
 
@@ -27,10 +33,12 @@ export default function UnifiedBalance({ balance }: { balance: Balance | null })
 
   if (!balance) return null;
 
-  // Particle surfaces every supported chain, most sitting at $0 for a given
-  // wallet — honest (nothing hidden), but a long scroll of zero rows dilutes
-  // the reveal moment. Show funded chains by default; zero-balance chains
-  // stay one click away, never actually hidden.
+  /**
+   * Particle surfaces every supported chain, most sitting at $0 for a given
+   * wallet. Honest (nothing hidden), but a long scroll of zero rows dilutes
+   * the reveal moment. Show funded chains by default; zero-balance chains
+   * stay one click away, never actually hidden.
+   */
   const nonZero = balance.perChain.filter((c) => Number(c.amount) > 0);
   const zero = balance.perChain.filter((c) => Number(c.amount) <= 0);
   const visibleChains = showAll ? balance.perChain : nonZero;
@@ -65,11 +73,15 @@ export default function UnifiedBalance({ balance }: { balance: Balance | null })
             <span className="flex min-w-0 items-center gap-2">
               <span
                 className="h-1.5 w-1.5 shrink-0 rounded-full"
-                style={{ background: CHAIN_COLOR[c.chain] ?? "rgb(var(--c-dim))" }}
+                style={{
+                  background: CHAIN_COLOR[c.chain] ?? "rgb(var(--c-dim))",
+                }}
               />
-              <span className="truncate font-mono text-[11px] text-mist">{c.chain}</span>
+              <span className="truncate font-mono text-[11px] text-mist">
+                {c.chain}
+              </span>
             </span>
-            {/* Amount + usd stacked, not a 3rd competing column — keeps
+            {/* Amount + usd stacked, not a 3rd competing column. Keeps
                 every row a clean two-column layout at any width. */}
             <span className="flex shrink-0 flex-col items-end">
               <span className="text-sm font-medium text-chalk">
@@ -86,7 +98,9 @@ export default function UnifiedBalance({ balance }: { balance: Balance | null })
           onClick={() => setShowAll((v) => !v)}
           className="mt-2 font-mono text-[10px] uppercase tracking-wider text-dim hover:text-chalk"
         >
-          {showAll ? "hide zero-balance chains" : `show all ${balance.perChain.length} chains`}
+          {showAll
+            ? "hide zero-balance chains"
+            : `show all ${balance.perChain.length} chains`}
         </button>
       )}
 

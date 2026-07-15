@@ -1,7 +1,9 @@
 "use client";
 // components/ExecutionSteps.tsx
-// Shows the payment executing, narrated rather than hidden behind a spinner.
-// Monochrome: done = check-green, active = pulsing chalk, idle = dim.
+/**
+ * Shows the payment executing, narrated rather than hidden behind a spinner.
+ * Monochrome: done = check-green, active = pulsing chalk, idle = dim.
+ */
 
 import type { ExecutionResult } from "../lib/config";
 
@@ -16,7 +18,8 @@ export interface Step {
 function Glyph({ state }: { state: StepState }) {
   if (state === "done") return <span className="text-check">✓</span>;
   if (state === "error") return <span className="text-dim">!</span>;
-  if (state === "active") return <span className="animate-pulseline text-chalk">●</span>;
+  if (state === "active")
+    return <span className="animate-pulseline text-chalk">●</span>;
   return <span className="text-line2">○</span>;
 }
 

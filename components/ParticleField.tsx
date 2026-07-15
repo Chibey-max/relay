@@ -1,8 +1,10 @@
 "use client";
 // components/ParticleField.tsx
-// A whisper-quiet drifting node field behind the page — echoes the actual
-// product concept (funds on separate chains, quietly connecting) rather than
-// being generic decoration. Respects reduced-motion and the in-app toggle.
+/**
+ * A whisper-quiet drifting node field behind the page. Echoes the actual
+ * product concept (funds on separate chains, quietly connecting) rather than
+ * being generic decoration. Respects reduced-motion and the in-app toggle.
+ */
 
 import { useEffect, useRef } from "react";
 
@@ -14,7 +16,11 @@ interface Particle {
   r: number;
 }
 
-export default function ParticleField({ paused = false }: { paused?: boolean }) {
+export default function ParticleField({
+  paused = false,
+}: {
+  paused?: boolean;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
   const rafRef = useRef<number>(0);
@@ -25,10 +31,12 @@ export default function ParticleField({ paused = false }: { paused?: boolean }) 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // The `paused` prop is the single source of truth (the page decides its
-    // initial value from the OS preference, but the explicit in-app toggle
-    // can override it). We don't re-check the OS setting here — doing so
-    // would make the override impossible.
+    /**
+     * The `paused` prop is the single source of truth (the page decides its
+     * initial value from the OS preference, but the explicit in-app toggle
+     * can override it). We don't re-check the OS setting here. Doing so
+     * would make the override impossible.
+     */
     if (paused) return;
 
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -61,9 +69,11 @@ export default function ParticleField({ paused = false }: { paused?: boolean }) 
       canvas!.style.height = `${height}px`;
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      // Only rebuild the particle array when the target count would
-      // meaningfully change (>10%) — a full regenerate on every pixel of
-      // page growth would make particles visibly "pop" mid-drift.
+      /**
+       * Only rebuild the particle array when the target count would
+       * meaningfully change (>10%). A full regenerate on every pixel of
+       * page growth would make particles visibly "pop" mid-drift.
+       */
       const nextCount = densityFor(height);
       if (count === 0 || Math.abs(nextCount - count) / count > 0.1) {
         count = nextCount;
@@ -75,13 +85,15 @@ export default function ParticleField({ paused = false }: { paused?: boolean }) 
     const ro = new ResizeObserver(resize);
     if (canvas.parentElement) ro.observe(canvas.parentElement);
 
-    // The first resize() can run before web fonts finish loading, especially
-    // on mobile — the hero text reflows once the real font metrics land,
-    // changing the parent's scrollHeight out from under the canvas we just
-    // sized. That stale height is what produces the stray diagonal line
-    // artifact (particles connecting across a taller-than-actual canvas).
-    // Re-measure a couple of times after mount to catch that late shift;
-    // ResizeObserver alone doesn't reliably fire for font-driven reflow.
+    /**
+     * The first resize() can run before web fonts finish loading, especially
+     * on mobile. The hero text reflows once the real font metrics land,
+     * changing the parent's scrollHeight out from under the canvas we just
+     * sized. That stale height is what produces the stray diagonal line
+     * artifact (particles connecting across a taller-than-actual canvas).
+     * Re-measure a couple of times after mount to catch that late shift;
+     * ResizeObserver alone doesn't reliably fire for font-driven reflow.
+     */
     const raf1 = requestAnimationFrame(() => requestAnimationFrame(resize));
     const lateResize = setTimeout(resize, 200);
 
@@ -90,12 +102,14 @@ export default function ParticleField({ paused = false }: { paused?: boolean }) 
       return isDark ? "92,92,82" : "156,154,140";
     }
 
-    // Position updates are scaled by elapsed time (not a fixed per-frame
-    // step) so drift speed stays consistent regardless of actual frame
-    // rate — without this, background-tab throttling or GPU load spikes
-    // produce visible stutter since the same fixed step then covers a much
-    // larger wall-clock gap. Capped at 50ms so a tab-switch's first frame
-    // back doesn't fling particles across the canvas in one jump.
+    /**
+     * Position updates are scaled by elapsed time (not a fixed per-frame
+     * step) so drift speed stays consistent regardless of actual frame
+     * rate. Without this, background-tab throttling or GPU load spikes
+     * produce visible stutter since the same fixed step then covers a much
+     * larger wall-clock gap. Capped at 50ms so a tab-switch's first frame
+     * back doesn't fling particles across the canvas in one jump.
+     */
     let lastTime = performance.now();
 
     function tick(now: number) {
@@ -110,8 +124,10 @@ export default function ParticleField({ paused = false }: { paused?: boolean }) 
       particles.forEach((p) => {
         p.x += p.vx * dtScale;
         p.y += p.vy * dtScale;
-        // Edge bounce loses 15% of speed on reversal instead of a hard
-        // 100% reversal — softens the mechanical "ping-pong" feel.
+        /**
+         * Edge bounce loses 15% of speed on reversal instead of a hard
+         * 100% reversal. Softens the mechanical "ping-pong" feel.
+         */
         if (p.x < 0 || p.x > 1) p.vx *= -0.85;
         if (p.y < 0 || p.y > 1) p.vy *= -0.85;
       });

@@ -1,17 +1,23 @@
 // lib/zerodev.ts
-// ZeroDev gas sponsorship — wins the $500 ZeroDev subtrack.
-//
-// Uses an ECDSA Kernel account (the "relay agent") to send a sponsored
-// UserOp on Arbitrum Sepolia. The paymaster covers 100% of gas, so the
-// user pays nothing. This is wired into every live transfer: the agent
-// calls RelayPolicy.checkAndRecord on-chain before Particle UA broadcasts
-// the payment — a real enforcement call, not a decorative no-op.
-//
-// The agent EOA (RELAY_AGENT_PRIVATE_KEY) is separate from the user's
-// Magic wallet — it's the protocol-level signer that interacts with
-// RelayPolicy.sol and has its gas sponsored by ZeroDev.
+/**
+ * ZeroDev gas sponsorship, wins the $500 ZeroDev subtrack.
+ *
+ * Uses an ECDSA Kernel account (the "relay agent") to send a sponsored
+ * UserOp on Arbitrum Sepolia. The paymaster covers 100% of gas, so the
+ * user pays nothing. This is wired into every live transfer: the agent
+ * calls RelayPolicy.checkAndRecord on-chain before Particle UA broadcasts
+ * the payment, a real enforcement call, not a decorative no-op.
+ *
+ * The agent EOA (RELAY_AGENT_PRIVATE_KEY) is separate from the user's
+ * Magic wallet: it's the protocol-level signer that interacts with
+ * RelayPolicy.sol and has its gas sponsored by ZeroDev.
+ */
 
-import { createKernelAccount, createKernelAccountClient, createZeroDevPaymasterClient } from "@zerodev/sdk";
+import {
+  createKernelAccount,
+  createKernelAccountClient,
+  createZeroDevPaymasterClient,
+} from "@zerodev/sdk";
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
 import { KERNEL_V3_1, getEntryPoint } from "@zerodev/sdk/constants";
 import {
@@ -26,20 +32,24 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { arbitrumSepolia } from "viem/chains";
+import type { GetPaymasterDataParameters } from "viem/account-abstraction";
+import type { ErrorLike } from "../types/types";
 
 export interface SponsoredResult {
   ok: boolean;
   userOpHash?: string;
   agentAddress?: string;
   error?: string;
-  // true when RelayPolicy explicitly rejected the spend (over limit, not
-  // whitelisted with no default, paused) — the caller MUST block the
-  // transfer. Absent/false means an infra-level hiccup (RPC, bundler),
-  // which is safe to treat as non-blocking.
+  /**
+   * True when RelayPolicy explicitly rejected the spend (over limit, not
+   * whitelisted with no default, paused); the caller MUST block the
+   * transfer. Absent/false means an infra-level hiccup (RPC, bundler),
+   * which is safe to treat as non-blocking.
+   */
   policyRejected?: boolean;
 }
 
-// RelayPolicy ABI — only the functions/errors the agent needs
+// RelayPolicy ABI: only the functions/errors the agent needs
 const RELAY_POLICY_ABI = [
   {
     name: "checkAndRecord",
@@ -61,7 +71,11 @@ const RELAY_POLICY_ABI = [
   { type: "error", name: "NotOwner", inputs: [] },
   { type: "error", name: "NotAgent", inputs: [] },
   { type: "error", name: "IsPaused", inputs: [] },
-  { type: "error", name: "NotWhitelisted", inputs: [{ name: "recipient", type: "address" }] },
+  {
+    type: "error",
+    name: "NotWhitelisted",
+    inputs: [{ name: "recipient", type: "address" }],
+  },
   {
     type: "error",
     name: "OverPerTxLimit",
@@ -82,7 +96,17 @@ const RELAY_POLICY_ABI = [
   },
 ] as const;
 
-function policyErrorMessage(errorName: string, args: readonly unknown[]): string {
+// catch() gives unknown, thrown values aren't guaranteed to be real Error
+// instances, so this narrows only as far as "is it an object" before
+// reading the fields callers actually use.
+function toErrorLike(err: unknown): ErrorLike {
+  return typeof err === "object" && err !== null ? (err as ErrorLike) : {};
+}
+
+function policyErrorMessage(
+  errorName: string,
+  args: readonly unknown[]
+): string {
   switch (errorName) {
     case "NotWhitelisted":
       return "This recipient isn't within your spend policy and no default limit is configured.";
@@ -99,9 +123,11 @@ function policyErrorMessage(errorName: string, args: readonly unknown[]): string
   }
 }
 
-// Sends a ZeroDev-sponsored UserOp from the relay agent Kernel account that
-// calls RelayPolicy.checkAndRecord — the real, on-chain spend-limit check —
-// before Particle UA broadcasts the actual payment.
+/**
+ * Sends a ZeroDev-sponsored UserOp from the relay agent Kernel account that
+ * calls RelayPolicy.checkAndRecord (the real, on-chain spend-limit check)
+ * before Particle UA broadcasts the actual payment.
+ */
 export async function sendSponsoredCheck(params: {
   recipient: Address;
   amountWei: bigint;
@@ -112,7 +138,8 @@ export async function sendSponsoredCheck(params: {
     const paymasterRpc = process.env.ZERODEV_PAYMASTER_RPC;
     const agentKey = process.env.RELAY_AGENT_PRIVATE_KEY as Hex | undefined;
 
-    if (!bundlerRpc || !paymasterRpc) throw new Error("ZeroDev RPC URLs missing.");
+    if (!bundlerRpc || !paymasterRpc)
+      throw new Error("ZeroDev RPC URLs missing.");
     if (!agentKey) throw new Error("RELAY_AGENT_PRIVATE_KEY not set.");
 
     const entryPoint = getEntryPoint("0.7");
@@ -121,10 +148,10 @@ export async function sendSponsoredCheck(params: {
     const publicClient = createPublicClient({
       chain: arbitrumSepolia,
       transport: http(bundlerRpc),
-    }) as any;
+    });
 
     const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
-      signer: agentSigner as any,
+      signer: agentSigner,
       entryPoint,
       kernelVersion: KERNEL_V3_1,
     });
@@ -133,12 +160,14 @@ export async function sendSponsoredCheck(params: {
       plugins: { sudo: ecdsaValidator },
       entryPoint,
       kernelVersion: KERNEL_V3_1,
-    }) as any;
+    });
 
-    // Simulate the policy check first (a free eth_call, not a UserOp) so a
-    // policy rejection is caught cleanly and distinguished from an infra
-    // failure — and so we never spend sponsored gas on a call that would
-    // revert anyway.
+    /**
+     * Simulate the policy check first (a free eth_call, not a UserOp) so a
+     * policy rejection is caught cleanly and distinguished from an infra
+     * failure, and so we never spend sponsored gas on a call that would
+     * revert anyway.
+     */
     try {
       await publicClient.simulateContract({
         address: params.policyAddress,
@@ -147,39 +176,42 @@ export async function sendSponsoredCheck(params: {
         args: [params.recipient, params.amountWei],
         account: account.address as Address,
       });
-    } catch (simErr: any) {
+    } catch (simErr: unknown) {
       if (simErr instanceof BaseError) {
-        const revertError = simErr.walk((e) => e instanceof ContractFunctionRevertedError) as
-          | ContractFunctionRevertedError
-          | undefined;
+        const revertError = simErr.walk(
+          (e) => e instanceof ContractFunctionRevertedError
+        ) as ContractFunctionRevertedError | undefined;
         if (revertError?.data?.errorName) {
           return {
             ok: false,
             policyRejected: true,
-            error: policyErrorMessage(revertError.data.errorName, revertError.data.args ?? []),
+            error: policyErrorMessage(
+              revertError.data.errorName,
+              revertError.data.args ?? []
+            ),
             agentAddress: account.address,
           };
         }
       }
-      // Not a recognizable policy revert — treat as an infra hiccup below.
+      // Not a recognizable policy revert, treat as an infra hiccup below.
       throw simErr;
     }
 
     const paymaster = createZeroDevPaymasterClient({
       chain: arbitrumSepolia,
       transport: http(paymasterRpc),
-    }) as any;
+    });
 
     const kernelClient = createKernelAccountClient({
       account,
       chain: arbitrumSepolia,
       bundlerTransport: http(bundlerRpc),
       paymaster: {
-        getPaymasterData: (userOperation: any) =>
+        getPaymasterData: (userOperation: GetPaymasterDataParameters) =>
           paymaster.sponsorUserOperation({ userOperation }),
       },
       client: publicClient,
-    }) as any;
+    });
 
     const callData = await account.encodeCalls([
       {
@@ -193,14 +225,20 @@ export async function sendSponsoredCheck(params: {
       },
     ]);
 
-    const userOpHash: string = await kernelClient.sendUserOperation({ callData });
+    const userOpHash: string = await kernelClient.sendUserOperation({
+      callData,
+    });
 
     return {
       ok: true,
       userOpHash,
       agentAddress: account.address,
     };
-  } catch (err: any) {
-    return { ok: false, error: err?.message ?? "ZeroDev sponsored check failed" };
+  } catch (rawErr: unknown) {
+    const err = toErrorLike(rawErr);
+    return {
+      ok: false,
+      error: err.message ?? "ZeroDev sponsored check failed",
+    };
   }
 }

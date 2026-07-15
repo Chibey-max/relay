@@ -52,7 +52,12 @@ export const heroTextItem: Variants = {
 /** The hero phone mockup — scale + fade instead of a vertical rise, since it's a device illustration, not a line of text; a slight zoom-in reads as the object settling into place. */
 export const phoneReveal: Variants = {
   hidden: { opacity: 0, scale: 0.94, y: 16 },
-  visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.9, ease: EASE } },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: { duration: 0.9, ease: EASE },
+  },
 };
 
 /** Cards/tiles that should feel like they're gently scaling into place rather than sliding — used for the feature card grid. */

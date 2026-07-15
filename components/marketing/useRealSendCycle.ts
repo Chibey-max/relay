@@ -8,7 +8,11 @@
 import { useEffect, useState } from "react";
 import { REAL_SENDS } from "./realSends";
 
-export function useRealSendCycle(motionOn: boolean, intervalMs = 3800, fadeMs = 300) {
+export function useRealSendCycle(
+  motionOn: boolean,
+  intervalMs = 3800,
+  fadeMs = 300
+) {
   const [idx, setIdx] = useState(0);
   const [visible, setVisible] = useState(true);
 
@@ -22,7 +26,7 @@ export function useRealSendCycle(motionOn: boolean, intervalMs = 3800, fadeMs = 
       }, fadeMs);
     }, intervalMs);
     return () => clearInterval(id);
-  }, [motionOn]);
+  }, [motionOn, intervalMs, fadeMs]);
 
   return { idx, visible, current: REAL_SENDS[idx] };
 }

@@ -34,7 +34,9 @@
 
   background: rgb(var(--mkt-cream));
   color: rgb(var(--mkt-ink));
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 .mkt.dark {
@@ -59,8 +61,20 @@
 /* Ticker marquee mask — mirrors .ticker-mask in globals.css, scoped here so
    marketing.css stays self-contained. */
 .mkt .mkt-ticker-mask {
-  mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
-  -webkit-mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    black 8%,
+    black 92%,
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    black 8%,
+    black 92%,
+    transparent
+  );
 }
 
 /* Trust panel now uses the same --mkt-card token as every other card on

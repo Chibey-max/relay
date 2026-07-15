@@ -2,18 +2,20 @@
 // Single source of truth for chains, tokens, and runtime mode.
 
 export const RELAY_MODE = (process.env.NEXT_PUBLIC_RELAY_MODE ?? "demo") as
-  | "demo"
-  | "live";
+  "demo" | "live";
 
 export const CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID ?? 421614);
 export const EXPLORER =
   process.env.NEXT_PUBLIC_EXPLORER ?? "https://sepolia.arbiscan.io";
 export const RELAY_POLICY_ADDRESS =
-  process.env.NEXT_PUBLIC_RELAY_POLICY_ADDRESS ?? "0x8DD23aBBA62f10306805F0B2C8BF8459d1C3974e";
+  process.env.NEXT_PUBLIC_RELAY_POLICY_ADDRESS ??
+  "0x8DD23aBBA62f10306805F0B2C8BF8459d1C3974e";
 
-// Particle Universal Account supported source chains we surface in the UI.
-// The whole point: the user's value can live on ANY of these, and Relay
-// unifies it into one spendable balance.
+/**
+ * Particle Universal Account supported source chains we surface in the UI.
+ * The whole point: the user's value can live on ANY of these, and Relay
+ * unifies it into one spendable balance.
+ */
 export const SOURCE_CHAINS = [
   { id: 42161, name: "Arbitrum", short: "ARB" },
   { id: 8453, name: "Base", short: "BASE" },
