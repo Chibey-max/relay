@@ -2,6 +2,7 @@
 // components/marketing/FaqAccordion.tsx
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const FAQS = [
   {
@@ -45,24 +46,37 @@ export default function FaqAccordion() {
               style={{ color: "rgb(var(--mkt-ink))" }}
             >
               {f.q}
-              <span
-                className="font-mono transition-transform"
-                style={{ color: "rgb(var(--mkt-muted2))", transform: isOpen ? "rotate(45deg)" : "none" }}
+              <motion.span
+                className="font-mono"
+                style={{ color: "rgb(var(--mkt-muted2))" }}
+                animate={{ rotate: isOpen ? 45 : 0 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
               >
                 +
-              </span>
+              </motion.span>
             </button>
-            <div
-              className="overflow-hidden text-sm transition-all"
-              style={{
-                maxHeight: isOpen ? "12rem" : "0",
-                paddingTop: isOpen ? "0" : "0",
-                paddingBottom: isOpen ? "1.25rem" : "0",
-                color: "rgb(var(--mkt-muted))",
-              }}
-            >
-              {f.a}
-            </div>
+            {/* AnimatePresence + an animated height (not the previous
+                max-height CSS transition) — framer-motion measures the
+                real content height via "auto", so the reveal doesn't
+                overshoot/undershoot a hand-picked max-height guess, and
+                exit plays the same animation in reverse instead of
+                relying on a CSS transition to happen to match going the
+                other way. */}
+            <AnimatePresence initial={false}>
+              {isOpen && (
+                <motion.div
+                  key="content"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                  className="overflow-hidden text-sm"
+                  style={{ color: "rgb(var(--mkt-muted))" }}
+                >
+                  <div className="pb-5">{f.a}</div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         );
       })}

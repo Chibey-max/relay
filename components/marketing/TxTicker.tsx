@@ -3,6 +3,8 @@
 // these are illustrative amounts/recipients, not a claim of real sends
 // (the real-proof tx hashes live in TrustPanel, kept separate deliberately).
 
+import { ArrowRight, ArrowLeft } from "lucide-react";
+
 const TICKS = [
   { to: "sarah.eth", amt: "5.00 USDC" },
   { to: "alex.eth", amt: "20.00 USDC" },
@@ -12,7 +14,11 @@ const TICKS = [
   { to: "savings.eth", amt: "50.00 USDC" },
 ];
 
-function Chip({ to, amt }: { to: string; amt: string }) {
+function Chip({ to, amt, reverse }: { to: string; amt: string; reverse?: boolean }) {
+  // Arrow direction matches this row's own scroll direction — ArrowLeft on
+  // the reversed (rightward-scrolling) row, ArrowRight on the other —
+  // rather than a static "→" pointing the same way regardless of motion.
+  const Arrow = reverse ? ArrowLeft : ArrowRight;
   return (
     <div
       className="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-3.5 py-2 text-sm transition-transform hover:-translate-y-0.5"
@@ -28,7 +34,10 @@ function Chip({ to, amt }: { to: string; amt: string }) {
       <span className="font-mono" style={{ color: "rgb(var(--mkt-ink))" }}>
         {amt}
       </span>
-      <span style={{ color: "rgb(var(--mkt-muted))" }}>→ {to}</span>
+      <span className="flex items-center gap-1" style={{ color: "rgb(var(--mkt-muted))" }}>
+        <Arrow size={13} strokeWidth={2} className="shrink-0" />
+        {to}
+      </span>
     </div>
   );
 }
@@ -39,7 +48,7 @@ function Row({ items, reverse }: { items: typeof TICKS; reverse?: boolean }) {
     <div className="mkt-ticker-mask mb-3 flex overflow-hidden">
       <div className={`flex shrink-0 gap-3 pr-3 ${reverse ? "animate-scroll-right" : "animate-scroll-left"}`}>
         {doubled.map((t, i) => (
-          <Chip key={`${t.to}-${i}`} {...t} />
+          <Chip key={`${t.to}-${i}`} {...t} reverse={reverse} />
         ))}
       </div>
     </div>

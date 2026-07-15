@@ -4,6 +4,7 @@
 // copy only — no parsing actually happens here.
 
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const QUOTES = [
   { say: "send 5 USDC to sarah.eth", result: "Relay resolves the name, finds your funds, settles on Arbitrum" },
@@ -28,13 +29,29 @@ export default function QuoteCarousel({ motionOn }: { motionOn: boolean }) {
       <p className="mb-4 font-mono text-sm" style={{ color: "rgb(var(--mkt-muted))" }}>
         You could just say
       </p>
-      <p
-        key={qi}
-        className="mkt-in flex min-h-[4em] items-center justify-center font-display text-3xl italic leading-tight transition-opacity duration-200 sm:text-4xl"
-        style={{ color: "rgb(var(--mkt-ink))" }}
-      >
-        &ldquo;{q.say}&rdquo;
-      </p>
+      {/* mode="wait" — the outgoing quote fully fades out before the next
+          one fades in, rather than crossfading on top of each other,
+          which reads better for line-length changes (a short quote
+          arriving while a longer one is still exiting would otherwise
+          jump around at the intersection). Previously used a "mkt-in"
+          class that isn't actually defined anywhere in marketing.css —
+          so this line had no real entrance transition at all, just a
+          remount via the `key={qi}` prop. */}
+      <div className="flex min-h-[4em] items-center justify-center">
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={qi}
+            initial={motionOn ? { opacity: 0, y: 12 } : false}
+            animate={{ opacity: 1, y: 0 }}
+            exit={motionOn ? { opacity: 0, y: -12 } : undefined}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="font-display text-3xl italic leading-tight sm:text-4xl"
+            style={{ color: "rgb(var(--mkt-ink))" }}
+          >
+            &ldquo;{q.say}&rdquo;
+          </motion.p>
+        </AnimatePresence>
+      </div>
       <div
         className="mt-6 inline-flex items-center gap-2 rounded-full border py-2 pl-2 pr-4 text-sm"
         style={{ background: "rgb(var(--mkt-card))", borderColor: "rgb(var(--mkt-line))" }}
@@ -45,9 +62,18 @@ export default function QuoteCarousel({ motionOn }: { motionOn: boolean }) {
         >
           ↗
         </span>
-        <span style={{ color: "rgb(var(--mkt-ink))" }}>
-          <b className="font-semibold">Relay resolves</b> {q.result.replace(/^Relay \S+ /, "")}
-        </span>
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={qi}
+            initial={motionOn ? { opacity: 0 } : false}
+            animate={{ opacity: 1 }}
+            exit={motionOn ? { opacity: 0 } : undefined}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            style={{ color: "rgb(var(--mkt-ink))" }}
+          >
+            <b className="font-semibold">Relay resolves</b> {q.result.replace(/^Relay \S+ /, "")}
+          </motion.span>
+        </AnimatePresence>
       </div>
       <div className="mt-8 flex items-center justify-center gap-2">
         {QUOTES.map((_, i) => (

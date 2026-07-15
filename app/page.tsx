@@ -8,7 +8,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useReveal } from "../lib/useReveal";
+import { motion, AnimatePresence } from "framer-motion";
+import { fadeUp, staggerContainer, staggerItem, heroText, heroTextItem, phoneReveal, scaleIn } from "../lib/motionVariants";
 import ParticleField from "../components/ParticleField";
 import AmbientGradient from "../components/AmbientGradient";
 import NavMenu from "../components/NavMenu";
@@ -45,27 +46,94 @@ const FEATURE_CARDS = [
   { h: "We cover the gas", p: "No ETH sitting idle just to pay network fees. Sponsorship is built into every send." },
 ];
 
-function Reveal({
-  children,
-  className = "",
-  style,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  style?: React.CSSProperties;
-}) {
-  const { ref, className: revealClass } = useReveal<HTMLDivElement>();
-  return (
-    <div ref={ref} className={`${revealClass} ${className}`} style={style}>
-      {children}
-    </div>
-  );
-}
 
 export default function MarketingPage() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [motionOn, setMotionOn] = useState(true);
   const themeToggleRef = useRef<HTMLButtonElement>(null);
+
+  // Nested (not module-level) so it closes over motionOn without needing
+  // to be threaded through as a prop at its ~15 call sites below. Framer's
+  // whileInView triggers regardless of prefers-reduced-motion on its own —
+  // when motionOn is false this renders a plain, already-visible div
+  // instead of a motion.div, matching how the rest of the page already
+  // short-circuits its animations for reduced-motion visitors.
+  function Reveal({
+    children,
+    className = "",
+    style,
+    variants = fadeUp,
+  }: {
+    children: React.ReactNode;
+    className?: string;
+    style?: React.CSSProperties;
+    variants?: typeof fadeUp;
+  }) {
+    if (!motionOn) {
+      return (
+        <div className={className} style={style}>
+          {children}
+        </div>
+      );
+    }
+    return (
+      <motion.div
+        className={className}
+        style={style}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-80px" }}
+        variants={variants}
+      >
+        {children}
+      </motion.div>
+    );
+  }
+
+  // Parent for a grid/row of cards that should reveal one after another
+  // instead of all at once — pair with StaggerCard on each mapped child.
+  function StaggerGrid({
+    children,
+    className,
+    style,
+  }: {
+    children: React.ReactNode;
+    className?: string;
+    style?: React.CSSProperties;
+  }) {
+    if (!motionOn) return <div className={className} style={style}>{children}</div>;
+    return (
+      <motion.div
+        className={className}
+        style={style}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-80px" }}
+        variants={staggerContainer}
+      >
+        {children}
+      </motion.div>
+    );
+  }
+
+  function StaggerCard({
+    children,
+    className,
+    style,
+    variants = staggerItem,
+  }: {
+    children: React.ReactNode;
+    className?: string;
+    style?: React.CSSProperties;
+    variants?: typeof staggerItem;
+  }) {
+    if (!motionOn) return <div className={className} style={style}>{children}</div>;
+    return (
+      <motion.div className={className} style={style} variants={variants}>
+        {children}
+      </motion.div>
+    );
+  }
 
   // Smart-sticky nav: normal in-flow near the top, hidden while scrolling
   // down (matches the reference — nav scrolls away with the hero), fixed
@@ -267,10 +335,20 @@ export default function MarketingPage() {
               ref={themeToggleRef}
               onClick={handleThemeToggle}
               aria-label="Toggle dark mode"
-              className="flex h-8 w-8 items-center justify-center rounded-full border transition hover:-translate-y-px"
+              className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border transition hover:-translate-y-px"
               style={{ borderColor: "rgb(var(--mkt-line))", color: "rgb(var(--mkt-ink))" }}
             >
-              {theme === "dark" ? "☾" : "☀"}
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span
+                  key={theme}
+                  initial={motionOn ? { opacity: 0, rotate: -90, scale: 0.6 } : false}
+                  animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                  exit={motionOn ? { opacity: 0, rotate: 90, scale: 0.6 } : undefined}
+                  transition={{ duration: 0.25, ease: "easeInOut" }}
+                >
+                  {theme === "dark" ? "☾" : "☀"}
+                </motion.span>
+              </AnimatePresence>
             </button>
             <Link
               href="/app"
@@ -316,8 +394,50 @@ export default function MarketingPage() {
             phone dictates) without affecting the phone's alignment at
             all. */}
         <div className="relative z-20 mx-auto grid w-full max-w-6xl items-start gap-12 px-6 md:grid-cols-[1.1fr_1fr]">
-          <div className="self-center">
-            <Reveal>
+          {motionOn ? (
+            <motion.div
+              className="self-center"
+              initial="hidden"
+              animate="visible"
+              variants={heroText}
+            >
+              <motion.h1
+                variants={heroTextItem}
+                className="font-display text-4xl font-medium leading-tight tracking-tight sm:text-5xl"
+                style={{ color: "rgb(var(--mkt-fixed-light))", textShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
+              >
+                Money that moves
+                <br />
+                the way you <span className="mkt-accent">speak</span>.
+              </motion.h1>
+              <motion.p
+                variants={heroTextItem}
+                className="mt-5 max-w-md text-lg"
+                style={{ color: "rgb(var(--mkt-fixed-light) / 0.8)", textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}
+              >
+                Type a sentence — &ldquo;send 5 USDC to sarah.eth&rdquo; — and Relay finds your funds, covers the network fee, and sends. No chain picker, no gas quote, no seed phrase.
+              </motion.p>
+              <motion.div variants={heroTextItem} className="mt-8 flex items-center gap-6">
+                <Link
+                  href="/app"
+                  className="inline-block rounded px-5 py-2.5 text-sm font-medium text-white transition hover:-translate-y-px hover:opacity-90"
+                  style={{ background: "rgb(var(--mkt-sage))" }}
+                >
+                  Open the app
+                </Link>
+                <a
+                  href="https://youtu.be/Lsi5LygN5V0"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="border-b pb-0.5 text-sm"
+                  style={{ borderColor: "rgb(var(--mkt-fixed-light) / 0.4)", color: "rgb(var(--mkt-fixed-light) / 0.8)" }}
+                >
+                  Watch the demo · 90s
+                </a>
+              </motion.div>
+            </motion.div>
+          ) : (
+            <div className="self-center">
               <h1
                 className="font-display text-4xl font-medium leading-tight tracking-tight sm:text-5xl"
                 style={{ color: "rgb(var(--mkt-fixed-light))", textShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
@@ -326,17 +446,13 @@ export default function MarketingPage() {
                 <br />
                 the way you <span className="mkt-accent">speak</span>.
               </h1>
-            </Reveal>
-            <Reveal className="mt-5">
               <p
-                className="max-w-md text-lg"
+                className="mt-5 max-w-md text-lg"
                 style={{ color: "rgb(var(--mkt-fixed-light) / 0.8)", textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}
               >
                 Type a sentence — &ldquo;send 5 USDC to sarah.eth&rdquo; — and Relay finds your funds, covers the network fee, and sends. No chain picker, no gas quote, no seed phrase.
               </p>
-            </Reveal>
-            <Reveal className="mt-8">
-              <div className="flex items-center gap-6">
+              <div className="mt-8 flex items-center gap-6">
                 <Link
                   href="/app"
                   className="inline-block rounded px-5 py-2.5 text-sm font-medium text-white transition hover:-translate-y-px hover:opacity-90"
@@ -354,11 +470,17 @@ export default function MarketingPage() {
                   Watch the demo · 90s
                 </a>
               </div>
-            </Reveal>
-          </div>
-          <Reveal className="min-w-0">
-            <PhoneMock motionOn={motionOn} />
-          </Reveal>
+            </div>
+          )}
+          {motionOn ? (
+            <motion.div className="min-w-0" initial="hidden" animate="visible" variants={phoneReveal}>
+              <PhoneMock motionOn={motionOn} />
+            </motion.div>
+          ) : (
+            <div className="min-w-0">
+              <PhoneMock motionOn={motionOn} />
+            </div>
+          )}
         </div>
         </header>
       </div>
@@ -367,18 +489,18 @@ export default function MarketingPage() {
 
       <div className="border-y" style={{ borderColor: "rgb(var(--mkt-line))" }}>
         <div className="mx-auto max-w-6xl px-6 py-9">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+          <StaggerGrid className="grid grid-cols-2 gap-8 md:grid-cols-4">
             {STRIP.map((s) => (
-              <Reveal key={s.h}>
+              <StaggerCard key={s.h}>
                 <h4 className="mb-1 text-sm font-semibold" style={{ color: "rgb(var(--mkt-ink))" }}>
                   {s.h}
                 </h4>
                 <p className="text-sm" style={{ color: "rgb(var(--mkt-muted))" }}>
                   {s.p}
                 </p>
-              </Reveal>
+              </StaggerCard>
             ))}
-          </div>
+          </StaggerGrid>
         </div>
       </div>
 
@@ -406,9 +528,9 @@ export default function MarketingPage() {
               Three steps, <span className="mkt-accent">invisible</span> to you.
             </h2>
           </Reveal>
-          <div className="grid gap-10 md:grid-cols-3">
+          <StaggerGrid className="grid gap-10 md:grid-cols-3">
             {STEPS.map((s) => (
-              <Reveal key={s.n}>
+              <StaggerCard key={s.n}>
                 <p className="mb-3 font-mono text-sm" style={{ color: "rgb(var(--mkt-sage))" }}>
                   {s.n}
                 </p>
@@ -418,9 +540,9 @@ export default function MarketingPage() {
                 <p className="text-sm" style={{ color: "rgb(var(--mkt-muted))" }}>
                   {s.p}
                 </p>
-              </Reveal>
+              </StaggerCard>
             ))}
-          </div>
+          </StaggerGrid>
         </div>
       </section>
 
@@ -453,27 +575,33 @@ export default function MarketingPage() {
               Nothing to <span className="mkt-accent">learn</span>, everything to check.
             </h2>
           </Reveal>
-          <Reveal className="overflow-hidden rounded-xl" style={{ border: "1px solid rgb(var(--mkt-line))" }}>
-            <div className="grid gap-px sm:grid-cols-2" style={{ background: "rgb(var(--mkt-line))" }}>
-              {FEATURE_CARDS.map((f) => (
-                <div key={f.h} className="p-8 transition-transform hover:-translate-y-1" style={{ background: "rgb(var(--mkt-card))" }}>
-                  <h3 className="mb-2 text-lg font-medium" style={{ color: "rgb(var(--mkt-ink))" }}>
-                    {f.h}
-                  </h3>
-                  <p className="text-sm" style={{ color: "rgb(var(--mkt-muted))" }}>
-                    {f.p}
-                  </p>
-                  {f.hashes && (
-                    <div className="mt-4 flex flex-col gap-1.5 font-mono text-xs" style={{ color: "rgb(var(--mkt-muted2))" }}>
-                      {f.hashes.map((h) => (
-                        <span key={h}>{h}</span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </Reveal>
+          <StaggerGrid
+            className="grid gap-px overflow-hidden rounded-xl sm:grid-cols-2"
+            style={{ background: "rgb(var(--mkt-line))", border: "1px solid rgb(var(--mkt-line))" }}
+          >
+            {FEATURE_CARDS.map((f) => (
+              <StaggerCard
+                key={f.h}
+                variants={scaleIn}
+                className="p-8 transition-transform hover:-translate-y-1"
+                style={{ background: "rgb(var(--mkt-card))" }}
+              >
+                <h3 className="mb-2 text-lg font-medium" style={{ color: "rgb(var(--mkt-ink))" }}>
+                  {f.h}
+                </h3>
+                <p className="text-sm" style={{ color: "rgb(var(--mkt-muted))" }}>
+                  {f.p}
+                </p>
+                {f.hashes && (
+                  <div className="mt-4 flex flex-col gap-1.5 font-mono text-xs" style={{ color: "rgb(var(--mkt-muted2))" }}>
+                    {f.hashes.map((h) => (
+                      <span key={h}>{h}</span>
+                    ))}
+                  </div>
+                )}
+              </StaggerCard>
+            ))}
+          </StaggerGrid>
         </div>
       </section>
 
