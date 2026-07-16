@@ -491,10 +491,16 @@ export default function MarketingPage() {
           {/**
            * overflow-hidden (not visible): the phone mockup stays fully
            * contained within the hero instead of bleeding past its
-           * bottom edge into the ticker section. pt-24/32 gives real
-           * clearance below the absolutely-positioned nav pill above.
+           * bottom edge into the ticker section. pt-24 gives real
+           * clearance below the fixed nav pill above (nav sits at top-4
+           * with roughly a 78px bottom edge, so this is close to the
+           * minimum that avoids overlap, not extra room to spare). Kept
+           * flat across breakpoints rather than growing further at sm+,
+           * since the previous sm:pt-32/pb-24 pushed the CTA row and
+           * phone mockup below the fold on a standard laptop viewport
+           * at 100% zoom.
            */}
-          <header className="relative isolate overflow-hidden pt-24 pb-16 sm:pt-32 sm:pb-24">
+          <header className="relative isolate overflow-hidden pt-24 pb-12 sm:pb-16">
             <HeroVideo motionOn={motionOn} theme={theme} />
 
             {/**
