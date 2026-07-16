@@ -12,3 +12,5 @@ contracts/broadcast/
 contracts/lib/
 .DS_Store
 .vercel
+BUILD_PLAN.md
+CLAUDE_CODE_PROMPT.md
