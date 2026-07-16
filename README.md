@@ -2,19 +2,20 @@
 
 **Speak your money.** One sentence becomes a cross-chain payment: no chains to pick, no gas to pay, no seed phrase.
 
+<p align="center">
+  <img src="public/readme/hero.png" alt="Relay landing page hero" width="100%" />
+</p>
+<p align="center">
+  <img src="public/readme/app.png" alt="Relay app: intent box and a real, verified transaction" width="100%" />
+</p>
+
+🔗 **Landing page:** [relay-ashen-zeta.vercel.app](https://relay-ashen-zeta.vercel.app)
 🔗 **Live app:** [relay-ashen-zeta.vercel.app/app](https://relay-ashen-zeta.vercel.app/app)
+🎬 **90 second demo:** [youtu.be/Lsi5LygN5V0](https://youtu.be/Lsi5LygN5V0)
 📜 **Contract (Arbitrum Sepolia):** [`0x8DD23aBBA62f10306805F0B2C8BF8459d1C3974e`](https://sepolia.arbiscan.io/address/0x8DD23aBBA62f10306805F0B2C8BF8459d1C3974e)
 🐙 **Repo:** [github.com/Chibey-max/relay](https://github.com/Chibey-max/relay)
 
 Built for the [UXmaxx Hackathon](https://www.encodeclub.com/programmes/uxmaxx-hackathon): **Universal Accounts Track**.
-
----
-
-## What it does
-
-Relay is a natural-language payment agent. You type _"send 5 USDC to 0x…"_ and Relay fulfils it through your **Particle Universal Account in EIP-7702 mode**, finding your funds wherever they live across chains, unifying them into one balance, sponsoring the gas, and confirming on Arbitrum. The entire interaction stays a single sentence.
-
-The hero of the product isn't the sentence, it's the **unified balance reveal**: money scattered across Base, Arbitrum, and Optimism, shown as one spendable number. Universal Accounts is the visible magic; the agent is just how you spend it. Your existing EOA is upgraded in place via EIP-7702: no new address, no migration, no smart-account deployment.
 
 ---
 
@@ -29,6 +30,26 @@ The hero of the product isn't the sentence, it's the **unified balance reveal**:
 Realistic ceiling if 1st on the main track: **$5,000** ($2,500 + $2,000 + $500), from one coherent submission, no bolted-on integrations.
 
 > Note: the hackathon's ZeroDev subtrack ($500 × 4 winners, judged on Smart Routing Address usage) is nested under the **General Track**, which is mutually exclusive with the Universal Accounts Track. You submit to one main track, not both. Relay targets Universal Accounts, so it isn't eligible for that subtrack, and doesn't claim to be. ZeroDev's gas sponsorship + on-chain spend-policy enforcement are real and live (see `lib/zerodev.ts`, `contracts/src/RelayPolicy.sol`). They support the Arbitrum bounty's "gas abstraction" criterion, not a separate ZeroDev prize claim.
+
+---
+
+## What it does
+
+Relay is a natural-language payment agent. You type _"send 5 USDC to 0x…"_ and Relay fulfils it through your **Particle Universal Account in EIP-7702 mode**, finding your funds wherever they live across chains, unifying them into one balance, sponsoring the gas, and confirming on Arbitrum. The entire interaction stays a single sentence.
+
+The hero of the product isn't the sentence, it's the **unified balance reveal**: money scattered across Base, Arbitrum, and Optimism, shown as one spendable number. Universal Accounts is the visible magic; the agent is just how you spend it. Your existing EOA is upgraded in place via EIP-7702: no new address, no migration, no smart-account deployment.
+
+---
+
+## Try it in under a minute
+
+| Path                                                                                  | What it shows                                                                                                  | Wallet needed |
+| ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------- |
+| **Landing page** ([relay-ashen-zeta.vercel.app](https://relay-ashen-zeta.vercel.app)) | The pitch: real verified sends, the balance-reveal moment, the deployed contract, one click through to the app | No            |
+| **Demo mode** ([/app?mode=demo](https://relay-ashen-zeta.vercel.app/app?mode=demo))   | The full flow on a pre-seeded test signer, no login, clearly badged as demo, never presented as a real send    | No            |
+| **Live mode** ([/app](https://relay-ashen-zeta.vercel.app/app))                       | Email login via Magic, a real Universal Account balance, a real sponsored cross-chain send on Arbitrum         | Just an email |
+
+Every demo result is visibly labelled. Every live result links to a real Arbiscan transaction.
 
 ---
 
@@ -61,6 +82,18 @@ Realistic ceiling if 1st on the main track: **$5,000** ($2,500 + $2,000 + $500),
 
 Single Next.js 14 App Router repo: all logic in `app/api/*` routes, one Vercel deploy. No separate backend.
 
+- **`/`**: the marketing landing page. Decorative and informational only, no SDK imports, no `/api/*` calls. Real, verified transaction hashes and the contract address shown here are genuine, not placeholders (`components/marketing/realSends.ts`).
+- **`/app`**: the real, wallet-connected product described above. Supports `?mode=demo` to force the sandboxed demo flow without a wallet.
+- **`/api/*`**: server routes for intent parsing, balance, and execution, shared by both the demo and live flows in `/app`.
+
+---
+
+## Tech stack
+
+Next.js 14 (App Router) · TypeScript · Tailwind CSS · Framer Motion · Solidity + Foundry (`contracts/`) · Particle Universal Accounts SDK · Magic SDK · ZeroDev SDK · Groq (natural-language parsing) · Vercel
+
+ESLint (strict: no unused vars/imports, no `any`) and Prettier are wired in; see `docs/Context.md` for the engineering conventions this repo follows.
+
 ---
 
 ## Run it locally
@@ -82,6 +115,8 @@ npm run dev                      # http://localhost:3000
 3. **ZeroDev**: [dashboard.zerodev.app](https://dashboard.zerodev.app) → Arbitrum Sepolia, gas sponsorship policy
 4. **Groq**: [console.groq.com](https://console.groq.com) → API key
 
+Other scripts: `npm run build`, `npm run lint`, `npm run typecheck`, `npm run format` / `npm run format:check`.
+
 ---
 
 ## Deployed contract
@@ -90,15 +125,7 @@ npm run dev                      # http://localhost:3000
 
 Deployed at [`0x8DD23aBBA62f10306805F0B2C8BF8459d1C3974e`](https://sepolia.arbiscan.io/address/0x8DD23aBBA62f10306805F0B2C8BF8459d1C3974e) on Arbitrum Sepolia: `owner` is the demo deployer key, `agent` is the ZeroDev Kernel account for `RELAY_AGENT_PRIVATE_KEY`, `defaultPerTxMaxWei`/`defaultDailyMaxWei` are 100 / 500 token-units (18-decimal convention). Confirmed on-chain via direct `readContract` calls at deploy time.
 
-> **Not yet verified on Arbiscan**: the deploy above ran without `--etherscan-api-key` (none was available in this environment). To verify:
->
-> ```bash
-> cd contracts
-> forge verify-contract 0x8DD23aBBA62f10306805F0B2C8BF8459d1C3974e src/RelayPolicy.sol:RelayPolicy \
->   --chain arbitrum-sepolia \
->   --etherscan-api-key $ARBISCAN_KEY \
->   --constructor-args $(cast abi-encode "constructor(address,uint256,uint256)" 0xB44dd0f1504Bf478ebE3E05f3A0c293c7C5F0cE0 100000000000000000000 500000000000000000000)
-> ```
+**Verified on Arbiscan**: the full source is readable directly on the explorer, see the [contract link above](https://sepolia.arbiscan.io/address/0x8DD23aBBA62f10306805F0B2C8BF8459d1C3974e#code).
 
 To redeploy again later (e.g. different default limits, different agent):
 
@@ -126,12 +153,16 @@ forge script script/Deploy.s.sol \
 
 `DEFAULT_PER_TX_MAX_WEI` / `DEFAULT_DAILY_MAX_WEI` follow an 18-decimal ("ether-style") convention regardless of the token actually transferred. The policy contract never moves tokens itself, it only bounds a number, so `100000000000000000000` means "100 token-units per transaction." Change them (or call `setDefaultLimits` post-deploy) to whatever bound you want new recipients to start under.
 
+Tests: `cd contracts && forge test` (9/9 passing, `contracts/test/RelayPolicy.t.sol`).
+
 ---
 
 ## Getting test funds
 
 - Arbitrum Sepolia ETH: any Sepolia faucet → [bridge.arbitrum.io](https://bridge.arbitrum.io) (testnet mode)
-- Test USDC: [faucet.circle.com](https://faucet.circle.com) → Arbitrum Sepolia
+- Base Sepolia ETH: [Base network faucets](https://docs.base.org/base-chain/network-information/network-faucets)
+- Optimism Sepolia ETH: [Optimism faucets](https://docs.optimism.io/app-developers/tools/faucets)
+- Test USDC (Arbitrum Sepolia): [faucet.circle.com](https://faucet.circle.com) → Arbitrum Sepolia
 
 ---
 
@@ -146,10 +177,14 @@ Six rules, derived from prior hackathon wins and losses, govern this build:
 5. **Features mapped to prize tracks inside the app itself**: see the Integration Status panel on the live site.
 6. **Honest about what isn't live**: graceful fallbacks, clearly labelled.
 
+This project was built with AI-assisted development (Claude) alongside manual engineering, consistent with the principle above: honest about what's actually true rather than a cleaner story than reality.
+
 ---
 
 ## Status
 
 Particle Universal Accounts was mid-migration to V2 during the hackathon window. If a balance fetch ever surfaces a migration notice, the app states it honestly rather than faking a number. This is intentional, not a bug.
 
-**RelayPolicy redeployed** with real `checkAndRecord` enforcement (auto-enrollment under owner-set default limits, blocking on violation), covered by `contracts/test/RelayPolicy.t.sol` (9/9 passing) and confirmed live on-chain. Not yet verified on Arbiscan (no API key was available at deploy time); see "Deployed contract" for the one-line `forge verify-contract` command to finish that once you have a key.
+**RelayPolicy redeployed** with real `checkAndRecord` enforcement (auto-enrollment under owner-set default limits, blocking on violation), covered by `contracts/test/RelayPolicy.t.sol` (9/9 passing) and confirmed live on-chain. Verified on Arbiscan, source code is publicly readable on the contract page linked above.
+
+**Two real, verified sends** are shown throughout the app and the landing page, not fixture data: a 5 USDC transfer and an EIP-7702-authorized 0.00005 ETH transfer, both on Arbitrum One mainnet, both linked to Arbiscan.
