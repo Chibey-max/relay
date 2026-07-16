@@ -852,7 +852,7 @@ export default function MarketingPage() {
                 </h5>
                 <div className="flex flex-col gap-2 text-sm text-mkt-muted">
                   <a
-                    href="https://arbiscan.io/address/0x8DD23aBBA62f10306805F0B2C8bF8459d1C3974e"
+                    href="https://sepolia.arbiscan.io/address/0x8DD23aBBA62f10306805F0B2C8BF8459d1C3974e"
                     target="_blank"
                     rel="noreferrer"
                   >

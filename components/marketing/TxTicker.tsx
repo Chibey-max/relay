@@ -66,7 +66,7 @@ export default function TxTicker() {
   return (
     <div className="flex flex-col gap-6 py-10">
       <p className="text-center font-mono text-xs uppercase tracking-widest text-mkt-muted2">
-        Real sends, on the record
+        Example sends
       </p>
       {/* Decorative and duplicated for the seamless scroll illusion, hidden from assistive tech via aria-hidden on each Row above. */}
       <div className="flex flex-col gap-3">
