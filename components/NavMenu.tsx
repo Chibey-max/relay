@@ -118,15 +118,15 @@ export default function NavMenu({
           >
             {primary.label}
           </Link>
-          <Link
-            href="/app?mode=demo"
-            onClick={() => setOpen(false)}
-            className="block px-4 py-2 transition hover:opacity-70"
-          >
-            Try the demo
-          </Link>
           {page === "marketing" && (
             <>
+              <Link
+                href="/app?mode=demo"
+                onClick={() => setOpen(false)}
+                className="block px-4 py-2 transition hover:opacity-70"
+              >
+                Try the demo
+              </Link>
               <a
                 href="#how"
                 onClick={() => setOpen(false)}
