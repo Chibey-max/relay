@@ -22,7 +22,6 @@
     "ethers": "^6.13.0",
     "framer-motion": "^12.42.2",
     "groq-sdk": "^0.7.0",
-    "lucide-react": "^1.24.0",
     "magic-sdk": "^33.7.1",
     "next": "14.2.33",
     "react": "^18.3.1",

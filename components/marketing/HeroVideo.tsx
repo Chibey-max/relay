@@ -46,15 +46,38 @@ export default function HeroVideo({
   const [scrollOpacity, setScrollOpacity] = useState(1);
 
   useEffect(() => {
-    function onScroll() {
+    /**
+     * The hero's rendered height is only slightly taller than a typical
+     * viewport, so a fade starting at scrollY 0 was already visibly
+     * dimming the hero within the first 100 to 200px of scroll, well
+     * before the user was anywhere near its actual bottom edge. DEAD_ZONE
+     * holds full opacity for the first 60% of the hero's height, then
+     * fades linearly over the remaining 40%, so the fade genuinely
+     * tracks "close to the bottom" instead of "as soon as scrolling
+     * starts."
+     */
+    const DEAD_ZONE = 0.6;
+    let ticking = false;
+
+    function updateScrollOpacity() {
       const el = rootRef.current;
       if (!el) return;
       const heroHeight = el.offsetHeight || 1;
-      // Fully faded by the time the user has scrolled one hero-height's worth, matching how far the hero itself has scrolled away.
-      const progress = Math.min(Math.max(window.scrollY / heroHeight, 0), 1);
+      const raw = window.scrollY / heroHeight - DEAD_ZONE;
+      const progress = Math.min(Math.max(raw / (1 - DEAD_ZONE), 0), 1);
       setScrollOpacity(1 - progress);
     }
-    onScroll();
+
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        updateScrollOpacity();
+        ticking = false;
+      });
+    }
+
+    updateScrollOpacity();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);

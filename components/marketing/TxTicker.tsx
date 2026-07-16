@@ -4,7 +4,7 @@
 // of real sends. The real, verified tx hashes live in TrustPanel, kept
 // separate deliberately.
 
-import { ArrowRight, ArrowLeft } from "lucide-react";
+import Icon from "../Icon";
 
 const TICKS = [
   { to: "sarah.eth", amt: "5.00 USDC" },
@@ -24,10 +24,10 @@ function Chip({
   amt: string;
   reverse?: boolean;
 }) {
-  // Arrow direction matches this row's own scroll direction (ArrowLeft
-  // on the reversed, rightward-scrolling row, ArrowRight on the other)
-  // instead of a static arrow pointing the same way regardless of motion.
-  const Arrow = reverse ? ArrowLeft : ArrowRight;
+  // Arrow direction matches this row's own scroll direction (arrow_back
+  // on the reversed, rightward-scrolling row, arrow_forward on the
+  // other) instead of a static arrow pointing the same way regardless
+  // of motion.
   return (
     <div className="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-mkt-line bg-mkt-card px-3.5 py-2 text-sm transition-transform hover:-translate-y-0.5">
       <span className="relative flex h-1.5 w-1.5">
@@ -37,11 +37,9 @@ function Chip({
       {/* Amount stays ink, not sage. Every chip here is illustrative, not a real send, and green on /app's equivalent ticker is reserved for genuinely real, verified entries, not applied to every item. */}
       <span className="font-mono text-mkt-ink">{amt}</span>
       <span className="flex items-center gap-1 text-mkt-muted">
-        <Arrow
-          size={13}
-          strokeWidth={2}
-          className="shrink-0"
-          aria-hidden="true"
+        <Icon
+          name={reverse ? "arrow_back" : "arrow_forward"}
+          className="shrink-0 text-[13px] align-middle"
         />
         {to}
       </span>

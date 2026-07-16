@@ -27,6 +27,7 @@ import {
 import ParticleField from "../components/ParticleField";
 import AmbientGradient from "../components/AmbientGradient";
 import NavMenu from "../components/NavMenu";
+import Icon from "../components/Icon";
 import PhoneMock from "../components/marketing/PhoneMock";
 import HeroVideo from "../components/marketing/HeroVideo";
 import TxTicker from "../components/marketing/TxTicker";
@@ -198,21 +199,18 @@ export default function MarketingPage() {
   }
 
   /**
-   * Smart sticky nav: normal in flow near the top, hidden while
-   * scrolling down (it scrolls away with the hero), fixed and visible
-   * again the moment the user scrolls up, from anywhere on the page.
+   * Smart sticky nav: always position:fixed, visible near the top,
+   * hidden while scrolling down, revealed again the moment the user
+   * scrolls up, from anywhere on the page. Deliberately never swaps
+   * between position:absolute and position:fixed. That swap changes
+   * the element's containing block (viewport vs. document) at the
+   * exact instant it happens, which cannot itself be transitioned and
+   * previously caused a visible jump whenever the nav lost its pin
+   * while scrolling down again. Staying fixed at all times means show
+   * and hide are both pure transform/opacity changes, so they always
+   * have a real start and end state to animate between.
    */
-  const [navFixed, setNavFixed] = useState(false);
-  /**
-   * True one frame after navFixed flips to true. Gives the browser a
-   * paint with the "just became fixed" resting styles (slightly raised
-   * and transparent) before switching to the settled ones, so the CSS
-   * transition on transform and opacity has an actual start and end
-   * state to animate between. position:absolute to position:fixed
-   * itself cannot be transitioned, but this lets everything else about
-   * the appearance still animate in smoothly right after.
-   */
-  const [navEntered, setNavEntered] = useState(false);
+  const [navVisible, setNavVisible] = useState(true);
   const lastScrollY = useRef(0);
 
   useEffect(() => {
@@ -225,29 +223,38 @@ export default function MarketingPage() {
   }, []);
 
   useEffect(() => {
-    function onScroll() {
+    // Confirmed direction: down hides (nav falls back into normal flow and
+    // scrolls away with the hero), up reveals (nav pins to the viewport
+    // and slides back in), matching the intended "get out of the way
+    // reading, come back the moment the user looks for it" behavior.
+    function updateNavVisibility() {
       const y = window.scrollY;
       if (y < 80) {
-        setNavFixed(false);
+        setNavVisible(true);
       } else if (y > lastScrollY.current) {
-        setNavFixed(false); // scrolling down, let it scroll away
+        setNavVisible(false); // scrolling down, hide
       } else {
-        setNavFixed(true); // scrolling up, bring it back, pinned
+        setNavVisible(true); // scrolling up, reveal
       }
       lastScrollY.current = y;
     }
+
+    // requestAnimationFrame-throttled so the visibility check runs at most
+    // once per paint instead of once per raw scroll event, keeping the
+    // transition smooth during fast or continuous scrolling.
+    let ticking = false;
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        updateNavVisibility();
+        ticking = false;
+      });
+    }
+
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  useEffect(() => {
-    if (!navFixed) {
-      setNavEntered(false);
-      return;
-    }
-    const raf = requestAnimationFrame(() => setNavEntered(true));
-    return () => cancelAnimationFrame(raf);
-  }, [navFixed]);
 
   async function handleThemeToggle() {
     const next = theme === "dark" ? "light" : "dark";
@@ -322,101 +329,94 @@ export default function MarketingPage() {
          * ancestor scrolls out of view, even though "fixed" is normally
          * viewport relative. Nesting nav inside header meant it silently
          * vanished once scrolled far enough that header itself was
-         * off-screen. As a sibling, positioned absolutely over the hero
-         * at rest, it is not subject to header's clipping at all.
+         * off-screen. As a sibling, it is not subject to header's
+         * clipping at all.
          */}
         <div className="relative">
           {/**
-           * left-1/2 and the same w-[calc(100%-2rem)]
-           * sm:w-[calc(100%-4rem)] max-w-7xl sizing appear in both the
-           * normal (absolute) and fixed states, identically. The
-           * transform's translateX(-50%) component (set via inline
-           * style below, not a Tailwind translate utility, so it can
-           * combine with an animated translateY without one clobbering
-           * the other) never changes value between states, so it never
-           * animates on its own. Only translateY, opacity, and the
-           * shadow differ between states, so this can only ever move
-           * vertically or fade.
+           * Always position:fixed, never swapped for position:absolute.
+           * Show and hide are pure transform/opacity changes, so
+           * pointer-events is toggled alongside them: hidden means
+           * genuinely non-interactive, not just invisible, so a
+           * mid-fade nav can never absorb a click meant for the page
+           * underneath it.
            */}
           <nav
             aria-label="Primary"
-            className={`z-30 left-1/2 flex w-[calc(100%-2rem)] max-w-7xl items-center justify-between gap-4 rounded-full border px-6 py-3 backdrop-blur-md transition-[top,transform,opacity,box-shadow] duration-300 ease-out sm:w-[calc(100%-4rem)] ${
-              navFixed ? "fixed top-3" : "absolute top-6"
-            }`}
+            className="z-30 fixed left-1/2 top-4 flex w-[calc(100%-2rem)] max-w-7xl items-center justify-between gap-4 rounded-full border px-6 py-3 backdrop-blur-md sm:w-[calc(100%-4rem)]"
             style={{
               background: "rgb(var(--mkt-card) / 0.9)",
               borderColor: "rgb(var(--mkt-line) / 0.6)",
-              transform: navFixed
-                ? `translateX(-50%) translateY(${navEntered ? 0 : -16}px)`
-                : "translateX(-50%)",
-              opacity: navFixed && !navEntered ? 0 : 1,
+              transform: `translateX(-50%) translateY(${navVisible ? 0 : -32}px)`,
+              opacity: navVisible ? 1 : 0,
+              pointerEvents: navVisible ? "auto" : "none",
               // Theme-reactive: a shadow opacity tuned for the dark hero read as muddy once the fixed pill floats over light-mode content instead.
-              boxShadow: navFixed
-                ? theme === "dark"
+              boxShadow:
+                theme === "dark"
                   ? "0 8px 24px -8px rgba(0,0,0,0.35)"
-                  : "0 8px 24px -8px rgba(0,0,0,0.12)"
-                : "none",
+                  : "0 8px 24px -8px rgba(0,0,0,0.12)",
+              /**
+               * Slower and gentler than a typical UI micro-interaction
+               * on purpose, this is a large, ever-present element
+               * repositioning itself, not a button state change, so it
+               * reads as deliberate rather than snappy. The decelerating
+               * curve (quick start, soft settle) is shared by opacity
+               * too, rather than opacity running its own plain ease, so
+               * the fade and the movement finish together instead of
+               * opacity visibly lagging or leading the slide.
+               */
+              transition:
+                "transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1)",
             }}
           >
-            <div className="flex items-center gap-2 text-base font-semibold text-mkt-ink">
+            {/**
+             * Same mark and wordmark treatment as /app's header (same
+             * SVG paths, same font-display/tracking-tight wordmark),
+             * scaled down to fit this nav's compact pill instead of a
+             * full page header, so the Relay brand reads as one
+             * consistent identity across both pages.
+             */}
+            <div className="flex items-center gap-2 text-mkt-ink">
               <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
+                width="22"
+                height="22"
+                viewBox="0 0 30 30"
                 fill="none"
+                className="shrink-0"
                 aria-hidden="true"
               >
-                <circle cx="16" cy="10" r="2.3" fill="currentColor" />
                 <circle
-                  cx="3"
-                  cy="3"
-                  r="1.3"
+                  cx="6"
+                  cy="7"
+                  r="2.2"
                   fill="currentColor"
                   opacity="0.5"
                 />
                 <circle
-                  cx="2"
-                  cy="11"
-                  r="1.3"
+                  cx="24"
+                  cy="7"
+                  r="2.2"
                   fill="currentColor"
                   opacity="0.5"
                 />
                 <circle
-                  cx="3"
-                  cy="17"
-                  r="1.3"
+                  cx="15"
+                  cy="24"
+                  r="2.2"
                   fill="currentColor"
                   opacity="0.5"
                 />
-                <line
-                  x1="3"
-                  y1="3"
-                  x2="16"
-                  y2="10"
+                <path
+                  d="M6 7 L15 15 M24 7 L15 15 M15 24 L15 15"
                   stroke="currentColor"
                   strokeWidth="1"
                   opacity="0.3"
                 />
-                <line
-                  x1="2"
-                  y1="11"
-                  x2="16"
-                  y2="10"
-                  stroke="currentColor"
-                  strokeWidth="1"
-                  opacity="0.3"
-                />
-                <line
-                  x1="3"
-                  y1="17"
-                  x2="16"
-                  y2="10"
-                  stroke="currentColor"
-                  strokeWidth="1"
-                  opacity="0.3"
-                />
+                <circle cx="15" cy="15" r="3.4" fill="currentColor" />
               </svg>
-              Relay
+              <span className="font-display text-lg font-semibold tracking-tight">
+                Relay
+              </span>
             </div>
             <div className="hidden items-center gap-8 text-sm text-mkt-muted md:flex">
               <a href="#how" className="hover:opacity-100">
@@ -472,7 +472,10 @@ export default function MarketingPage() {
                     }
                     transition={{ duration: 0.25, ease: "easeInOut" }}
                   >
-                    {theme === "dark" ? "☾" : "☀"}
+                    <Icon
+                      name={theme === "dark" ? "dark_mode" : "light_mode"}
+                      className="text-[18px] align-middle"
+                    />
                   </motion.span>
                 </AnimatePresence>
               </button>
@@ -779,8 +782,47 @@ export default function MarketingPage() {
           >
             <div className="grid gap-8 sm:grid-cols-4">
               <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-2 font-semibold text-mkt-ink">
-                  Relay
+                <div className="flex items-center gap-2 text-mkt-ink">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 30 30"
+                    fill="none"
+                    className="shrink-0"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      cx="6"
+                      cy="7"
+                      r="2.2"
+                      fill="currentColor"
+                      opacity="0.5"
+                    />
+                    <circle
+                      cx="24"
+                      cy="7"
+                      r="2.2"
+                      fill="currentColor"
+                      opacity="0.5"
+                    />
+                    <circle
+                      cx="15"
+                      cy="24"
+                      r="2.2"
+                      fill="currentColor"
+                      opacity="0.5"
+                    />
+                    <path
+                      d="M6 7 L15 15 M24 7 L15 15 M15 24 L15 15"
+                      stroke="currentColor"
+                      strokeWidth="1"
+                      opacity="0.3"
+                    />
+                    <circle cx="15" cy="15" r="3.4" fill="currentColor" />
+                  </svg>
+                  <span className="font-display text-base font-semibold tracking-tight">
+                    Relay
+                  </span>
                 </div>
                 <p className="max-w-xs text-sm text-mkt-muted">
                   Money that moves the way you speak. Real transfers, sponsored
