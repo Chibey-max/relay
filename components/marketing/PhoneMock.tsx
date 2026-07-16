@@ -60,13 +60,20 @@ export default function PhoneMock({ motionOn }: { motionOn: boolean }) {
       {/* Outer box reserves exactly the scaled-down footprint at each breakpoint (320 times the same 0.6/0.85/1 factors used below) so there is no leftover dead space around a visually-shrunk phone. The inner phone (next div) always renders at its native 320px design width and is scaled and centered to fill this box exactly. */}
       <div
         className="relative w-full max-w-[192px] sm:max-w-[272px] lg:max-w-[320px]"
-        style={{ aspectRatio: "9 / 19.5" }}
+        style={{ aspectRatio: "9 / 18" }}
       >
         <div
           // Fixed 320px design width, never responsive, only the transform scales it via --phone-scale, so nothing inside ever reflows or collides at smaller sizes. It is the same layout at every size, just visually bigger or smaller as one image.
           className="absolute left-1/2 top-1/2 w-[320px] rounded-[54px] border-[1px] border-mkt-phone-ring bg-mkt-phone-frame p-3 [--phone-scale:0.6] sm:[--phone-scale:0.85] lg:[--phone-scale:1]"
           style={{
-            aspectRatio: "9 / 19.5",
+            /**
+             * 9/18, not the real device 9/19.5, on purpose: a little
+             * shorter than an actual phone so the mockup fits within a
+             * standard laptop viewport at 100% zoom alongside the
+             * headline and CTAs, without needing more vertical hero
+             * padding to compensate.
+             */
+            aspectRatio: "9 / 18",
             /**
              * The wide, soft drop shadow picks up a faint warm amber
              * cast (rather than plain neutral gray) since this phone
