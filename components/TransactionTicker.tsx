@@ -1,14 +1,19 @@
 "use client";
 // components/TransactionTicker.tsx
 /**
- * A slow auto-scrolling strip of past sends: a "proof of life" pattern that
- * makes the product feel active rather than static. Demo mode uses seeded
- * data (clearly not claimed as real). Real entries from this session's own
- * completed live sends are prepended and visually distinguished. Rule 3:
- * never conflate synthetic and real data.
+ * A slow auto-scrolling strip of past sends: a "proof of life" pattern
+ * that makes the product feel active rather than static. Every entry is
+ * a real send, either this session's own just-completed ones
+ * (realHistory, shown first) or live-fetched Relay wallet history from
+ * app/api/real-sends/route.ts (see lib/useRealSends.ts), deduplicated
+ * against realHistory by hash so a just-completed send never appears
+ * twice. Falls back to the two known-real, hardcoded transactions in
+ * lib/realSends.ts if the live fetch is empty, loading, or fails.
  */
 
 import Icon from "./Icon";
+import { useRealSends } from "../lib/useRealSends";
+import { REAL_SENDS } from "../lib/realSends";
 
 export interface RealTick {
   amount: string;
@@ -19,39 +24,61 @@ export interface RealTick {
   explorerUrl?: string;
 }
 
-const DEMO_TICKS = [
-  { amount: "12 USDC", to: "0x4a…f81c", note: "3 chains sourced" },
-  { amount: "0.5 ETH", to: "sarah.eth", note: "gasless" },
-  { amount: "40 USDC", to: "0x91…22b0", note: "Base + Optimism" },
-  { amount: "8 USDT", to: "mike.eth", note: "gasless" },
-  { amount: "2.1 ETH", to: "0x7c…de44", note: "2 chains sourced" },
-  { amount: "15 USDC", to: "0xab…9f01", note: "gasless" },
-];
+interface TickItem {
+  amount: string;
+  to: string;
+  note: string;
+  href?: string;
+}
 
 function shorten(addr: string): string {
   return addr.length < 12 ? addr : `${addr.slice(0, 6)}…${addr.slice(-4)}`;
 }
+
+const FALLBACK_TICKS: TickItem[] = REAL_SENDS.map((s) => {
+  const toMatch = s.title.match(/to (.+)$/);
+  return {
+    amount: s.title.split(toMatch ? " to " : " · ")[0],
+    to: toMatch ? toMatch[1] : s.hash,
+    note: "verified",
+    href: s.href,
+  };
+});
 
 export default function TransactionTicker({
   realHistory = [],
 }: {
   realHistory?: RealTick[];
 }) {
-  /**
-   * Real entries always come first within each cycle, then the demo-seeded
-   * ones. Never interleaved in a way that could read as "this many real
-   * sends happened," since most of the strip is still illustrative.
-   */
-  const allItems = [
-    ...realHistory.map((h) => ({
-      amount: `${h.amount} ${h.token}`,
-      to: shorten(h.recipient),
+  const { sends } = useRealSends();
+
+  const sessionHashes = new Set(realHistory.map((h) => h.txHash));
+  const liveTicks: TickItem[] = sends
+    .filter((s) => !sessionHashes.has(s.hash))
+    .map((s) => ({
+      amount: `${s.valueEth} ETH`,
+      to: shorten(s.to),
       note: "verified",
-      real: true as const,
-      href: h.explorerUrl,
-    })),
-    ...DEMO_TICKS.map((t) => ({ ...t, real: false as const, href: undefined })),
-  ];
+      href: `https://arbiscan.io/tx/${s.hash}`,
+    }));
+
+  const sessionTicks: TickItem[] = realHistory.map((h) => ({
+    amount: `${h.amount} ${h.token}`,
+    to: shorten(h.recipient),
+    note: "verified",
+    href: h.explorerUrl,
+  }));
+
+  /**
+   * Session's own just-completed sends always lead (most immediately
+   * relevant to whoever is looking at it), then live-fetched history,
+   * falling back to the hardcoded known-real pair only when there is
+   * genuinely nothing else to show.
+   */
+  const allItems =
+    sessionTicks.length > 0 || liveTicks.length > 0
+      ? [...sessionTicks, ...liveTicks]
+      : FALLBACK_TICKS;
   const items = [...allItems, ...allItems]; // duplicated for seamless loop
 
   return (
@@ -69,32 +96,15 @@ export default function TransactionTicker({
               {...(t.href
                 ? { href: t.href, target: "_blank", rel: "noreferrer" }
                 : {})}
-              className={`flex items-center gap-2 font-mono text-[11px] ${t.real ? "text-mist hover:text-check" : "text-dim"}`}
+              className="flex items-center gap-2 font-mono text-[11px] text-mist hover:text-check"
             >
-              {t.real ? (
-                <Icon
-                  name="verified"
-                  className="text-check text-[13px] align-middle"
-                />
-              ) : (
-                <span className="h-1 w-1 rounded-full bg-check" />
-              )}
-              <span
-                className={`font-medium ${t.real ? "text-chalk" : "text-mist"}`}
-              >
-                {t.amount}
-              </span>
+              <Icon
+                name="verified"
+                className="text-check text-[13px] align-middle"
+              />
+              <span className="font-medium text-chalk">{t.amount}</span>
               <span>→ {t.to}</span>
-              {/* The trailing note is the least essential part of each item.
-                  Drop it below sm so what's left fits the "read one item at a
-                  glance" budget of a narrow marquee. Real items keep their
-                  "verified" note visible at every width. It's the whole
-                  point of distinguishing them. */}
-              <span
-                className={`${t.real ? "text-check" : "hidden opacity-60 sm:inline"}`}
-              >
-                · {t.note}
-              </span>
+              <span className="text-check">· {t.note}</span>
             </Tag>
           );
         })}

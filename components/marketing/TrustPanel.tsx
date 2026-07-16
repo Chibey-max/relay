@@ -7,7 +7,7 @@
  * Contains a tilted mini-phone whose screen is also theme-reactive
  * (same tokens as the hero phone) and crossfades between the two real,
  * verified transactions. These hashes and the contract address are
- * real, kept verbatim (see components/marketing/realSends.ts).
+ * real, kept verbatim (see lib/realSends.ts).
  *
  * Note on scope: as with PhoneMock.tsx, the margin utilities inside the
  * mini-phone screen are a pixel-precise device mockup's internal

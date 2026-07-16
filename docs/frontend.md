@@ -138,5 +138,24 @@ runtime import for no real benefit.
 ## Contracts data shown on the frontend
 
 The two real, verified transaction hashes and the `RelayPolicy.sol`
-address shown on the marketing page (`components/marketing/realSends.ts`)
+address shown on the marketing page (`lib/realSends.ts`)
 are genuine, not placeholders. Do not replace them with fixture data.
+
+## Live real-send data, and its known limitation
+
+`app/api/real-sends/route.ts` fetches the Relay wallet's transaction
+history from Etherscan's V2 API, shared across consumers via
+`lib/useRealSends.ts` (the marketing ticker, `/app`'s ticker, and the
+payment receipt quote), each falling back to the session's own
+`realHistory` first and the hardcoded pair in `lib/realSends.ts` last.
+
+Confirmed against the wallet's actual transactions: this will keep
+returning an empty list for this wallet's normal send pattern. Real
+sends execute as EIP-7702 transactions where a relayer submits and
+pays gas, so the Relay wallet never appears as `tx.from`, only inside
+`authorizationList` and the calldata, neither of which the `txlist`
+endpoint exposes. This is not a bug to chase, session tracking and the
+hardcoded fallback are what actually keep this honest and populated.
+Properly detecting 7702-delegated sends would mean scanning raw
+transactions for `authorizationList` matches, a meaningfully bigger
+task left undone on purpose.

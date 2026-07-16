@@ -1,11 +1,15 @@
 /**
- * components/marketing/realSends.ts
+ * lib/realSends.ts
  *
- * The two real, verified Relay sends shown across the phone mockups on
- * the marketing page. Both moved between the same two wallets, the
- * Magic-derived Relay wallet 0xE732457153a6dbA7C0E1b9D4B1EA1F4E090cf03E
- * and recipient 0x829Ca89412Df6fe0bBC5C5d94aEf62B5b2102e63. Kept
- * verbatim, these are not placeholders.
+ * The two real, verified Relay sends kept as a hardcoded last-resort
+ * fallback wherever live data (see app/api/real-sends/route.ts) is
+ * unavailable, shown across the marketing page's phone mockups and
+ * /app's payment receipt and ticker. Both moved between the same two
+ * wallets, the Magic-derived Relay wallet
+ * 0xE732457153a6dbA7C0E1b9D4B1EA1F4E090cf03E and recipient
+ * 0x829Ca89412Df6fe0bBC5C5d94aEf62B5b2102e63. Kept verbatim, these are
+ * not placeholders. Shared here (not scoped under components/marketing)
+ * since /app needs the same fallback data, not just the marketing page.
  */
 
 export interface RealSend {

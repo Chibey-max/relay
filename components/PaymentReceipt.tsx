@@ -5,30 +5,20 @@
  * the quote appears, like a real confirmation landing. Reinforces "verified"
  * through motion and typography, never color decoration.
  *
- * Reads from the same relay:realHistory data TransactionTicker uses (newest
- * entry first; see the unshift in app/page.tsx's handleExecute) so the
- * receipt shows the most recent real send instead of staying frozen on one
- * fixed transaction, the same way the ticker already does.
+ * Three-tier source of truth, most specific first: the current session's
+ * own just-completed real send (realHistory, from app/app/page.tsx's
+ * handleExecute), then the most recent real send fetched live from
+ * app/api/real-sends/route.ts (shared across this page via
+ * lib/useRealSends.ts, so this and TransactionTicker never disagree on
+ * "most recent"), then the hardcoded known-real fallback in
+ * lib/realSends.ts as a last resort. Never fabricated data at any tier.
  */
 
 import { useEffect, useRef, useState } from "react";
 import Icon from "./Icon";
 import type { RealTick } from "./TransactionTicker";
-
-/**
- * Permanent fallback proof for a fresh session with no real send yet: a
- * genuinely real, independently-verifiable transaction (not a placeholder),
- * kept so the section never shows synthetic/fabricated data even before a
- * user has completed their own send.
- */
-const FALLBACK_TX = {
-  amount: "0.0002",
-  token: "ETH",
-  recipient: "Relay · Arbitrum One mainnet",
-  txHash: "0x118ff441…f80dcfe",
-  explorerUrl:
-    "https://arbiscan.io/tx/0x118ff441d1bb070c000b74a940ebc3637dfd3d989781321bd8ec47b22f80dcfe",
-};
+import { useRealSends } from "../lib/useRealSends";
+import { REAL_SENDS } from "../lib/realSends";
 
 function shortenHash(h: string): string {
   return h.length <= 20 ? h : `${h.slice(0, 10)}…${h.slice(-7)}`;
@@ -38,21 +28,78 @@ function shortenAddr(a: string): string {
   return a.length <= 12 ? a : `${a.slice(0, 6)}…${a.slice(-4)}`;
 }
 
+/**
+ * The one hardcoded last resort: lib/realSends.ts's second entry, the
+ * genuinely real EIP-7702 send, parsed from its title string rather than
+ * duplicating the amount/recipient as a second hardcoded value that
+ * could drift out of sync with that file.
+ */
+const STATIC_FALLBACK = REAL_SENDS[1];
+const STATIC_FALLBACK_AMOUNT = STATIC_FALLBACK.title.split(" ")[0];
+const STATIC_FALLBACK_TOKEN = STATIC_FALLBACK.title.split(" ")[1];
+
+interface Quote {
+  amount: string;
+  token: string;
+  recipientText: string;
+  hash: string;
+  href?: string;
+  isEip7702: boolean;
+}
+
+/**
+ * A real transaction, sent to and confirmed on Arbitrum One mainnet.
+ * Genuinely appends the EIP-7702 note only when that can be confirmed
+ * (the live-fetched tier carries this from Etherscan's tx type field),
+ * never assumed for the session or static fallback tiers.
+ */
+function buildQuote(q: Quote): string {
+  const base = `Verified real transaction. ${q.amount} ${q.token} sent to ${q.recipientText}, settled on Arbitrum One mainnet. Confirmed independently on Arbiscan.`;
+  return q.isEip7702 ? `${base} Delegated via EIP-7702.` : base;
+}
+
 export default function PaymentReceipt({
   realHistory = [],
 }: {
   realHistory?: RealTick[];
 }) {
-  const latest = realHistory[0];
+  const { sends } = useRealSends();
+  const sessionLatest = realHistory[0];
+  const liveLatest = sends[0];
 
-  const quote = latest
-    ? `Verified send. Relay's wallet delegated via EIP-7702 sent ${latest.amount} ${latest.token} on Arbitrum One mainnet. Confirmed independently on Arbiscan.`
-    : "Verified test transaction. Relay's wallet delegated via EIP-7702 and sent 0.0002 ETH on Arbitrum One mainnet. Confirmed independently on Arbiscan.";
-  const who = latest
-    ? `Relay · sent to ${shortenAddr(latest.recipient)}`
-    : FALLBACK_TX.recipient;
-  const hash = latest ? shortenHash(latest.txHash) : FALLBACK_TX.txHash;
-  const hashLink = latest?.explorerUrl ?? FALLBACK_TX.explorerUrl;
+  const quoteData: Quote = sessionLatest
+    ? {
+        amount: sessionLatest.amount,
+        token: sessionLatest.token,
+        recipientText: shortenAddr(sessionLatest.recipient),
+        hash: shortenHash(sessionLatest.txHash),
+        href: sessionLatest.explorerUrl,
+        // Not verifiable client-side without a second lookup, defaults
+        // to false rather than assume a delegation that can't be shown.
+        isEip7702: false,
+      }
+    : liveLatest
+      ? {
+          amount: liveLatest.valueEth,
+          token: "ETH",
+          recipientText: shortenAddr(liveLatest.to),
+          hash: shortenHash(liveLatest.hash),
+          href: `https://arbiscan.io/tx/${liveLatest.hash}`,
+          isEip7702: liveLatest.isEip7702,
+        }
+      : {
+          amount: STATIC_FALLBACK_AMOUNT,
+          token: STATIC_FALLBACK_TOKEN,
+          recipientText: "Relay",
+          hash: STATIC_FALLBACK.hash,
+          href: STATIC_FALLBACK.href,
+          isEip7702: true,
+        };
+
+  const quote = buildQuote(quoteData);
+  const who = sessionLatest
+    ? `Relay · sent to ${quoteData.recipientText}`
+    : "Relay · Arbitrum One mainnet";
 
   const ref = useRef<HTMLDivElement>(null);
   const [stamped, setStamped] = useState(false);
@@ -99,16 +146,16 @@ export default function PaymentReceipt({
       </p>
       <div className="flex items-center justify-between gap-3 border-t border-line pt-4">
         <span className="text-sm font-medium text-chalk">{who}</span>
-        {hashLink ? (
+        {quoteData.href ? (
           <a
-            href={hashLink}
+            href={quoteData.href}
             target="_blank"
             rel="noreferrer"
             className={`flex shrink-0 items-center gap-0.5 font-mono text-[10px] text-dim underline transition-opacity duration-500 delay-150 hover:text-check ${
               stamped ? "opacity-100" : "opacity-0"
             }`}
           >
-            {hash}{" "}
+            {quoteData.hash}{" "}
             <Icon
               name="open_in_new"
               className="text-[13px] align-middle no-underline"
@@ -120,7 +167,7 @@ export default function PaymentReceipt({
               stamped ? "opacity-100" : "opacity-0"
             }`}
           >
-            {hash}
+            {quoteData.hash}
           </span>
         )}
       </div>

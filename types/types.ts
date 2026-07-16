@@ -14,3 +14,22 @@ export interface ErrorLike {
   code?: string | number;
   stack?: string;
 }
+
+/**
+ * A real, on-chain send from the Relay wallet, fetched server-side from
+ * Etherscan's V2 API (see app/api/real-sends/route.ts). isEip7702 is a
+ * best-effort detection from the transaction's type field, present only
+ * when it can genuinely be confirmed, never assumed true by default.
+ */
+export interface LiveSend {
+  hash: string;
+  to: string;
+  valueEth: string;
+  timestamp: number;
+  isEip7702: boolean;
+}
+
+export interface RealSendsResponse {
+  sends: LiveSend[];
+  error?: string;
+}

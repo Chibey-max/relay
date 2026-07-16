@@ -6,7 +6,7 @@
 // by simply never advancing past the first entry.
 
 import { useEffect, useState } from "react";
-import { REAL_SENDS } from "./realSends";
+import { REAL_SENDS } from "../../lib/realSends";
 
 export function useRealSendCycle(
   motionOn: boolean,

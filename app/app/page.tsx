@@ -457,8 +457,9 @@ export default function Home() {
         });
         /**
          * Real, non-demo send. Accumulate as verifiable proof for the
-         * ticker, kept structurally separate from DEMO_TICKS (Rule 3:
-         * never conflate real and synthetic data).
+         * ticker and receipt, prepended ahead of any live-fetched
+         * history in both (see lib/useRealSends.ts) since this is the
+         * most immediately relevant real send to whoever just sent it.
          *
          * The live sendUnifiedTransfer() path (lib/particle.ts) never
          * actually sets txHash on its result, only transactionId and
