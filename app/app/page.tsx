@@ -412,7 +412,7 @@ export default function Home() {
           return;
         }
 
-        setSteps((s) => mark(s, 2, "done", "sourced across chains"));
+        setSteps((s) => mark(s, 2, "done", "routing to Arbitrum"));
         setSteps((s) => mark(s, 3, "active"));
         await tick(400);
 
@@ -787,12 +787,14 @@ export default function Home() {
                         </li>
                         <li className="flex gap-2">
                           <span className="shrink-0 text-dim">2.</span>Send USDC
-                          on Arbitrum, Base, Optimism, or Polygon mainnet
+                          on Arbitrum mainnet for a send that settles right
+                          away, funds on Base, Optimism, or Polygon show up in
+                          your balance too, but sends currently need the amount
+                          already on Arbitrum
                         </li>
                         <li className="flex gap-2">
                           <span className="shrink-0 text-dim">3.</span>Type what
-                          you want to send below, Relay finds the funds across
-                          chains
+                          you want to send below
                         </li>
                       </ol>
                       <div className="mt-3 flex gap-3 border-t border-line pt-3">
@@ -897,7 +899,7 @@ export default function Home() {
                     </button>
                   </div>
                   <p className="mt-2 text-xs text-dim">
-                    Gas sponsored · routed cross-chain · no seed phrase
+                    Gas sponsored · settles on Arbitrum · no seed phrase
                   </p>
 
                   {!intent.recipient && (

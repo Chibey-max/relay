@@ -22,7 +22,7 @@ const mono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "Relay: Money that moves the way you speak",
   description:
-    "Relay reads a sentence, finds your funds across every chain, and sends: no gas, no bridging, no seed phrase. Powered by Particle Universal Accounts in EIP-7702 mode.",
+    "Relay reads a sentence, unifies your balance across every chain, and sends: no gas, no bridging, no seed phrase. Powered by Particle Universal Accounts in EIP-7702 mode.",
 };
 
 export default function RootLayout({

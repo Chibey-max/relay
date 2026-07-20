@@ -12,7 +12,8 @@ import { motion, AnimatePresence } from "framer-motion";
 const QUOTES = [
   {
     say: "send 5 USDC to 0xd06e…5a91",
-    result: "Relay parses the address, finds your funds, settles on Arbitrum",
+    result:
+      "Relay parses the address, unifies your balance, settles on Arbitrum",
   },
   {
     say: "pay 0x4a2f…9e21 20 USDC for lunch",
@@ -20,8 +21,7 @@ const QUOTES = [
   },
   {
     say: "move 50 USDC to 0x71c3…44b2",
-    result:
-      "Relay sources it from wherever your balance sits, no bridging step",
+    result: "Relay confirms the funds are there and sends, gas covered",
   },
   {
     say: "split rent, 300 USDC to 0x8f19…c73d",

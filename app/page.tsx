@@ -66,7 +66,7 @@ const STEPS = [
   {
     n: "02",
     h: "Unify",
-    p: "Relay treats what you own across chains as one balance, no picking a network first.",
+    p: "See what you have across every chain as one number, no picking a network first.",
   },
   {
     n: "03",
@@ -87,7 +87,7 @@ const FEATURE_CARDS = [
   },
   {
     h: "One balance, any chain",
-    p: "Your funds don't need to already be in the right place. Relay finds them and unifies the view.",
+    p: "See every chain you hold funds on as one number, updated in real time.",
   },
   {
     h: "We cover the gas",
@@ -546,9 +546,9 @@ export default function MarketingPage() {
                       style={{ textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}
                     >
                       Type a sentence, say &ldquo;send 5 USDC to
-                      0x2c9b…7fa4&rdquo;, and Relay finds your funds, covers the
-                      network fee, and sends. No chain picker, no gas quote, no
-                      seed phrase.
+                      0x2c9b…7fa4&rdquo;, and Relay unifies your balance, covers
+                      the network fee, and sends. No chain picker, no gas quote,
+                      no seed phrase.
                     </motion.p>
                   </div>
                   <motion.div
@@ -587,9 +587,9 @@ export default function MarketingPage() {
                       style={{ textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}
                     >
                       Type a sentence, say &ldquo;send 5 USDC to
-                      0x2c9b…7fa4&rdquo;, and Relay finds your funds, covers the
-                      network fee, and sends. No chain picker, no gas quote, no
-                      seed phrase.
+                      0x2c9b…7fa4&rdquo;, and Relay unifies your balance, covers
+                      the network fee, and sends. No chain picker, no gas quote,
+                      no seed phrase.
                     </p>
                   </div>
                   <div className="flex items-center gap-6">

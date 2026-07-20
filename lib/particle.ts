@@ -257,8 +257,17 @@ async function withRequestLogging<T>(
   }
 }
 
-// The payment. UA sources liquidity across chains automatically, so the user
-// never picks a chain or bridges. That sourcing is the magic we surface.
+/**
+ * The payment. Settles on Arbitrum One mainnet (hardcoded below).
+ * Live-tested and confirmed: createTransferTransaction requires the
+ * requested token to already be present on that settlement chain, it
+ * does not bridge or convert funds from other chains in real time to
+ * fulfill a send. A send attempted while the token sat on a different
+ * chain failed with Particle's own -32653 "Insufficient primary token
+ * balance" error. Automatic cross-chain sourcing for settlement is not
+ * live; the unified balance view getUnifiedBalance() above provides is
+ * a separate, confirmed-working feature, don't conflate the two.
+ */
 export async function sendUnifiedTransfer(
   ua: UniversalAccount,
   signer: Signer,
@@ -460,8 +469,15 @@ export async function sendUnifiedTransfer(
       ua.sendTransaction(transaction, signature, authorizations)
     );
 
-    // The UA tells us which chains it pulled liquidity from via the per-chain
-    // UserOps: that's the cross-chain sourcing story we surface in the UI.
+    /**
+     * transaction.userOps is real data from the SDK, not fabricated,
+     * but per the live-tested finding above (this function's own
+     * comment), a transfer only succeeds when the token is already on
+     * the settlement chain, so this will typically resolve to a single
+     * Arbitrum entry in practice, not a genuine multi-chain pull. Kept
+     * as real per-chain UserOp data either way, just don't read a
+     * single-entry result as evidence cross-chain sourcing happened.
+     */
     const sourcedFrom = (transaction.userOps ?? []).map((op) => ({
       chain: chainName(op.chainId),
       amount: String(transaction.totalDepositTokenAmountInUSD ?? ""),

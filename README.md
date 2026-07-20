@@ -1,6 +1,6 @@
 # Relay
 
-**Speak your money.** One sentence becomes a cross-chain payment: no chains to pick, no gas to pay, no seed phrase.
+**Speak your money.** One sentence becomes a payment: no chains to pick, no gas to pay, no seed phrase.
 
 <p align="center">
   <img src="public/readme/hero.png" alt="Relay landing page hero" width="100%" />
@@ -35,9 +35,9 @@ Realistic ceiling if 1st on the main track: **$5,000** ($2,500 + $2,000 + $500),
 
 ## What it does
 
-Relay is a natural-language payment agent. You type _"send 5 USDC to 0x…"_ and Relay fulfils it through your **Particle Universal Account in EIP-7702 mode**, finding your funds wherever they live across chains, unifying them into one balance, sponsoring the gas, and confirming on Arbitrum. The entire interaction stays a single sentence.
+Relay is a natural-language payment agent. You type a sentence and Relay parses it, shows your balance unified across every chain you hold funds on, sponsors the policy-check gas via ZeroDev, and settles on Arbitrum from funds already available there. Cross-chain sourcing for the settlement step itself is not yet live, see the FAQ and Status section below for the honest current state. The entire interaction still stays a single sentence.
 
-The hero of the product isn't the sentence, it's the **unified balance reveal**: money scattered across Base, Arbitrum, and Optimism, shown as one spendable number. Universal Accounts is the visible magic; the agent is just how you spend it. Your existing EOA is upgraded in place via EIP-7702: no new address, no migration, no smart-account deployment.
+The hero of the product isn't the sentence, it's the **unified balance reveal**: money scattered across Base, Arbitrum, and Optimism, shown as one spendable number. That reveal is real and confirmed working. Your existing EOA is upgraded in place via EIP-7702: no new address, no migration, no smart-account deployment.
 
 ---
 
@@ -47,7 +47,7 @@ The hero of the product isn't the sentence, it's the **unified balance reveal**:
 | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------- |
 | **Landing page** ([relay-ashen-zeta.vercel.app](https://relay-ashen-zeta.vercel.app)) | The pitch: real verified sends, the balance-reveal moment, the deployed contract, one click through to the app | No            |
 | **Demo mode** ([/app?mode=demo](https://relay-ashen-zeta.vercel.app/app?mode=demo))   | The full flow on a pre-seeded test signer, no login, clearly badged as demo, never presented as a real send    | No            |
-| **Live mode** ([/app](https://relay-ashen-zeta.vercel.app/app))                       | Email login via Magic, a real Universal Account balance, a real sponsored cross-chain send on Arbitrum         | Just an email |
+| **Live mode** ([/app](https://relay-ashen-zeta.vercel.app/app))                       | Email login via Magic, a real Universal Account balance, a real sponsored send settling on Arbitrum            | Just an email |
 
 Every demo result is visibly labelled. Every live result links to a real Arbiscan transaction.
 
@@ -68,8 +68,8 @@ Every demo result is visibly labelled. Every live result links to a real Arbisca
   Particle Universal Account    lib/particle.ts    → one balance across chains (7702 mode)
         │                                              ↳ getPrimaryAssets(): the reveal
         ▼
-  Cross-chain transfer          lib/particle.ts    → createTransferTransaction()
-        │                                              ↳ sources liquidity automatically
+  Transfer to Arbitrum          lib/particle.ts    → createTransferTransaction()
+        │                                              ↳ requires the token already on Arbitrum
         ▼
   ZeroDev paymaster             lib/zerodev.ts     → gasless UserOp for local actions
         │
@@ -188,3 +188,5 @@ Particle Universal Accounts was mid-migration to V2 during the hackathon window.
 **RelayPolicy redeployed** with real `checkAndRecord` enforcement (auto-enrollment under owner-set default limits, blocking on violation), covered by `contracts/test/RelayPolicy.t.sol` (9/9 passing) and confirmed live on-chain. Verified on Arbiscan, source code is publicly readable on the contract page linked above.
 
 **Two real, verified sends** are shown throughout the app and the landing page, not fixture data: a 5 USDC transfer and an EIP-7702-authorized 0.00005 ETH transfer, both on Arbitrum One mainnet, both linked to Arbiscan.
+
+**Cross-chain sourcing was live-tested on 2026-07-20**: a send was attempted while funds sat on Base but not Arbitrum. Balance aggregation across chains worked correctly (visible in the unified balance display), but the actual settlement transaction failed with `-32653 Insufficient primary token balance`, confirming the requested token must already be present on Arbitrum for a send to complete. This is an honest current limitation, not a bug: the unified balance view is real and live; automatic cross-chain sourcing for settlement is not yet implemented. Confirmed via a real failed transaction on Arbitrum mainnet, error captured directly from Particle's SDK.
