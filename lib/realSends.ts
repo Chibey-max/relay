@@ -10,6 +10,11 @@
  * 0x829Ca89412Df6fe0bBC5C5d94aEf62B5b2102e63. Kept verbatim, these are
  * not placeholders. Shared here (not scoped under components/marketing)
  * since /app needs the same fallback data, not just the marketing page.
+ *
+ * The first title shows the real recipient as a truncated address, not
+ * an ENS name: the app does not resolve ENS (see the explicit notice
+ * in app/app/page.tsx), so no display copy anywhere should imply that
+ * capability, including this real transaction's own label.
  */
 
 export interface RealSend {
@@ -22,7 +27,7 @@ export interface RealSend {
 
 export const REAL_SENDS: RealSend[] = [
   {
-    title: "5.00 USDC to sarah.eth",
+    title: "5.00 USDC to 0x829C…2e63",
     hash: "0x118ff4…0dcfe",
     href: "https://arbiscan.io/tx/0x118ff441d1bb070c000b74a940ebc3637dfd3d989781321bd8ec47b22f80dcfe",
   },

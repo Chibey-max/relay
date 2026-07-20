@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 
 export type PhoneScreen = "agent" | "compose" | "processing" | "success";
 
-const SENTENCE = "send 5 USDC to sarah.eth";
+const SENTENCE = "send 5 USDC to 0x2c9b…7fa4";
 
 interface PhoneLoopState {
   screen: PhoneScreen;

@@ -26,7 +26,7 @@ function shortenAddr(a: string): string {
 
 /**
  * Parsed straight from lib/realSends.ts's title strings ("5.00 USDC to
- * sarah.eth", "0.00005 ETH · EIP-7702") rather than duplicating the
+ * 0x829C…2e63", "0.00005 ETH · EIP-7702") rather than duplicating the
  * amounts/recipients as a second hardcoded list that could drift out
  * of sync with that file.
  */

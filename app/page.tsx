@@ -546,7 +546,7 @@ export default function MarketingPage() {
                       style={{ textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}
                     >
                       Type a sentence, say &ldquo;send 5 USDC to
-                      sarah.eth&rdquo;, and Relay finds your funds, covers the
+                      0x2c9b…7fa4&rdquo;, and Relay finds your funds, covers the
                       network fee, and sends. No chain picker, no gas quote, no
                       seed phrase.
                     </motion.p>
@@ -587,7 +587,7 @@ export default function MarketingPage() {
                       style={{ textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}
                     >
                       Type a sentence, say &ldquo;send 5 USDC to
-                      sarah.eth&rdquo;, and Relay finds your funds, covers the
+                      0x2c9b…7fa4&rdquo;, and Relay finds your funds, covers the
                       network fee, and sends. No chain picker, no gas quote, no
                       seed phrase.
                     </p>

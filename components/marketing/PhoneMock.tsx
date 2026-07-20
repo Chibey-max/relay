@@ -49,7 +49,7 @@ export default function PhoneMock({ motionOn }: { motionOn: boolean }) {
     useAgentPhoneLoop(motionOn);
 
   const rows = [
-    { label: "Recipient", value: "sarah.eth" },
+    { label: "Recipient", value: "0x2c9b…7fa4" },
     { label: "Amount", value: "5.00 USDC" },
     { label: "Network fee", value: "Sponsored", chip: true },
     { label: "Settling on", value: "Arbitrum" },
