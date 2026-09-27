@@ -16,6 +16,8 @@ import { verifyOwnerAuth } from "../../../lib/auth";
 import { rateLimit, clientIp } from "../../../lib/rate-limit";
 import { parseEther, type Address } from "viem";
 import type { ErrorLike } from "../../../types/types";
+import { verifyGuard } from "../../../lib/guardToken";
+import { runPolicy } from "../../../lib/policy";
 
 /**
  * catch() gives unknown, a thrown value is not guaranteed to be a real
@@ -67,6 +69,69 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { ok: false, error: 'No amount found. Try: "send 5 USDC to 0x..."' },
       { status: 400 }
+    );
+  }
+
+  /**
+   * Relay Guard gate. Enforced here on the server, in demo AND live mode,
+   * so the UI is never the only thing standing between a BLOCK and a send.
+   *  1. The signed receipt from /api/parse-intent must be valid and match
+   *     this exact intent (no edits after review).
+   *  2. BLOCK never executes. REVIEW executes only with explicit human
+   *     acknowledgement.
+   *  3. Deterministic policy is re-run here against the original text.
+   */
+  const receipt = verifyGuard(body.guardToken);
+  if (!receipt.ok) {
+    return NextResponse.json(
+      { ok: false, guard: "missing", error: receipt.error },
+      { status: 403 }
+    );
+  }
+  const c = receipt.claims;
+  if (
+    c.amount !== intent.amount ||
+    (c.token ?? null) !== (intent.token ?? null) ||
+    (c.recipient ?? "").toLowerCase() !== intent.recipient.toLowerCase()
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        guard: "mismatch",
+        error: "This payment changed after Relay Guard reviewed it. Review it again.",
+      },
+      { status: 403 }
+    );
+  }
+  if (c.verdict === "BLOCK") {
+    return NextResponse.json(
+      { ok: false, guard: "BLOCK", error: "Relay Guard blocked this payment." },
+      { status: 403 }
+    );
+  }
+  if (c.verdict === "REVIEW" && body.reviewAck !== true) {
+    return NextResponse.json(
+      {
+        ok: false,
+        guard: "REVIEW",
+        error: "Relay Guard flagged this payment. Confirm you reviewed it first.",
+      },
+      { status: 403 }
+    );
+  }
+  const serverPolicy = runPolicy(c.raw, { ...intent, raw: c.raw }, {
+    injectionSuspected: false,
+  });
+  if (serverPolicy.floor === "BLOCK") {
+    return NextResponse.json(
+      {
+        ok: false,
+        guard: "BLOCK",
+        error:
+          serverPolicy.checks.find((x) => x.status === "FAIL")?.detail ??
+          "Relay Guard policy blocked this payment.",
+      },
+      { status: 403 }
     );
   }
 

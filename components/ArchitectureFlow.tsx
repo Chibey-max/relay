@@ -17,7 +17,7 @@ interface FlowNode {
 
 const NODES: FlowNode[] = [
   { label: "You type", detail: "“send 5 USDC to 0x…”" },
-  { label: "Groq", detail: "parses the intent" },
+  { label: "SERV Reasoning", detail: "parses and guards the intent" },
   { label: "Magic", detail: "signs, no seed phrase" },
   { label: "Particle UA", detail: "unifies funds across chains, EIP-7702" },
   { label: "ZeroDev", detail: "sponsors the gas" },

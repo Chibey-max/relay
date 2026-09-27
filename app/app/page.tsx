@@ -28,11 +28,14 @@ import {
   clearRelaySession,
 } from "../../lib/useSessionPersist";
 import type {
-  ParsedIntent,
   UnifiedBalance as Balance,
   ExecutionResult,
 } from "../../lib/config";
 import type { ErrorLike } from "../../types/types";
+import GuardPanel from "../../components/GuardPanel";
+import type { GuardedIntent } from "../../lib/serv";
+
+type GuardedClientIntent = GuardedIntent & { guardToken?: string };
 
 // ssr:false keeps magic-sdk out of the SSR webpack bundle
 const MagicLogin = dynamic(() => import("../../components/MagicLogin"), {
@@ -96,10 +99,11 @@ export default function Home() {
   }, []);
 
   const [text, setText] = useSessionPersist("relay:text", "");
-  const [intent, setIntent] = useSessionPersist<ParsedIntent | null>(
+  const [intent, setIntent] = useSessionPersist<GuardedClientIntent | null>(
     "relay:intent",
     null
   );
+  const [reviewAck, setReviewAck] = useState(false);
   const [balance, setBalance] = useSessionPersist<Balance | null>(
     "relay:balance",
     null
@@ -323,8 +327,10 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
-      const parsed: ParsedIntent = await res.json();
+      const parsed: GuardedClientIntent = await res.json();
+      if (!res.ok) throw new Error((parsed as { error?: string }).error);
       setIntent(parsed);
+      setReviewAck(false);
 
       /**
        * Refresh too, in case the balance changed between login and typing.
@@ -355,6 +361,11 @@ export default function Home() {
         state: "done",
         detail: `${intent.amount} ${intent.token} → ${shorten(intent.recipient)}`,
       },
+      {
+        label: "Relay Guard (SERV Reasoning)",
+        state: "done",
+        detail: `${intent.guard?.verdict ?? "?"} · risk ${intent.guard?.riskScore ?? "?"}/100`,
+      },
       { label: "ZeroDev gas-sponsored check", state: "active" },
       { label: "Routing through your Universal Account", state: "idle" },
       { label: "Confirming on Arbitrum", state: "idle" },
@@ -374,7 +385,13 @@ export default function Home() {
         const validateRes = await fetch("/api/execute", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ intent, mode: relayMode, ...authProof }),
+          body: JSON.stringify({
+            intent,
+            mode: relayMode,
+            guardToken: intent.guardToken,
+            reviewAck,
+            ...authProof,
+          }),
         });
         const validateData = await validateRes.json();
 
@@ -382,18 +399,14 @@ export default function Home() {
         // Show ZeroDev result in step 1
         if (validateData.userOpHash) {
           setSteps((s) =>
-            mark(
-              s,
-              1,
+            mark(s, 2,
               "done",
               `userOp: ${validateData.userOpHash.slice(0, 18)}…`
             )
           );
         } else {
           setSteps((s) =>
-            mark(
-              s,
-              1,
+            mark(s, 2,
               "done",
               validateData.zdError
                 ? `check skipped: ${validateData.zdError.slice(0, 40)}`
@@ -401,19 +414,19 @@ export default function Home() {
             )
           );
         }
-        setSteps((s) => mark(s, 2, "active"));
+        setSteps((s) => mark(s, 3, "active"));
         await tick(700);
 
         if (!validateData.ready) {
-          setSteps((s) => mark(s, 2, "error", validateData.error));
+          setSteps((s) => mark(s, 3, "error", validateData.error));
           setError(validateData.error ?? "Validation failed.");
           setPhase("done");
           setBusy(false);
           return;
         }
 
-        setSteps((s) => mark(s, 2, "done", "routing to Arbitrum"));
-        setSteps((s) => mark(s, 3, "active"));
+        setSteps((s) => mark(s, 3, "done", "routing to Arbitrum"));
+        setSteps((s) => mark(s, 4, "active"));
         await tick(400);
 
         // Client-side: sign and broadcast via Universal Account (reuse the
@@ -436,16 +449,14 @@ export default function Home() {
             "[handleExecute] sendUnifiedTransfer failed:",
             txResult
           );
-          setSteps((s) => mark(s, 3, "error", txResult.error));
+          setSteps((s) => mark(s, 4, "error", txResult.error));
           setError(txResult.error ?? "Transfer failed.");
           setPhase("done");
           setBusy(false);
           return;
         }
         setSteps((s) =>
-          mark(
-            s,
-            3,
+          mark(s, 4,
             "done",
             txResult.userOpHash ?? txResult.transactionId ?? txResult.txHash
           )
@@ -499,31 +510,41 @@ export default function Home() {
         const res = await fetch("/api/execute", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ intent, mode: relayMode }),
+          body: JSON.stringify({
+            intent,
+            mode: relayMode,
+            guardToken: intent.guardToken,
+            reviewAck,
+          }),
         });
         const data = await res.json();
+        if (res.status === 403) {
+          setSteps((s) => mark(s, 2, "error", data.error));
+          setError(data.error ?? "Relay Guard stopped this payment.");
+          setPhase("done");
+          setBusy(false);
+          return;
+        }
 
         await tick(600);
         setSteps((s) =>
-          mark(
-            s,
-            1,
+          mark(s, 2,
             "done",
             data.sourcedFrom ? "unified across chains" : undefined
           )
         );
-        setSteps((s) => mark(s, 2, "active"));
-        await tick(700);
-        setSteps((s) => mark(s, 2, "done", "no bridging, no gas"));
         setSteps((s) => mark(s, 3, "active"));
+        await tick(700);
+        setSteps((s) => mark(s, 3, "done", "no bridging, no gas"));
+        setSteps((s) => mark(s, 4, "active"));
         await tick(700);
 
         if (data.ok || data.mode === "demo") {
-          setSteps((s) => mark(s, 3, "done", data.transactionId));
+          setSteps((s) => mark(s, 4, "done", data.transactionId));
           setResult(data);
           setPhase("done");
         } else {
-          setSteps((s) => mark(s, 3, "error", data.error));
+          setSteps((s) => mark(s, 4, "error", data.error));
           setError(data.error ?? "Execution failed.");
           setPhase("done");
         }
@@ -554,6 +575,7 @@ export default function Home() {
     setPhase(relayMode === "live" && !ownerAddress ? "login" : "input");
     setText("");
     setIntent(null);
+    setReviewAck(false);
     setResult(null);
     setSteps([]);
     setError(null);
@@ -874,6 +896,15 @@ export default function Home() {
               <div className="space-y-6">
                 <UnifiedBalance balance={balance} />
 
+                {intent.guard && (
+                  <GuardPanel
+                    guard={intent.guard}
+                    trace={intent.trace ?? []}
+                    reviewAck={reviewAck}
+                    onReviewAck={setReviewAck}
+                  />
+                )}
+
                 <div className="rounded-2xl border border-line bg-slate p-6">
                   <span className="font-mono text-[10px] uppercase tracking-widest text-dim">
                     Ready to send
@@ -932,11 +963,16 @@ export default function Home() {
                         !intent.recipient ||
                         !intent.recipient.startsWith("0x") ||
                         !intent.amount ||
-                        intent.action !== "transfer"
+                        intent.action !== "transfer" ||
+                        !intent.guard ||
+                        intent.guard.verdict === "BLOCK" ||
+                        (intent.guard.verdict === "REVIEW" && !reviewAck)
                       }
                       className="flex-1 rounded-lg bg-chalk px-5 py-2 text-sm font-medium text-ink transition hover:opacity-90 disabled:opacity-40"
                     >
-                      Confirm & send
+                      {intent.guard?.verdict === "BLOCK"
+                        ? "Blocked by Relay Guard"
+                        : "Confirm & send"}
                     </button>
                   </div>
                 </div>

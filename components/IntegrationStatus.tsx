@@ -11,7 +11,7 @@
 export default function IntegrationStatus() {
   return (
     <span className="font-mono text-[10px] uppercase tracking-wider text-mist">
-      Built with Particle · Magic · ZeroDev, settled on Arbitrum
+      Guarded by SERV Reasoning · Particle · Magic · ZeroDev, settled on Arbitrum
     </span>
   );
 }
